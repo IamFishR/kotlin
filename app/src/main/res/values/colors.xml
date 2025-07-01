@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Windows 11 Dark Theme Colors -->
+    <color name="win11_background">#FF1C1C1C</color>
+    <color name="win11_surface">#FF2D2D30</color>
+    <color name="win11_surface_variant">#FF3C3C3C</color>
+    <color name="win11_primary">#FF0078D4</color>
+    <color name="win11_primary_variant">#FF106EBE</color>
+    <color name="win11_secondary">#FF005A9E</color>
+    <color name="win11_accent">#FF0078D4</color>
+    <color name="win11_on_background">#FFFFFFFF</color>
+    <color name="win11_on_surface">#FFFFFFFF</color>
+    <color name="win11_on_primary">#FFFFFFFF</color>
+    <color name="win11_text_primary">#FFFFFFFF</color>
+    <color name="win11_text_secondary">#FFCCCCCC</color>
+    <color name="win11_text_tertiary">#FF999999</color>
+    <color name="win11_taskbar">#FF1F1F1F</color>
+    <color name="win11_taskbar_hover">#FF2D2D30</color>
+    <color name="win11_start_menu">#FF232323</color>
+    <color name="win11_start_menu_accent">#FF323233</color>
+    <color name="win11_divider">#FF404040</color>
+</resources>

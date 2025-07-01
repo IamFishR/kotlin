@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Win11 Launcher</string>
+    <string name="start_menu">Start</string>
+    <string name="search_apps">Search for apps, settings, and documents</string>
+    <string name="pinned_apps">Pinned</string>
+    <string name="recommended">Recommended</string>
+    <string name="all_apps">All apps</string>
+    <string name="power_options">Power</string>
+    <string name="settings">Settings</string>
+</resources>
