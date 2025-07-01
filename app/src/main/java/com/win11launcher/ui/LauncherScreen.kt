@@ -13,13 +13,16 @@ import com.win11launcher.ui.components.AllAppsScreen
 import com.win11launcher.ui.components.NotificationPanel
 import com.win11launcher.ui.components.StartMenu
 import com.win11launcher.ui.components.Taskbar
+import com.win11launcher.ui.components.WallpaperBackground
 import com.win11launcher.utils.SystemStatusManager
+import com.win11launcher.utils.rememberWallpaperManager
 
 @Composable
 fun LauncherScreen() {
     val context = LocalContext.current
     val appRepository = remember { AppRepository(context) }
     val systemStatusManager = remember { SystemStatusManager(context) }
+    val wallpaperManager = rememberWallpaperManager()
     
     var showStartMenu by remember { mutableStateOf(false) }
     var showAllApps by remember { mutableStateOf(false) }
@@ -39,10 +42,9 @@ fun LauncherScreen() {
     
     val systemStatus by systemStatusManager.systemStatus
     
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+    WallpaperBackground(
+        wallpaper = wallpaperManager.getWallpaper(),
+        modifier = Modifier.fillMaxSize()
     ) {
         when {
             showAllApps -> {
