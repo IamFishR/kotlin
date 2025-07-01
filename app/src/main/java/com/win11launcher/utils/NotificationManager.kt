@@ -1,8 +1,10 @@
 package com.win11launcher.utils
 
+import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.runtime.Composable
@@ -60,30 +62,64 @@ class NotificationManager(private val context: Context) {
     
     fun handleNotificationClick(notification: AppNotification) {
         try {
-            // Try to use the notification's content intent first
-            notification.contentIntent?.let { pendingIntent ->
-                pendingIntent.send()
-                return
+            // For Android 10+ (API 29+), we need to handle background launch restrictions
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // Use the notification's content intent if available
+                notification.contentIntent?.let { pendingIntent ->
+                    // Create a proper bundle for background launch
+                    val options = android.os.Bundle().apply {
+                        putBoolean("android.pendingIntent.backgroundActivityAllowed", true)
+                    }
+                    
+                    // Send the pending intent with proper callback
+                    val callback = object : PendingIntent.OnFinished {
+                        override fun onSendFinished(
+                            pendingIntent: PendingIntent?,
+                            intent: Intent?,
+                            resultCode: Int,
+                            resultData: String?,
+                            resultExtras: android.os.Bundle?
+                        ) {
+                            // If pending intent fails, try launching app directly
+                            if (resultCode != 0) {
+                                launchAppDirectly(notification.packageName)
+                            }
+                        }
+                    }
+                    
+                    pendingIntent.send(context, 0, null, callback, null, null, options)
+                    return
+                }
+            } else {
+                // For older Android versions, use the content intent directly
+                notification.contentIntent?.let { pendingIntent ->
+                    pendingIntent.send()
+                    return
+                }
             }
             
             // Fallback: Launch the app directly
-            val launchIntent = context.packageManager.getLaunchIntentForPackage(notification.packageName)
+            launchAppDirectly(notification.packageName)
+            
+        } catch (e: Exception) {
+            android.util.Log.e("NotificationManager", "Failed to handle notification click", e)
+            // Last resort: try launching the app
+            launchAppDirectly(notification.packageName)
+        }
+    }
+    
+    private fun launchAppDirectly(packageName: String) {
+        try {
+            val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
             launchIntent?.let {
-                it.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                it.flags = Intent.FLAG_ACTIVITY_NEW_TASK or 
+                          Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED or
+                          Intent.FLAG_ACTIVITY_CLEAR_TOP
+                it.addCategory(Intent.CATEGORY_LAUNCHER)
                 context.startActivity(it)
             }
         } catch (e: Exception) {
-            // If all else fails, try to launch the app
-            try {
-                val launchIntent = context.packageManager.getLaunchIntentForPackage(notification.packageName)
-                launchIntent?.let {
-                    it.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    context.startActivity(it)
-                }
-            } catch (fallbackException: Exception) {
-                // Log the error but don't crash
-                android.util.Log.e("NotificationManager", "Failed to handle notification click", fallbackException)
-            }
+            android.util.Log.e("NotificationManager", "Failed to launch app directly: $packageName", e)
         }
     }
     
