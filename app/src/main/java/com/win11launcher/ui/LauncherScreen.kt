@@ -10,16 +10,34 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.win11launcher.data.AppRepository
 import com.win11launcher.ui.components.AllAppsScreen
+import com.win11launcher.ui.components.NotificationPanel
 import com.win11launcher.ui.components.StartMenu
 import com.win11launcher.ui.components.Taskbar
+import com.win11launcher.utils.SystemStatusManager
 
 @Composable
 fun LauncherScreen() {
     val context = LocalContext.current
     val appRepository = remember { AppRepository(context) }
+    val systemStatusManager = remember { SystemStatusManager(context) }
     
     var showStartMenu by remember { mutableStateOf(false) }
     var showAllApps by remember { mutableStateOf(false) }
+    var showNotificationPanel by remember { mutableStateOf(false) }
+    
+    // Start monitoring system status
+    LaunchedEffect(Unit) {
+        systemStatusManager.startMonitoring()
+    }
+    
+    // Stop monitoring when the composable is disposed
+    DisposableEffect(Unit) {
+        onDispose {
+            systemStatusManager.stopMonitoring()
+        }
+    }
+    
+    val systemStatus by systemStatusManager.systemStatus
     
     Box(
         modifier = Modifier
@@ -52,12 +70,27 @@ fun LauncherScreen() {
             }
         }
         
+        // Notification panel
+        NotificationPanel(
+            showPanel = showNotificationPanel,
+            systemStatus = systemStatus,
+            onDismiss = { showNotificationPanel = false }
+        )
+        
         Taskbar(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(48.dp),
-            onStartClick = { showStartMenu = !showStartMenu }
+            systemStatus = systemStatus,
+            onStartClick = { 
+                showStartMenu = !showStartMenu
+                showNotificationPanel = false
+            },
+            onSystemTrayClick = { 
+                showNotificationPanel = !showNotificationPanel
+                showStartMenu = false
+            }
         )
     }
 }
