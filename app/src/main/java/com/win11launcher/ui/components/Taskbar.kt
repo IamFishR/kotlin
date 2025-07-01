@@ -272,7 +272,8 @@ private fun DateTimeDisplay(
         modifier = modifier
             .clickable { onClick() }
             .padding(horizontal = 8.dp, vertical = 2.dp),
-        horizontalAlignment = Alignment.End
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.spacedBy((-2).dp)
     ) {
         Text(
             text = systemStatus.currentTime,

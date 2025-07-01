@@ -81,7 +81,7 @@ fun LauncherScreen() {
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .height(48.dp),
+                .height(56.dp),
             systemStatus = systemStatus,
             onStartClick = { 
                 showStartMenu = !showStartMenu
