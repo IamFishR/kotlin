@@ -1,6 +1,7 @@
 package com.win11launcher.services
 
 import android.app.Notification
+import android.app.PendingIntent
 import android.content.Intent
 import android.graphics.drawable.Icon
 import android.os.IBinder
@@ -23,7 +24,8 @@ data class AppNotification(
     val timestamp: Long,
     val smallIcon: Icon?,
     val isOngoing: Boolean,
-    val isClearable: Boolean
+    val isClearable: Boolean,
+    val contentIntent: PendingIntent?
 )
 
 class Win11NotificationListenerService : NotificationListenerService() {
@@ -116,7 +118,8 @@ class Win11NotificationListenerService : NotificationListenerService() {
                         timestamp = sbn.postTime,
                         smallIcon = notification.smallIcon,
                         isOngoing = notification.flags and Notification.FLAG_ONGOING_EVENT != 0,
-                        isClearable = sbn.isClearable
+                        isClearable = sbn.isClearable,
+                        contentIntent = notification.contentIntent
                     )
                     
                     notificationsList.add(appNotification)

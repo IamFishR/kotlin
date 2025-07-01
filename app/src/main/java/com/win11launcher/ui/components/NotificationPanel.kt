@@ -306,7 +306,8 @@ private fun NotificationsSection(
                 items(notifications) { notification ->
                     RealNotificationCard(
                         notification = notification,
-                        onDismiss = { notificationManager.dismissNotification(notification.id) }
+                        onDismiss = { notificationManager.dismissNotification(notification.id) },
+                        onClick = { notificationManager.handleNotificationClick(notification) }
                     )
                 }
             }
@@ -317,12 +318,13 @@ private fun NotificationsSection(
 @Composable
 private fun RealNotificationCard(
     notification: AppNotification,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* Handle notification click */ },
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF404040)
         ),

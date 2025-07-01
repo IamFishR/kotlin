@@ -58,6 +58,35 @@ class NotificationManager(private val context: Context) {
         }
     }
     
+    fun handleNotificationClick(notification: AppNotification) {
+        try {
+            // Try to use the notification's content intent first
+            notification.contentIntent?.let { pendingIntent ->
+                pendingIntent.send()
+                return
+            }
+            
+            // Fallback: Launch the app directly
+            val launchIntent = context.packageManager.getLaunchIntentForPackage(notification.packageName)
+            launchIntent?.let {
+                it.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                context.startActivity(it)
+            }
+        } catch (e: Exception) {
+            // If all else fails, try to launch the app
+            try {
+                val launchIntent = context.packageManager.getLaunchIntentForPackage(notification.packageName)
+                launchIntent?.let {
+                    it.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    context.startActivity(it)
+                }
+            } catch (fallbackException: Exception) {
+                // Log the error but don't crash
+                android.util.Log.e("NotificationManager", "Failed to handle notification click", fallbackException)
+            }
+        }
+    }
+    
     companion object {
         const val NOTIFICATION_ACCESS_REQUEST_CODE = 1001
     }
