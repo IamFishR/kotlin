@@ -273,6 +273,20 @@ private fun NotificationsSection(
                     ) {
                         Text("Grant Access", color = Color.White)
                     }
+                    
+                    // Add background permissions button if needed
+                    if (!notificationManager.isBackgroundLaunchAllowed()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Button(
+                            onClick = { notificationManager.checkAndRequestBackgroundPermissions() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF0078D4).copy(alpha = 0.7f)
+                            )
+                        ) {
+                            Text("Enable Background Launch", color = Color.White, fontSize = 12.sp)
+                        }
+                    }
                 }
             }
         } else if (notifications.isEmpty()) {
@@ -300,15 +314,70 @@ private fun NotificationsSection(
                 }
             }
         } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(notifications) { notification ->
-                    RealNotificationCard(
-                        notification = notification,
-                        onDismiss = { notificationManager.dismissNotification(notification.id) },
-                        onClick = { notificationManager.handleNotificationClick(notification) }
-                    )
+            Column {
+                // Show background permissions warning if needed
+                if (!notificationManager.isBackgroundLaunchAllowed()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFF404040)
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = "Warning",
+                                tint = Color(0xFFFFB74D),
+                                modifier = Modifier.size(20.dp)
+                            )
+                            
+                            Spacer(modifier = Modifier.width(8.dp))
+                            
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Background launch restricted",
+                                    color = Color.White,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = "Grant additional permissions for notification clicks",
+                                    color = Color.Gray,
+                                    fontSize = 10.sp
+                                )
+                            }
+                            
+                            TextButton(
+                                onClick = { notificationManager.checkAndRequestBackgroundPermissions() }
+                            ) {
+                                Text(
+                                    text = "Fix",
+                                    color = Color(0xFF0078D4),
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(notifications) { notification ->
+                        RealNotificationCard(
+                            notification = notification,
+                            onDismiss = { notificationManager.dismissNotification(notification.id) },
+                            onClick = { notificationManager.handleNotificationClick(notification) }
+                        )
+                    }
                 }
             }
         }
