@@ -11,6 +11,7 @@ import android.os.BatteryManager
 import android.telephony.TelephonyManager
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
+import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -34,6 +35,10 @@ class SystemStatusManager(private val context: Context) {
     private val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
     private val dateFormat = SimpleDateFormat("M/d/yyyy", Locale.getDefault())
     
+    private var isReceiverRegistered = false
+    private var timeUpdateJob: Job? = null
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    
     private val batteryReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
@@ -45,12 +50,19 @@ class SystemStatusManager(private val context: Context) {
     }
     
     fun startMonitoring() {
-        val filter = IntentFilter().apply {
-            addAction(Intent.ACTION_BATTERY_CHANGED)
-            addAction(Intent.ACTION_TIME_TICK)
-            addAction(ConnectivityManager.CONNECTIVITY_ACTION)
+        if (!isReceiverRegistered) {
+            val filter = IntentFilter().apply {
+                addAction(Intent.ACTION_BATTERY_CHANGED)
+                addAction(Intent.ACTION_TIME_TICK)
+                addAction(ConnectivityManager.CONNECTIVITY_ACTION)
+            }
+            try {
+                context.registerReceiver(batteryReceiver, filter)
+                isReceiverRegistered = true
+            } catch (e: Exception) {
+                // Handle registration failure
+            }
         }
-        context.registerReceiver(batteryReceiver, filter)
         
         // Initial updates
         updateBatteryStatus()
@@ -62,11 +74,20 @@ class SystemStatusManager(private val context: Context) {
     }
     
     fun stopMonitoring() {
-        try {
-            context.unregisterReceiver(batteryReceiver)
-        } catch (e: Exception) {
-            // Receiver might not be registered
+        timeUpdateJob?.cancel()
+        timeUpdateJob = null
+        
+        if (isReceiverRegistered) {
+            try {
+                context.unregisterReceiver(batteryReceiver)
+            } catch (e: Exception) {
+                // Handle unregister failure
+            } finally {
+                isReceiverRegistered = false
+            }
         }
+        
+        scope.cancel()
     }
     
     private fun updateBatteryStatus(intent: Intent? = null) {
@@ -163,17 +184,12 @@ class SystemStatusManager(private val context: Context) {
     }
     
     private fun startTimeUpdates() {
-        // The TIME_TICK broadcast is sent every minute, but we can also
-        // manually update more frequently if needed
-        Thread {
-            while (true) {
-                try {
-                    Thread.sleep(1000) // Update every second
-                    updateDateTime()
-                } catch (e: InterruptedException) {
-                    break
-                }
+        timeUpdateJob?.cancel()
+        timeUpdateJob = scope.launch {
+            while (isActive) {
+                updateDateTime()
+                delay(1000) // Update every second
             }
-        }.start()
+        }
     }
 }
