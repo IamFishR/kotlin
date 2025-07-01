@@ -55,7 +55,7 @@ fun NotificationPanel(
     if (showPanel) {
         Popup(
             alignment = Alignment.BottomEnd,
-            offset = androidx.compose.ui.unit.IntOffset(-16, -72),
+            offset = androidx.compose.ui.unit.IntOffset(-16, -128), // -72 original + -56 taskbar height
             onDismissRequest = onDismiss,
             properties = PopupProperties(
                 focusable = true,
