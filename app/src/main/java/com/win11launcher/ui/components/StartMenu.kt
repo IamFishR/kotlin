@@ -29,7 +29,8 @@ data class AppItem(
 @Composable
 fun StartMenu(
     modifier: Modifier = Modifier,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onAllAppsClick: () -> Unit = {}
 ) {
     Card(
         modifier = modifier
@@ -53,7 +54,8 @@ fun StartMenu(
             PinnedAppsSection(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(1f),
+                onAllAppsClick = onAllAppsClick
             )
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -99,7 +101,8 @@ private fun SearchBar(
 
 @Composable
 private fun PinnedAppsSection(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onAllAppsClick: () -> Unit = {}
 ) {
     val pinnedApps = remember {
         listOf(
@@ -134,7 +137,7 @@ private fun PinnedAppsSection(
             )
             
             TextButton(
-                onClick = { },
+                onClick = onAllAppsClick,
                 colors = ButtonDefaults.textButtonColors(
                     contentColor = Color(0xFF0078D4)
                 )

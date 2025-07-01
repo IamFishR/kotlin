@@ -6,28 +6,50 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.win11launcher.data.AppRepository
+import com.win11launcher.ui.components.AllAppsScreen
 import com.win11launcher.ui.components.StartMenu
 import com.win11launcher.ui.components.Taskbar
 
 @Composable
 fun LauncherScreen() {
+    val context = LocalContext.current
+    val appRepository = remember { AppRepository(context) }
+    
     var showStartMenu by remember { mutableStateOf(false) }
+    var showAllApps by remember { mutableStateOf(false) }
     
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        if (showStartMenu) {
-            StartMenu(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(bottom = 56.dp)
-                    .width(600.dp)
-                    .height(680.dp),
-                onDismiss = { showStartMenu = false }
-            )
+        when {
+            showAllApps -> {
+                AllAppsScreen(
+                    appRepository = appRepository,
+                    onBackClick = { 
+                        showAllApps = false
+                        showStartMenu = true
+                    }
+                )
+            }
+            showStartMenu -> {
+                StartMenu(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(bottom = 56.dp)
+                        .width(600.dp)
+                        .height(680.dp),
+                    onDismiss = { showStartMenu = false },
+                    onAllAppsClick = {
+                        showStartMenu = false
+                        showAllApps = true
+                    }
+                )
+            }
         }
         
         Taskbar(
