@@ -15,12 +15,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.win11launcher.services.AppNotification
+import com.win11launcher.utils.NotificationManager
 import com.win11launcher.utils.SystemStatus
+import com.win11launcher.utils.rememberNotifications
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -45,10 +49,13 @@ fun NotificationPanel(
     systemStatus: SystemStatus,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+    val notificationManager = remember { NotificationManager(context) }
+    val realNotifications = rememberNotifications(notificationManager)
     if (showPanel) {
         Popup(
             alignment = Alignment.BottomEnd,
-            offset = androidx.compose.ui.unit.IntOffset(-16, -60),
+            offset = androidx.compose.ui.unit.IntOffset(-16, -72),
             onDismissRequest = onDismiss,
             properties = PopupProperties(
                 focusable = true,
@@ -83,6 +90,8 @@ fun NotificationPanel(
                     
                     // Notifications
                     NotificationsSection(
+                        notifications = realNotifications,
+                        notificationManager = notificationManager,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -190,33 +199,10 @@ private fun QuickActionButton(
 
 @Composable
 private fun NotificationsSection(
+    notifications: List<AppNotification>,
+    notificationManager: NotificationManager,
     modifier: Modifier = Modifier
 ) {
-    val notifications = remember {
-        listOf(
-            NotificationItem(
-                title = "System Update Available",
-                content = "Android security update is ready to install",
-                time = "2 min ago",
-                appName = "System",
-                icon = Icons.Default.SystemUpdate
-            ),
-            NotificationItem(
-                title = "Battery Optimization",
-                content = "Your device is running smoothly",
-                time = "1 hour ago",
-                appName = "Battery",
-                icon = Icons.Default.BatteryFull
-            ),
-            NotificationItem(
-                title = "Wi-Fi Connected",
-                content = "Connected to Home Network",
-                time = "3 hours ago",
-                appName = "Settings",
-                icon = Icons.Default.Wifi
-            )
-        )
-    }
     
     Column(modifier = modifier) {
         Row(
@@ -232,7 +218,7 @@ private fun NotificationsSection(
             )
             
             TextButton(
-                onClick = { /* Clear all */ }
+                onClick = { notificationManager.dismissAllNotifications() }
             ) {
                 Text(
                     text = "Clear all",
@@ -244,7 +230,52 @@ private fun NotificationsSection(
         
         Spacer(modifier = Modifier.height(8.dp))
         
-        if (notifications.isEmpty()) {
+        if (!notificationManager.isNotificationAccessEnabled()) {
+            // Show permission request UI
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.NotificationsOff,
+                        contentDescription = "Notification access disabled",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "Notification access required",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    Text(
+                        text = "Enable notification access to see your notifications here",
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Button(
+                        onClick = { notificationManager.openNotificationAccessSettings() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF0078D4)
+                        )
+                    ) {
+                        Text("Grant Access", color = Color.White)
+                    }
+                }
+            }
+        } else if (notifications.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -273,7 +304,80 @@ private fun NotificationsSection(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(notifications) { notification ->
-                    NotificationCard(notification)
+                    RealNotificationCard(
+                        notification = notification,
+                        onDismiss = { notificationManager.dismissNotification(notification.id) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RealNotificationCard(
+    notification: AppNotification,
+    onDismiss: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { /* Handle notification click */ },
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF404040)
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Icon(
+                imageVector = Icons.Default.Notifications, // We'll enhance this later with app icons
+                contentDescription = notification.appName,
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
+            )
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = notification.title.ifEmpty { notification.appName },
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                
+                if (notification.content.isNotEmpty()) {
+                    Text(
+                        text = notification.content,
+                        color = Color.Gray,
+                        fontSize = 12.sp,
+                        maxLines = 2
+                    )
+                }
+                
+                Text(
+                    text = "${notification.appName} • ${notification.time}",
+                    color = Color.Gray,
+                    fontSize = 10.sp
+                )
+            }
+            
+            if (notification.isClearable) {
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Dismiss",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
             }
         }
