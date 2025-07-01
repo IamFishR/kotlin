@@ -31,7 +31,8 @@ fun RuleManagementScreen(
     onRuleEdit: (String) -> Unit,
     onRuleDelete: (String) -> Unit,
     onCreateNewRule: () -> Unit,
-    onRuleDetails: (String) -> Unit
+    onRuleDetails: (String) -> Unit,
+    onViewNotes: () -> Unit = {}
 ) {
     val activeRules = rules.filter { it.isActive }
     val inactiveRules = rules.filter { !it.isActive }
@@ -61,16 +62,32 @@ fun RuleManagementScreen(
                 )
             }
             
-            FloatingActionButton(
-                onClick = onCreateNewRule,
-                modifier = Modifier.size(48.dp),
-                containerColor = MaterialTheme.colorScheme.primary
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Create new rule",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
+                OutlinedButton(
+                    onClick = onViewNotes
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Visibility,
+                        contentDescription = "View notes",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Notes")
+                }
+                
+                FloatingActionButton(
+                    onClick = onCreateNewRule,
+                    modifier = Modifier.size(48.dp),
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Create new rule",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
         }
         

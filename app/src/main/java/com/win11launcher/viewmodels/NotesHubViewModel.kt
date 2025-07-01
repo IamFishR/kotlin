@@ -27,6 +27,40 @@ class NotesHubViewModel(application: Application) : AndroidViewModel(application
     val rules = database.trackingRuleDao().getAllRules()
     val notes = database.noteDao().getAllNotes()
     
+    // Notes view state
+    private val _notesViewState = MutableStateFlow(NotesViewState())
+    val notesViewState: StateFlow<NotesViewState> = _notesViewState.asStateFlow()
+    
+    // Filtered notes based on search and folder selection
+    val filteredNotes = combine(
+        notes,
+        _notesViewState
+    ) { allNotes, viewState ->
+        var filtered = allNotes
+        
+        // Filter by folder if selected
+        viewState.selectedFolderId?.let { folderId ->
+            filtered = filtered.filter { it.folderId == folderId }
+        }
+        
+        // Filter by search query
+        if (viewState.searchQuery.isNotEmpty()) {
+            val query = viewState.searchQuery.lowercase()
+            filtered = filtered.filter { note ->
+                note.title.lowercase().contains(query) ||
+                note.content.lowercase().contains(query) ||
+                note.tags.lowercase().contains(query)
+            }
+        }
+        
+        // Sort by creation date (newest first)
+        filtered.sortedByDescending { it.createdAt }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+    
     // UI state
     private val _uiState = MutableStateFlow(NotesHubUiState())
     val uiState: StateFlow<NotesHubUiState> = _uiState.asStateFlow()
@@ -245,6 +279,35 @@ class NotesHubViewModel(application: Application) : AndroidViewModel(application
         }
     }
     
+    // Notes view methods
+    fun navigateToNotesView() {
+        _uiState.value = _uiState.value.copy(currentScreen = NotesHubScreen.NOTES_VIEW)
+    }
+    
+    fun updateNotesSearch(query: String) {
+        _notesViewState.value = _notesViewState.value.copy(searchQuery = query)
+    }
+    
+    fun updateNotesFolder(folderId: String?) {
+        _notesViewState.value = _notesViewState.value.copy(selectedFolderId = folderId)
+    }
+    
+    fun deleteNote(noteId: String) {
+        viewModelScope.launch {
+            database.noteDao().deleteNoteById(noteId)
+        }
+    }
+    
+    fun archiveNote(noteId: String) {
+        viewModelScope.launch {
+            database.noteDao().updateNoteArchived(noteId, true)
+        }
+    }
+    
+    fun selectNote(noteId: String) {
+        _notesViewState.value = _notesViewState.value.copy(selectedNoteId = noteId)
+    }
+    
     // Navigation methods
     fun navigateToScreen(screen: NotesHubScreen) {
         _uiState.value = _uiState.value.copy(currentScreen = screen)
@@ -294,11 +357,18 @@ data class RuleCreationState(
     val enableAutoNaming: Boolean = false
 )
 
+data class NotesViewState(
+    val searchQuery: String = "",
+    val selectedFolderId: String? = null,
+    val selectedNoteId: String? = null
+)
+
 enum class NotesHubScreen {
     RULE_MANAGEMENT,
     APP_SELECTION,
     CONTENT_FILTERING,
     DESTINATION,
     NOTES_VIEW,
+    NOTE_DETAIL,
     RULE_DETAILS
 }

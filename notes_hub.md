@@ -11,6 +11,7 @@ The Notes Hub is a comprehensive notification-to-notes conversion system impleme
 - ✅ Advanced filtering with multiple criteria types
 - ✅ Visual rule creation wizard (3-step process)
 - ✅ Rule management dashboard with analytics
+- ✅ **Complete Notes View & Management System**
 - ✅ Room database with complete schema
 - ✅ Integration with existing notification service
 - ✅ Modern Jetpack Compose UI
@@ -98,9 +99,46 @@ The Notes Hub is a comprehensive notification-to-notes conversion system impleme
 
 #### **Rule Actions**
 - ✅ Enable/Disable toggle
+- ✅ **View Notes Button**: Navigate to captured notes
 - ✅ Edit functionality (framework ready)
 - ✅ Delete with confirmation
 - ✅ Detailed analytics view (framework ready)
+
+### 3. Notes View & Management System ✅
+**Files**: `NotesViewScreen.kt`, `NoteDetailScreen.kt`
+
+#### **Notes List Interface**
+```kotlin
+// Complete notes browsing with:
+- Real-time search across title, content, and tags
+- Folder-based filtering with color-coded chips
+- Chronological sorting (newest first)
+- Note preview cards with metadata
+- Empty state handling
+```
+
+#### **Features Implemented**
+- ✅ **Search Functionality**: Live search across all note content
+- ✅ **Folder Filtering**: Filter notes by destination folder
+- ✅ **Note Previews**: Title, content snippet, timestamp, source app
+- ✅ **Tag Display**: Visual tag indicators with count overflow
+- ✅ **Responsive UI**: Optimized for large note collections
+
+#### **Individual Note Details**
+```kotlin
+// Full note viewing with:
+- Complete note content with proper formatting
+- Comprehensive metadata (source app, timestamps, folder)
+- Tag management and display
+- Note actions (archive, delete)
+- Navigation breadcrumbs
+```
+
+#### **Note Management Actions**
+- ✅ **Archive Notes**: Move to archived state
+- ✅ **Delete Notes**: Permanent removal with confirmation
+- ✅ **View Metadata**: Source app, creation time, notification details
+- ✅ **Tag Handling**: JSON-based tag parsing and display
 
 ---
 
@@ -164,6 +202,58 @@ coroutineScope.launch {
 }
 ```
 
+### 4. Notes View Implementation ✅
+**Files**: `NotesHubViewModel.kt`, `NotesViewScreen.kt`, `NoteDetailScreen.kt`
+
+#### **ViewModel State Management**
+```kotlin
+// Reactive notes filtering and search:
+val filteredNotes = combine(notes, notesViewState) { allNotes, viewState ->
+    var filtered = allNotes
+    
+    // Filter by folder if selected
+    viewState.selectedFolderId?.let { folderId ->
+        filtered = filtered.filter { it.folderId == folderId }
+    }
+    
+    // Filter by search query (title, content, tags)
+    if (viewState.searchQuery.isNotEmpty()) {
+        val query = viewState.searchQuery.lowercase()
+        filtered = filtered.filter { note ->
+            note.title.lowercase().contains(query) ||
+            note.content.lowercase().contains(query) ||
+            note.tags.lowercase().contains(query)
+        }
+    }
+    
+    filtered.sortedByDescending { it.createdAt }
+}
+```
+
+#### **Tag Management System**
+```kotlin
+// JSON-based tag parsing for UI display:
+private fun parseTagsFromJson(tagsJson: String): List<String> {
+    return try {
+        if (tagsJson.isBlank()) {
+            emptyList()
+        } else {
+            val gson = Gson()
+            val type = object : TypeToken<List<String>>() {}.type
+            gson.fromJson(tagsJson, type) ?: emptyList()
+        }
+    } catch (e: Exception) {
+        emptyList()
+    }
+}
+```
+
+#### **Performance Optimizations**
+- **StateFlow Integration**: Reactive UI updates for real-time filtering
+- **Efficient Queries**: Database queries optimized for large note collections
+- **Memory Management**: Lazy loading and proper lifecycle handling
+- **Search Performance**: Optimized text matching across multiple fields
+
 ---
 
 ## 🔗 Launcher Integration
@@ -179,8 +269,15 @@ coroutineScope.launch {
 ```
 Start Menu → Notes Hub Icon Click → Notes Hub Main Screen
 ├── Rule Management (default view)
-├── Create New Rule → 3-Step Wizard
-└── Notes View (future implementation)
+│   ├── Create New Rule → 3-Step Wizard
+│   └── View Notes Button → Notes View Screen
+└── Notes View Screen
+    ├── Search & Filter Notes
+    ├── Browse All Captured Notes
+    └── Click Note → Individual Note Detail Screen
+        ├── Full Note Content
+        ├── Metadata & Source Info
+        └── Actions (Archive/Delete)
 ```
 
 ---
@@ -226,8 +323,14 @@ data class RuleActivity(
 
 ## 🚀 Future Enhancements (Framework Ready)
 
+### Recently Implemented ✅
+- ✅ **Notes View Screen**: Complete notes browsing and search
+- ✅ **Individual Note Details**: Full note viewing with metadata
+- ✅ **Search & Filter**: Real-time search across all note content
+- ✅ **Folder Filtering**: Filter notes by destination folder
+- ✅ **Note Management**: Archive and delete operations
+
 ### Planned Features (Not Yet Implemented)
-- [ ] **Notes View Screen**: Complete notes browsing and search
 - [ ] **Rule Testing Interface**: Preview mode for rule validation
 - [ ] **Smart Suggestions**: ML-based rule recommendations
 - [ ] **Export/Import**: Backup and restore rules and notes
@@ -241,9 +344,67 @@ data class RuleActivity(
 
 ---
 
-## 📝 Usage Examples
+## 📝 Usage Guide & Examples
 
-### Example Rules Users Can Create
+### 🎯 How to Access Your Captured Notes
+
+#### **Step 1: Open Notes Hub**
+1. **From Start Menu**: Click the "Notes Hub" icon (note icon) in pinned apps
+2. **Default View**: Opens to Rule Management dashboard
+
+#### **Step 2: Navigate to Notes**
+1. **Click "Notes" Button**: Located next to the "+" create rule button
+2. **View Your Collection**: See all captured notes sorted by newest first
+
+#### **Step 3: Browse & Search Notes**
+- ✅ **Search**: Use the search icon to find notes by title, content, or tags
+- ✅ **Filter by Folder**: Click folder chips to see notes from specific folders
+- ✅ **Click Any Note**: View full content and metadata
+- ✅ **Manage Notes**: Archive or delete from the note detail screen
+
+### 📊 What You'll See
+
+#### **Notes List Screen**
+```
+📱 My Notes (194)                    🔍 [Search Icon]
+                                     
+🏷️ All Folders  📁 Work  📁 Personal  📁 News
+
+┌─────────────────────────────────────────────────┐
+│ 📄 Stock Alert: AAPL Up 5%         2h ago      │
+│ From Apple News • #stocks #trading             │
+│ Apple Inc (AAPL) shares rose 5% in after...   │
+└─────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────┐
+│ 📧 Team Meeting Reminder           4h ago      │
+│ From Slack • #work #meetings                   │
+│ Don't forget about the 3 PM standup today...  │
+└─────────────────────────────────────────────────┘
+```
+
+#### **Individual Note View**
+```
+📁 Work Folder                    ⋮ [Menu]
+
+📧 Team Meeting Reminder
+
+📅 Created Mar 15, 2024 at 2:30 PM
+📱 From Slack • From notification at 2:29 PM
+
+──────────────────────────────────────
+
+Don't forget about the 3 PM standup today. 
+We'll be discussing the new feature rollout
+and sprint planning for next week.
+
+──────────────────────────────────────
+
+🏷️ Tags
+#work  #meetings  #standup
+```
+
+### 🔧 Example Rules Users Can Create
 
 1. **Stock Tracking**
    - Apps: Trading apps, Financial news apps

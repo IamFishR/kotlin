@@ -25,6 +25,8 @@ fun NotesHubScreen(
     val folders by viewModel.folders.collectAsStateWithLifecycle(emptyList())
     val rules by viewModel.rules.collectAsStateWithLifecycle(emptyList())
     val notes by viewModel.notes.collectAsStateWithLifecycle(emptyList())
+    val filteredNotes by viewModel.filteredNotes.collectAsStateWithLifecycle()
+    val notesViewState by viewModel.notesViewState.collectAsStateWithLifecycle()
     
     Column(
         modifier = Modifier.fillMaxSize()
@@ -39,6 +41,7 @@ fun NotesHubScreen(
                         Screen.CONTENT_FILTERING -> "Create Rule - Step 2"
                         Screen.DESTINATION -> "Create Rule - Step 3"
                         Screen.NOTES_VIEW -> "My Notes"
+                        Screen.NOTE_DETAIL -> "Note Details"
                         Screen.RULE_DETAILS -> "Rule Details"
                     }
                 )
@@ -48,6 +51,8 @@ fun NotesHubScreen(
                     onClick = {
                         when (uiState.currentScreen) {
                             Screen.RULE_MANAGEMENT -> onNavigateBack()
+                            Screen.NOTES_VIEW -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
+                            Screen.NOTE_DETAIL -> viewModel.navigateToScreen(Screen.NOTES_VIEW)
                             else -> viewModel.navigateToPreviousCreationStep()
                         }
                     }
@@ -77,7 +82,8 @@ fun NotesHubScreen(
                     onCreateNewRule = viewModel::startRuleCreation,
                     onRuleDetails = { ruleId ->
                         // TODO: Navigate to rule details
-                    }
+                    },
+                    onViewNotes = viewModel::navigateToNotesView
                 )
             }
             
@@ -163,12 +169,40 @@ fun NotesHubScreen(
             }
             
             Screen.NOTES_VIEW -> {
-                // TODO: Implement notes view screen
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
-                ) {
-                    Text("Notes View - Coming Soon")
+                NotesViewScreen(
+                    notes = filteredNotes,
+                    folders = folders,
+                    selectedFolderId = notesViewState.selectedFolderId,
+                    onFolderSelected = viewModel::updateNotesFolder,
+                    searchQuery = notesViewState.searchQuery,
+                    onSearchQueryChanged = viewModel::updateNotesSearch,
+                    onNoteClick = { note ->
+                        viewModel.selectNote(note.id)
+                        viewModel.navigateToScreen(Screen.NOTE_DETAIL)
+                    },
+                    onBack = { viewModel.navigateToScreen(Screen.RULE_MANAGEMENT) }
+                )
+            }
+            
+            Screen.NOTE_DETAIL -> {
+                notesViewState.selectedNoteId?.let { noteId ->
+                    val selectedNote = notes.find { it.id == noteId }
+                    selectedNote?.let { note ->
+                        val folder = folders.find { it.id == note.folderId }
+                        NoteDetailScreen(
+                            note = note,
+                            folder = folder,
+                            onBack = { viewModel.navigateToScreen(Screen.NOTES_VIEW) },
+                            onDelete = {
+                                viewModel.deleteNote(note.id)
+                                viewModel.navigateToScreen(Screen.NOTES_VIEW)
+                            },
+                            onArchive = {
+                                viewModel.archiveNote(note.id)
+                                viewModel.navigateToScreen(Screen.NOTES_VIEW)
+                            }
+                        )
+                    }
                 }
             }
             
