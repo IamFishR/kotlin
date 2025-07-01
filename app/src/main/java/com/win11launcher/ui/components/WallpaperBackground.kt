@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -22,9 +23,13 @@ fun WallpaperBackground(
 ) {
     Box(modifier = modifier) {
         val wallpaperBitmap = remember(wallpaper) {
+            Log.d("WallpaperBackground", "Processing wallpaper: $wallpaper")
             try {
-                wallpaper?.toBitmap()?.asImageBitmap()
+                val bitmap = wallpaper?.toBitmap()
+                Log.d("WallpaperBackground", "Converted to bitmap: $bitmap")
+                bitmap?.asImageBitmap()
             } catch (e: Exception) {
+                Log.e("WallpaperBackground", "Failed to convert wallpaper to bitmap", e)
                 null
             }
         }
