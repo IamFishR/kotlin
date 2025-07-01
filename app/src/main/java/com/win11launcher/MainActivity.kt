@@ -1,9 +1,12 @@
 package com.win11launcher
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
@@ -14,15 +17,19 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.win11launcher.ui.LauncherScreen
+import com.win11launcher.ui.components.PermissionsScreen
 import com.win11launcher.ui.theme.Win11LauncherTheme
 
 class MainActivity : ComponentActivity() {
+    
+    private var permissionsGranted by mutableStateOf(false)
     
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -34,6 +41,7 @@ class MainActivity : ComponentActivity() {
                 android.util.Log.w("MainActivity", "Permission denied: $permission")
             }
         }
+        checkAllPermissions()
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,8 +49,8 @@ class MainActivity : ComponentActivity() {
         
         enableEdgeToEdge()
         
-        // Request necessary permissions
-        requestNecessaryPermissions()
+        // Check permissions on app start
+        checkAllPermissions()
         
         setContent {
             Win11LauncherTheme {
@@ -50,9 +58,31 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    LauncherScreen()
+                    if (permissionsGranted) {
+                        LauncherScreen()
+                    } else {
+                        PermissionsScreen(
+                            onAllPermissionsGranted = {
+                                permissionsGranted = true
+                            },
+                            onRequestPermissions = { permissionsList ->
+                                permissionLauncher.launch(permissionsList.toTypedArray())
+                            },
+                            onOpenSettings = {
+                                openAppSettings()
+                            }
+                        )
+                    }
                 }
             }
+        }
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Check permissions when returning from settings
+        if (!permissionsGranted) {
+            checkAllPermissions()
         }
     }
     
@@ -64,23 +94,29 @@ class MainActivity : ComponentActivity() {
         }
     }
     
-    private fun requestNecessaryPermissions() {
-        val permissionsToRequest = mutableListOf<String>()
+    private fun checkAllPermissions() {
+        val requiredPermissions = listOf(
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.READ_PHONE_STATE
+        )
         
-        // Check and add permissions that need to be requested
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) 
-            != PackageManager.PERMISSION_GRANTED) {
-            permissionsToRequest.add(Manifest.permission.READ_PHONE_STATE)
+        val normalPermissionsGranted = requiredPermissions.all { permission ->
+            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
         }
         
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) 
-            != PackageManager.PERMISSION_GRANTED) {
-            permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
-        }
+        val specialPermissionsGranted = Settings.canDrawOverlays(this) && Settings.System.canWrite(this)
         
-        if (permissionsToRequest.isNotEmpty()) {
-            permissionLauncher.launch(permissionsToRequest.toTypedArray())
-        }
+        permissionsGranted = normalPermissionsGranted && specialPermissionsGranted
+        
+        android.util.Log.d("MainActivity", "Normal permissions granted: $normalPermissionsGranted")
+        android.util.Log.d("MainActivity", "Special permissions granted: $specialPermissionsGranted")
+        android.util.Log.d("MainActivity", "All permissions granted: $permissionsGranted")
+    }
+    
+    private fun openAppSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        intent.data = Uri.parse("package:$packageName")
+        startActivity(intent)
     }
     
     private fun hideSystemUI() {
