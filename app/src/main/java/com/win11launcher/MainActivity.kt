@@ -27,7 +27,13 @@ class MainActivity : ComponentActivity() {
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        // Handle permission results if needed
+        permissions.entries.forEach { (permission, isGranted) ->
+            if (isGranted) {
+                android.util.Log.d("MainActivity", "Permission granted: $permission")
+            } else {
+                android.util.Log.w("MainActivity", "Permission denied: $permission")
+            }
+        }
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {

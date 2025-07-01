@@ -33,6 +33,13 @@ fun LauncherScreen() {
         systemStatusManager.startMonitoring()
     }
     
+    // Refresh wallpaper when permission might be granted
+    LaunchedEffect(Unit) {
+        if (wallpaperManager.hasPermission() && wallpaperManager.getWallpaper() == null) {
+            wallpaperManager.refreshWallpaper()
+        }
+    }
+    
     // Stop monitoring when the composable is disposed
     DisposableEffect(Unit) {
         onDispose {
