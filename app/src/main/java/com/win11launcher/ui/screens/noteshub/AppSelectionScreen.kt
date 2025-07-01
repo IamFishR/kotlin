@@ -44,7 +44,7 @@ fun AppSelectionScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
+            .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 80.dp) // Extra bottom padding for taskbar
     ) {
         // Header
         Row(

@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.win11launcher.ui.screens.noteshub.*
@@ -29,7 +30,9 @@ fun NotesHubScreen(
     val notesViewState by viewModel.notesViewState.collectAsStateWithLifecycle()
     
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 56.dp) // Account for taskbar
     ) {
         // Top app bar
         TopAppBar(

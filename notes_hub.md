@@ -29,6 +29,117 @@ The Notes Hub is a comprehensive notification-to-notes conversion system impleme
 - RuleActivity: Audit log for rule execution
 ```
 
+#### **Complete Database Table Structure**
+
+##### **1. 📄 `notes` Table**
+Primary table storing captured notification notes
+
+| Column | Type | Description | Constraints |
+|--------|------|-------------|-------------|
+| `id` | String | Primary key (UUID) | NOT NULL, PK |
+| `title` | String | Note title/subject | NOT NULL |
+| `content` | String | Full note content | NOT NULL |
+| `source_package` | String | App package name | NOT NULL, Indexed |
+| `source_app_name` | String | Human-readable app name | NOT NULL |
+| `folder_id` | String | Destination folder | NOT NULL, FK → folders(id) |
+| `rule_id` | String? | Creating rule ID | NULLABLE, FK → tracking_rules(id) |
+| `tags` | String | JSON array of tags | Default: "" |
+| `created_at` | Long | Creation timestamp | NOT NULL, Indexed |
+| `updated_at` | Long | Last update timestamp | NOT NULL |
+| `is_starred` | Boolean | User starred flag | Default: false |
+| `is_archived` | Boolean | Archived status | Default: false |
+| `original_notification_id` | String? | Original notification ID | NULLABLE |
+| `notification_timestamp` | Long? | Original notification time | NULLABLE |
+
+**Foreign Keys:**
+- `folder_id` → `folders(id)` ON DELETE CASCADE
+- `rule_id` → `tracking_rules(id)` ON DELETE SET NULL
+
+##### **2. 📁 `folders` Table**
+Organization containers for notes
+
+| Column | Type | Description | Constraints |
+|--------|------|-------------|-------------|
+| `id` | String | Primary key (UUID) | NOT NULL, PK |
+| `name` | String | Folder display name | NOT NULL, UNIQUE |
+| `description` | String | Optional description | Default: "" |
+| `color` | String | Hex color code | Default: "#2196F3" |
+| `icon` | String | Material icon name | Default: "folder" |
+| `created_at` | Long | Creation timestamp | NOT NULL, Indexed |
+| `updated_at` | Long | Last update timestamp | NOT NULL |
+| `is_default` | Boolean | Default folder flag | Default: false |
+
+##### **3. ⚙️ `tracking_rules` Table**
+User-defined notification capture rules
+
+| Column | Type | Description | Constraints |
+|--------|------|-------------|-------------|
+| `id` | String | Primary key (UUID) | NOT NULL, PK |
+| `name` | String | Rule display name | NOT NULL |
+| `description` | String | Rule description | Default: "" |
+| `source_packages` | String | JSON array of package names | NOT NULL, Indexed |
+| `filter_type` | String | Filter type (ALL/INCLUDE/EXCLUDE/REGEX) | NOT NULL |
+| `filter_criteria` | String | JSON filter configuration | Default: "" |
+| `destination_folder_id` | String | Target folder | NOT NULL, FK → folders(id) |
+| `auto_tags` | String | JSON array of auto-tags | Default: "" |
+| `is_active` | Boolean | Rule enabled status | Default: true, Indexed |
+| `priority` | Int | Rule priority (higher = first) | Default: 0 |
+| `quiet_hours_enabled` | Boolean | Quiet hours feature | Default: false |
+| `quiet_hours_start` | String | Start time (HH:mm) | Default: "22:00" |
+| `quiet_hours_end` | String | End time (HH:mm) | Default: "08:00" |
+| `weekdays_only` | Boolean | Weekdays only filtering | Default: false |
+| `max_notes_per_day` | Int | Daily note limit (-1 = unlimited) | Default: -1 |
+| `duplicate_detection_enabled` | Boolean | Duplicate prevention | Default: true |
+| `min_content_length` | Int | Minimum content length | Default: 0 |
+| `max_content_length` | Int | Maximum content length (-1 = unlimited) | Default: -1 |
+| `created_at` | Long | Creation timestamp | NOT NULL, Indexed |
+| `updated_at` | Long | Last update timestamp | NOT NULL |
+| `last_triggered_at` | Long? | Last execution time | NULLABLE |
+| `notes_captured_count` | Long | Total notes created | Default: 0 |
+| `total_matches_count` | Long | Total rule matches | Default: 0 |
+
+**Foreign Keys:**
+- `destination_folder_id` → `folders(id)` ON DELETE CASCADE
+
+##### **4. 📊 `rule_activity` Table**
+Audit log for rule execution tracking
+
+| Column | Type | Description | Constraints |
+|--------|------|-------------|-------------|
+| `id` | String | Primary key (UUID) | NOT NULL, PK |
+| `rule_id` | String | Associated rule | NOT NULL, FK → tracking_rules(id) |
+| `action_type` | String | Action (TRIGGERED/SKIPPED/ERROR) | NOT NULL, Indexed |
+| `notification_title` | String | Original notification title | Default: "" |
+| `notification_content` | String | Original notification content | Default: "" |
+| `source_package` | String | Source app package | Default: "" |
+| `note_created_id` | String? | Created note ID (if successful) | NULLABLE |
+| `skip_reason` | String | Reason for skipping | Default: "" |
+| `error_message` | String | Error details (if failed) | Default: "" |
+| `timestamp` | Long | Activity timestamp | NOT NULL, Indexed |
+
+**Foreign Keys:**
+- `rule_id` → `tracking_rules(id)` ON DELETE CASCADE
+
+##### **🔗 Entity Relationships**
+```
+folders (1) ←─── (many) notes
+folders (1) ←─── (many) tracking_rules
+tracking_rules (1) ←─── (many) notes
+tracking_rules (1) ←─── (many) rule_activity
+```
+
+##### **📈 Performance Indexes**
+- **notes**: `folder_id`, `rule_id`, `created_at`, `source_package`
+- **folders**: `name` (unique), `created_at`
+- **tracking_rules**: `source_packages`, `destination_folder_id`, `is_active`, `created_at`
+- **rule_activity**: `rule_id`, `timestamp`, `action_type`
+
+##### **💾 Storage Considerations**
+- **JSON Fields**: `source_packages`, `filter_criteria`, `auto_tags`, `tags`
+- **Timestamps**: All stored as Unix epoch (Long)
+- **Cascade Deletes**: Folder deletion removes associated notes and rules
+- **Soft Deletes**: Notes use `is_archived` flag for soft deletion
+
 ### Key Components
 1. **RuleEngine**: Processes notifications against active rules
 2. **NotesDatabase**: Room database with optimized queries
