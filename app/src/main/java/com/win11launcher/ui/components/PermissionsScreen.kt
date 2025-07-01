@@ -45,12 +45,22 @@ fun PermissionsScreen(
     val context = LocalContext.current
     
     val permissions = remember {
-        listOf(
+        val storagePermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Permission(
+                "Media Images Access",
+                Manifest.permission.READ_MEDIA_IMAGES,
+                "Required to display your wallpaper"
+            )
+        } else {
             Permission(
                 "Storage Access",
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 "Required to display your wallpaper"
-            ),
+            )
+        }
+        
+        listOf(
+            storagePermission,
             Permission(
                 "Phone State",
                 Manifest.permission.READ_PHONE_STATE,

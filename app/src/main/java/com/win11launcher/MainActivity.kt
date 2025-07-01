@@ -95,8 +95,14 @@ class MainActivity : ComponentActivity() {
     }
     
     private fun checkAllPermissions() {
+        val storagePermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+        
         val requiredPermissions = listOf(
-            Manifest.permission.READ_EXTERNAL_STORAGE,
+            storagePermission,
             Manifest.permission.READ_PHONE_STATE
         )
         

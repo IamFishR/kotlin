@@ -25,13 +25,19 @@ class SystemWallpaperManager(private val context: Context) {
     
     private fun loadWallpaper() {
         try {
-            // Check if we have permission to read external storage
+            // Check if we have permission to read storage/media
+            val storagePermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Manifest.permission.READ_MEDIA_IMAGES
+            } else {
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            }
+            
             val hasPermission = ContextCompat.checkSelfPermission(
                 context, 
-                Manifest.permission.READ_EXTERNAL_STORAGE
+                storagePermission
             ) == PackageManager.PERMISSION_GRANTED
             
-            Log.d("WallpaperManager", "READ_EXTERNAL_STORAGE permission: $hasPermission")
+            Log.d("WallpaperManager", "Storage permission ($storagePermission): $hasPermission")
             
             if (!hasPermission) {
                 Log.w("WallpaperManager", "READ_EXTERNAL_STORAGE permission not granted, cannot load wallpaper")
@@ -91,9 +97,15 @@ class SystemWallpaperManager(private val context: Context) {
     }
     
     fun hasPermission(): Boolean {
+        val storagePermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+        
         return ContextCompat.checkSelfPermission(
             context, 
-            Manifest.permission.READ_EXTERNAL_STORAGE
+            storagePermission
         ) == PackageManager.PERMISSION_GRANTED
     }
 }
