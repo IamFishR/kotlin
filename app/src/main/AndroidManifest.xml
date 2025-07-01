@@ -34,6 +34,13 @@
             android:clearTaskOnLaunch="true"
             android:stateNotNeeded="true">
             
+            <!-- Standard app launcher intent filter -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            
+            <!-- Home screen launcher intent filter -->
             <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
