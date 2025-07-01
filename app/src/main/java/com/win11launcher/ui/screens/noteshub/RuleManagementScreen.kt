@@ -32,7 +32,9 @@ fun RuleManagementScreen(
     onRuleDelete: (String) -> Unit,
     onCreateNewRule: () -> Unit,
     onRuleDetails: (String) -> Unit,
-    onViewNotes: () -> Unit = {}
+    onViewNotes: () -> Unit = {},
+    onSmartSuggestions: () -> Unit = {},
+    suggestionsCount: Int = 0
 ) {
     val activeRules = rules.filter { it.isActive }
     val inactiveRules = rules.filter { !it.isActive }
@@ -65,6 +67,39 @@ fun RuleManagementScreen(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                Box {
+                    OutlinedButton(
+                        onClick = onSmartSuggestions,
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Lightbulb,
+                            contentDescription = "Smart suggestions",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Smart")
+                    }
+                    
+                    // Badge for suggestion count
+                    if (suggestionsCount > 0) {
+                        Badge(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = 8.dp, y = (-8).dp),
+                            containerColor = MaterialTheme.colorScheme.error
+                        ) {
+                            Text(
+                                text = suggestionsCount.toString(),
+                                color = MaterialTheme.colorScheme.onError,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    }
+                }
+                
                 OutlinedButton(
                     onClick = onViewNotes
                 ) {

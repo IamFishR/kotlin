@@ -28,6 +28,7 @@ fun NotesHubScreen(
     val notes by viewModel.notes.collectAsStateWithLifecycle(emptyList())
     val filteredNotes by viewModel.filteredNotes.collectAsStateWithLifecycle()
     val notesViewState by viewModel.notesViewState.collectAsStateWithLifecycle()
+    val smartSuggestions by viewModel.smartSuggestions.collectAsStateWithLifecycle()
     
     Column(
         modifier = Modifier
@@ -40,6 +41,7 @@ fun NotesHubScreen(
                 Text(
                     text = when (uiState.currentScreen) {
                         Screen.RULE_MANAGEMENT -> "Notes Hub"
+                        Screen.SMART_SUGGESTIONS -> "Smart Suggestions"
                         Screen.APP_SELECTION -> "Create Rule - Step 1"
                         Screen.CONTENT_FILTERING -> "Create Rule - Step 2"
                         Screen.DESTINATION -> "Create Rule - Step 3"
@@ -54,6 +56,7 @@ fun NotesHubScreen(
                     onClick = {
                         when (uiState.currentScreen) {
                             Screen.RULE_MANAGEMENT -> onNavigateBack()
+                            Screen.SMART_SUGGESTIONS -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
                             Screen.NOTES_VIEW -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
                             Screen.NOTE_DETAIL -> viewModel.navigateToScreen(Screen.NOTES_VIEW)
                             else -> viewModel.navigateToPreviousCreationStep()
@@ -86,7 +89,21 @@ fun NotesHubScreen(
                     onRuleDetails = { ruleId ->
                         // TODO: Navigate to rule details
                     },
-                    onViewNotes = viewModel::navigateToNotesView
+                    onViewNotes = viewModel::navigateToNotesView,
+                    onSmartSuggestions = { viewModel.navigateToScreen(Screen.SMART_SUGGESTIONS) },
+                    suggestionsCount = smartSuggestions.size
+                )
+            }
+            
+            Screen.SMART_SUGGESTIONS -> {
+                SmartSuggestionsScreen(
+                    viewModel = viewModel,
+                    onSuggestionApplied = { suggestionId ->
+                        // Suggestion applied successfully
+                    },
+                    onSuggestionDismissed = { suggestionId ->
+                        // Suggestion dismissed
+                    }
                 )
             }
             

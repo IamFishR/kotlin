@@ -10,14 +10,20 @@ import com.win11launcher.data.entities.Note
 import com.win11launcher.data.entities.Folder
 import com.win11launcher.data.entities.TrackingRule
 import com.win11launcher.data.entities.RuleActivity
+import com.win11launcher.data.entities.FinancialPattern
+import com.win11launcher.data.entities.ResearchPattern
+import com.win11launcher.data.entities.SmartSuggestion
 import com.win11launcher.data.dao.NoteDao
 import com.win11launcher.data.dao.FolderDao
 import com.win11launcher.data.dao.TrackingRuleDao
 import com.win11launcher.data.dao.RuleActivityDao
+import com.win11launcher.data.dao.FinancialPatternDao
+import com.win11launcher.data.dao.ResearchPatternDao
+import com.win11launcher.data.dao.SmartSuggestionDao
 
 @Database(
-    entities = [Note::class, Folder::class, TrackingRule::class, RuleActivity::class],
-    version = 1,
+    entities = [Note::class, Folder::class, TrackingRule::class, RuleActivity::class, FinancialPattern::class, ResearchPattern::class, SmartSuggestion::class],
+    version = 3,
     exportSchema = false
 )
 abstract class NotesDatabase : RoomDatabase() {
@@ -26,6 +32,9 @@ abstract class NotesDatabase : RoomDatabase() {
     abstract fun folderDao(): FolderDao
     abstract fun trackingRuleDao(): TrackingRuleDao
     abstract fun ruleActivityDao(): RuleActivityDao
+    abstract fun financialPatternDao(): FinancialPatternDao
+    abstract fun researchPatternDao(): ResearchPatternDao
+    abstract fun smartSuggestionDao(): SmartSuggestionDao
     
     companion object {
         @Volatile
@@ -39,9 +48,114 @@ abstract class NotesDatabase : RoomDatabase() {
                     "notes_database"
                 )
                 .addCallback(DatabaseCallback())
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
                 INSTANCE = instance
                 instance
+            }
+        }
+        
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Create financial_patterns table
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS financial_patterns (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        transaction_type TEXT NOT NULL,
+                        amount REAL,
+                        merchant TEXT,
+                        category TEXT NOT NULL,
+                        bank_name TEXT,
+                        frequency TEXT NOT NULL,
+                        time_pattern TEXT NOT NULL,
+                        is_recurring INTEGER NOT NULL,
+                        last_seen INTEGER NOT NULL,
+                        confidence REAL NOT NULL,
+                        source_package TEXT,
+                        pattern_keywords TEXT NOT NULL,
+                        created_at INTEGER NOT NULL,
+                        updated_at INTEGER NOT NULL,
+                        occurrence_count INTEGER NOT NULL
+                    )
+                """)
+                
+                // Create indices for financial_patterns
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_financial_patterns_transaction_type ON financial_patterns (transaction_type)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_financial_patterns_category ON financial_patterns (category)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_financial_patterns_bank_name ON financial_patterns (bank_name)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_financial_patterns_is_recurring ON financial_patterns (is_recurring)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_financial_patterns_last_seen ON financial_patterns (last_seen)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_financial_patterns_confidence ON financial_patterns (confidence)")
+                
+                // Create research_patterns table
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS research_patterns (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        topic TEXT NOT NULL,
+                        source_type TEXT NOT NULL,
+                        key_terms TEXT NOT NULL,
+                        relevance_score REAL NOT NULL,
+                        trending_score REAL NOT NULL,
+                        last_updated INTEGER NOT NULL,
+                        source_url TEXT,
+                        source_package TEXT,
+                        created_at INTEGER NOT NULL,
+                        confidence_score REAL NOT NULL,
+                        language TEXT NOT NULL,
+                        content_length INTEGER NOT NULL,
+                        has_technical_content INTEGER NOT NULL
+                    )
+                """)
+                
+                // Create indices for research_patterns
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_research_patterns_topic ON research_patterns (topic)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_research_patterns_source_type ON research_patterns (source_type)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_research_patterns_relevance_score ON research_patterns (relevance_score)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_research_patterns_trending_score ON research_patterns (trending_score)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_research_patterns_last_updated ON research_patterns (last_updated)")
+            }
+        }
+        
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Create smart_suggestions table
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS smart_suggestions (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        category TEXT NOT NULL,
+                        sub_category TEXT NOT NULL,
+                        title TEXT NOT NULL,
+                        description TEXT NOT NULL,
+                        automated_rule_config TEXT NOT NULL,
+                        expected_benefit TEXT NOT NULL,
+                        confidence_score REAL NOT NULL,
+                        priority INTEGER NOT NULL,
+                        is_finance_related INTEGER NOT NULL,
+                        estimated_savings REAL,
+                        savings_type TEXT,
+                        created_at INTEGER NOT NULL,
+                        updated_at INTEGER NOT NULL,
+                        is_dismissed INTEGER NOT NULL DEFAULT 0,
+                        is_applied INTEGER NOT NULL DEFAULT 0,
+                        dismissal_reason TEXT,
+                        application_date INTEGER,
+                        source_patterns TEXT,
+                        suggested_folder_name TEXT,
+                        suggested_folder_color TEXT,
+                        suggested_folder_icon TEXT,
+                        success_metrics TEXT
+                    )
+                """)
+                
+                // Create indices for smart_suggestions
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_smart_suggestions_category ON smart_suggestions (category)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_smart_suggestions_sub_category ON smart_suggestions (sub_category)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_smart_suggestions_confidence_score ON smart_suggestions (confidence_score)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_smart_suggestions_priority ON smart_suggestions (priority)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_smart_suggestions_is_finance_related ON smart_suggestions (is_finance_related)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_smart_suggestions_created_at ON smart_suggestions (created_at)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_smart_suggestions_is_dismissed ON smart_suggestions (is_dismissed)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_smart_suggestions_is_applied ON smart_suggestions (is_applied)")
             }
         }
         

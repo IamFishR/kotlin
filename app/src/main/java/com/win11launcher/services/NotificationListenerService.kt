@@ -15,6 +15,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.win11launcher.models.AppNotification
+import com.win11launcher.analysis.FinancialTransactionAnalyzer
+import com.win11launcher.analysis.FinanceSmartSuggestionEngine
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -22,6 +24,7 @@ class Win11NotificationListenerService : NotificationListenerService() {
     
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private lateinit var ruleEngine: RuleEngine
+    private lateinit var financialIntelligenceService: FinancialIntelligenceService
     
     companion object {
         private const val TAG = "NotificationListener"
@@ -44,6 +47,10 @@ class Win11NotificationListenerService : NotificationListenerService() {
         fun dismissAllNotifications() {
             serviceInstance?.cancelAllNotifications()
         }
+        
+        fun getFinancialIntelligenceService(): FinancialIntelligenceService? {
+            return serviceInstance?.financialIntelligenceService
+        }
     }
     
     private val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
@@ -52,7 +59,21 @@ class Win11NotificationListenerService : NotificationListenerService() {
         super.onCreate()
         serviceInstance = this
         ruleEngine = RuleEngine(this)
-        Log.d(TAG, "NotificationListenerService created")
+        
+        // Initialize financial intelligence service
+        val financialAnalyzer = FinancialTransactionAnalyzer()
+        val database = com.win11launcher.data.database.NotesDatabase.getDatabase(this)
+        val suggestionEngine = FinanceSmartSuggestionEngine(
+            database.financialPatternDao(),
+            database.smartSuggestionDao()
+        )
+        financialIntelligenceService = FinancialIntelligenceService(
+            this,
+            financialAnalyzer,
+            suggestionEngine
+        )
+        
+        Log.d(TAG, "NotificationListenerService created with financial intelligence")
     }
     
     override fun onDestroy() {
@@ -121,9 +142,13 @@ class Win11NotificationListenerService : NotificationListenerService() {
                     // Process notification through rule engine for notes conversion
                     coroutineScope.launch {
                         try {
+                            // First process through standard rule engine
                             ruleEngine.processNotification(appNotification)
+                            
+                            // Then process through financial intelligence service
+                            financialIntelligenceService.processNotificationForFinancialIntelligence(appNotification)
                         } catch (e: Exception) {
-                            Log.e(TAG, "Error processing notification through rule engine", e)
+                            Log.e(TAG, "Error processing notification through engines", e)
                         }
                     }
                 }
