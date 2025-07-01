@@ -16,9 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.win11launcher.utils.AppLauncher
+import com.win11launcher.utils.PinnedApp
 
 data class AppItem(
     val name: String,
@@ -61,7 +64,8 @@ fun StartMenu(
             Spacer(modifier = Modifier.height(16.dp))
             
             BottomActions(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                onPowerClick = onDismiss
             )
         }
     }
@@ -104,22 +108,9 @@ private fun PinnedAppsSection(
     modifier: Modifier = Modifier,
     onAllAppsClick: () -> Unit = {}
 ) {
-    val pinnedApps = remember {
-        listOf(
-            AppItem("Settings", Icons.Default.Settings),
-            AppItem("Files", Icons.Default.Folder),
-            AppItem("Calculator", Icons.Default.Calculate),
-            AppItem("Camera", Icons.Default.CameraAlt),
-            AppItem("Photos", Icons.Default.Photo),
-            AppItem("Store", Icons.Default.Store),
-            AppItem("Mail", Icons.Default.Mail),
-            AppItem("Calendar", Icons.Default.CalendarToday),
-            AppItem("Music", Icons.Default.MusicNote),
-            AppItem("Videos", Icons.Default.VideoLibrary),
-            AppItem("Weather", Icons.Default.Cloud),
-            AppItem("News", Icons.Default.Article)
-        )
-    }
+    val context = LocalContext.current
+    val appLauncher = remember { AppLauncher(context) }
+    val pinnedApps = remember { appLauncher.getPinnedApps() }
     
     Column(modifier = modifier) {
         Row(
@@ -155,9 +146,9 @@ private fun PinnedAppsSection(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(pinnedApps) { app ->
-                AppIcon(
+                PinnedAppIcon(
                     app = app,
-                    onClick = { }
+                    onClick = { appLauncher.launchApp(app) }
                 )
             }
         }
@@ -207,9 +198,53 @@ private fun AppIcon(
 }
 
 @Composable
-private fun BottomActions(
+private fun PinnedAppIcon(
+    app: PinnedApp,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .background(
+                    Color(0xFF323233),
+                    RoundedCornerShape(8.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = app.icon,
+                contentDescription = app.name,
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        Text(
+            text = app.name,
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.White,
+            fontSize = 11.sp,
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun BottomActions(
+    modifier: Modifier = Modifier,
+    onPowerClick: () -> Unit = {}
+) {
+    var showPowerMenu by remember { mutableStateOf(false) }
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -234,13 +269,23 @@ private fun BottomActions(
             )
         }
         
-        IconButton(
-            onClick = { }
-        ) {
-            Icon(
-                imageVector = Icons.Default.PowerSettingsNew,
-                contentDescription = "Power",
-                tint = Color.White
+        Box {
+            IconButton(
+                onClick = { showPowerMenu = true }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PowerSettingsNew,
+                    contentDescription = "Power",
+                    tint = Color.White
+                )
+            }
+            
+            PowerMenu(
+                showMenu = showPowerMenu,
+                onDismiss = { 
+                    showPowerMenu = false
+                    onPowerClick()
+                }
             )
         }
     }
