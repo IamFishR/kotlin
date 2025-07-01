@@ -239,9 +239,9 @@ private fun BatteryIcon(
     val batteryIcon = when {
         isCharging -> Icons.Default.BatteryChargingFull
         level >= 90 -> Icons.Default.BatteryFull
-        level >= 60 -> Icons.Default.Battery6Bar
-        level >= 50 -> Icons.Default.Battery5Bar
-        level >= 30 -> Icons.Default.Battery3Bar
+        level >= 60 -> Icons.Default.BatteryFull
+        level >= 50 -> Icons.Default.BatteryFull
+        level >= 30 -> Icons.Default.BatteryFull
         level >= 20 -> Icons.Default.Battery2Bar
         level >= 10 -> Icons.Default.Battery1Bar
         else -> Icons.Default.BatteryAlert

@@ -177,7 +177,7 @@ private fun AppItem(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Default.Android,
+                imageVector = Icons.Default.Apps,
                 contentDescription = app.name,
                 tint = Color.White,
                 modifier = Modifier.size(24.dp)

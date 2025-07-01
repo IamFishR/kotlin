@@ -37,7 +37,7 @@ class SystemStatusManager(private val context: Context) {
     
     private var isReceiverRegistered = false
     private var timeUpdateJob: Job? = null
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var scope: CoroutineScope? = null
     
     private val batteryReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -50,6 +50,10 @@ class SystemStatusManager(private val context: Context) {
     }
     
     fun startMonitoring() {
+        if (scope == null) {
+            scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        }
+        
         if (!isReceiverRegistered) {
             val filter = IntentFilter().apply {
                 addAction(Intent.ACTION_BATTERY_CHANGED)
@@ -65,12 +69,16 @@ class SystemStatusManager(private val context: Context) {
         }
         
         // Initial updates
-        updateBatteryStatus()
-        updateNetworkStatus()
-        updateDateTime()
-        
-        // Start periodic time updates
-        startTimeUpdates()
+        try {
+            updateBatteryStatus()
+            updateNetworkStatus()
+            updateDateTime()
+            
+            // Start periodic time updates
+            startTimeUpdates()
+        } catch (e: Exception) {
+            // Handle any initialization errors
+        }
     }
     
     fun stopMonitoring() {
@@ -87,7 +95,8 @@ class SystemStatusManager(private val context: Context) {
             }
         }
         
-        scope.cancel()
+        scope?.cancel()
+        scope = null
     }
     
     private fun updateBatteryStatus(intent: Intent? = null) {
@@ -185,10 +194,15 @@ class SystemStatusManager(private val context: Context) {
     
     private fun startTimeUpdates() {
         timeUpdateJob?.cancel()
-        timeUpdateJob = scope.launch {
+        timeUpdateJob = scope?.launch {
             while (isActive) {
-                updateDateTime()
-                delay(1000) // Update every second
+                try {
+                    updateDateTime()
+                    delay(1000) // Update every second
+                } catch (e: Exception) {
+                    // Handle any errors during time updates
+                    break
+                }
             }
         }
     }
