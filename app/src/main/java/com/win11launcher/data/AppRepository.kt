@@ -11,7 +11,7 @@ import androidx.compose.runtime.State
 data class InstalledApp(
     val name: String,
     val packageName: String,
-    val icon: Drawable,
+    val iconDrawable: Drawable?, // Keep for now but will be optimized
     val activityName: String
 )
 
@@ -32,7 +32,7 @@ class AppRepository(private val context: Context) {
                 InstalledApp(
                     name = resolveInfo.loadLabel(packageManager).toString(),
                     packageName = resolveInfo.activityInfo.packageName,
-                    icon = resolveInfo.loadIcon(packageManager),
+                    iconDrawable = try { resolveInfo.loadIcon(packageManager) } catch (e: Exception) { null },
                     activityName = resolveInfo.activityInfo.name
                 )
             }

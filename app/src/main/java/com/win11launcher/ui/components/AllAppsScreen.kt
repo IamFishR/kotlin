@@ -157,17 +157,32 @@ private fun AppItem(
             .padding(4.dp)
     ) {
         // App icon
-        val bitmap = remember(app.icon) {
-            app.icon.toBitmap(48, 48)
+        val bitmap = remember(app.iconDrawable) {
+            app.iconDrawable?.toBitmap(48, 48)
         }
         
-        Image(
-            bitmap = bitmap.asImageBitmap(),
-            contentDescription = app.name,
+        bitmap?.let {
+            Image(
+                bitmap = it.asImageBitmap(),
+                contentDescription = app.name,
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            )
+        } ?: Box(
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(8.dp))
-        )
+                .background(Color.Gray),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Android,
+                contentDescription = app.name,
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
+            )
+        }
         
         Spacer(modifier = Modifier.height(4.dp))
         
