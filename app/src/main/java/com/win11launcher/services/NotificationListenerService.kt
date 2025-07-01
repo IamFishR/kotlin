@@ -11,24 +11,17 @@ import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import com.win11launcher.models.AppNotification
 import java.text.SimpleDateFormat
 import java.util.*
 
-data class AppNotification(
-    val id: String,
-    val packageName: String,
-    val appName: String,
-    val title: String,
-    val content: String,
-    val time: String,
-    val timestamp: Long,
-    val smallIcon: Icon?,
-    val isOngoing: Boolean,
-    val isClearable: Boolean,
-    val contentIntent: PendingIntent?
-)
-
 class Win11NotificationListenerService : NotificationListenerService() {
+    
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private lateinit var ruleEngine: RuleEngine
     
     companion object {
         private const val TAG = "NotificationListener"
@@ -58,6 +51,7 @@ class Win11NotificationListenerService : NotificationListenerService() {
     override fun onCreate() {
         super.onCreate()
         serviceInstance = this
+        ruleEngine = RuleEngine(this)
         Log.d(TAG, "NotificationListenerService created")
     }
     
@@ -123,6 +117,15 @@ class Win11NotificationListenerService : NotificationListenerService() {
                     )
                     
                     notificationsList.add(appNotification)
+                    
+                    // Process notification through rule engine for notes conversion
+                    coroutineScope.launch {
+                        try {
+                            ruleEngine.processNotification(appNotification)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error processing notification through rule engine", e)
+                        }
+                    }
                 }
             }
             

@@ -33,6 +33,7 @@ sealed class AppLaunchAction {
     object Videos : AppLaunchAction()
     object Weather : AppLaunchAction()
     object News : AppLaunchAction()
+    object NotesHub : AppLaunchAction()
     data class Package(val packageName: String) : AppLaunchAction()
     data class Intent(val intent: android.content.Intent) : AppLaunchAction()
 }
@@ -47,11 +48,11 @@ class AppLauncher(private val context: Context) {
             PinnedApp("Camera", Icons.Default.CameraAlt, launchAction = AppLaunchAction.Camera),
             PinnedApp("Photos", Icons.Default.Photo, launchAction = AppLaunchAction.Photos),
             PinnedApp("Store", Icons.Default.Store, launchAction = AppLaunchAction.Store),
+            PinnedApp("Notes Hub", Icons.Default.Note, launchAction = AppLaunchAction.NotesHub),
             PinnedApp("Mail", Icons.Default.Mail, launchAction = AppLaunchAction.Mail),
             PinnedApp("Calendar", Icons.Default.CalendarToday, launchAction = AppLaunchAction.Calendar),
             PinnedApp("Music", Icons.Default.MusicNote, launchAction = AppLaunchAction.Music),
             PinnedApp("Videos", Icons.Default.VideoLibrary, launchAction = AppLaunchAction.Videos),
-            PinnedApp("Weather", Icons.Default.Cloud, launchAction = AppLaunchAction.Weather),
             PinnedApp("News", Icons.Default.Article, launchAction = AppLaunchAction.News)
         )
     }
@@ -71,6 +72,7 @@ class AppLauncher(private val context: Context) {
                 AppLaunchAction.Videos -> launchVideos()
                 AppLaunchAction.Weather -> launchWeather()
                 AppLaunchAction.News -> launchNews()
+                AppLaunchAction.NotesHub -> { /* Handled by UI navigation */ }
                 is AppLaunchAction.Package -> launchPackage(app.launchAction.packageName)
                 is AppLaunchAction.Intent -> context.startActivity(app.launchAction.intent)
             }

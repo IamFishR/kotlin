@@ -14,6 +14,7 @@ import com.win11launcher.ui.components.NotificationPanel
 import com.win11launcher.ui.components.StartMenu
 import com.win11launcher.ui.components.Taskbar
 import com.win11launcher.ui.components.WallpaperBackground
+import com.win11launcher.ui.screens.NotesHubScreen
 import com.win11launcher.utils.SystemStatusManager
 import com.win11launcher.utils.rememberWallpaperManager
 
@@ -27,6 +28,7 @@ fun LauncherScreen() {
     var showStartMenu by remember { mutableStateOf(false) }
     var showAllApps by remember { mutableStateOf(false) }
     var showNotificationPanel by remember { mutableStateOf(false) }
+    var showNotesHub by remember { mutableStateOf(false) }
     
     // Start monitoring system status
     LaunchedEffect(Unit) {
@@ -54,6 +56,11 @@ fun LauncherScreen() {
         modifier = Modifier.fillMaxSize()
     ) {
         when {
+            showNotesHub -> {
+                NotesHubScreen(
+                    onNavigateBack = { showNotesHub = false }
+                )
+            }
             showAllApps -> {
                 AllAppsScreen(
                     appRepository = appRepository,
@@ -74,6 +81,10 @@ fun LauncherScreen() {
                     onAllAppsClick = {
                         showStartMenu = false
                         showAllApps = true
+                    },
+                    onNotesHubClick = {
+                        showStartMenu = false
+                        showNotesHub = true
                     }
                 )
             }

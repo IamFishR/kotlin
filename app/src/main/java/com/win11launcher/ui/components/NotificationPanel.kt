@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import com.win11launcher.services.AppNotification
+import com.win11launcher.models.AppNotification
 import com.win11launcher.utils.NotificationManager
 import com.win11launcher.utils.SystemStatus
 import com.win11launcher.utils.rememberNotifications

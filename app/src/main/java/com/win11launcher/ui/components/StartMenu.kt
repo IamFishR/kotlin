@@ -33,7 +33,8 @@ data class AppItem(
 fun StartMenu(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
-    onAllAppsClick: () -> Unit = {}
+    onAllAppsClick: () -> Unit = {},
+    onNotesHubClick: () -> Unit = {}
 ) {
     Card(
         modifier = modifier
@@ -58,7 +59,8 @@ fun StartMenu(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                onAllAppsClick = onAllAppsClick
+                onAllAppsClick = onAllAppsClick,
+                onNotesHubClick = onNotesHubClick
             )
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -106,7 +108,8 @@ private fun SearchBar(
 @Composable
 private fun PinnedAppsSection(
     modifier: Modifier = Modifier,
-    onAllAppsClick: () -> Unit = {}
+    onAllAppsClick: () -> Unit = {},
+    onNotesHubClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val appLauncher = remember { AppLauncher(context) }
@@ -148,7 +151,13 @@ private fun PinnedAppsSection(
             items(pinnedApps) { app ->
                 PinnedAppIcon(
                     app = app,
-                    onClick = { appLauncher.launchApp(app) }
+                    onClick = { 
+                        if (app.launchAction == com.win11launcher.utils.AppLaunchAction.NotesHub) {
+                            onNotesHubClick()
+                        } else {
+                            appLauncher.launchApp(app)
+                        }
+                    }
                 )
             }
         }

@@ -19,7 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.win11launcher.services.AppNotification
+import com.win11launcher.models.AppNotification
 import com.win11launcher.services.Win11NotificationListenerService
 import kotlinx.coroutines.flow.StateFlow
 
