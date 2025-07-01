@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -20,25 +21,23 @@ fun WallpaperBackground(
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(modifier = modifier) {
-        if (wallpaper != null) {
+        val wallpaperBitmap = remember(wallpaper) {
             try {
-                val bitmap = wallpaper.toBitmap()
-                Image(
-                    bitmap = bitmap.asImageBitmap(),
-                    contentDescription = "Wallpaper",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                wallpaper?.toBitmap()?.asImageBitmap()
             } catch (e: Exception) {
-                // Fall back to solid background if wallpaper can't be displayed
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)
-                )
+                null
             }
+        }
+        
+        if (wallpaperBitmap != null) {
+            Image(
+                bitmap = wallpaperBitmap,
+                contentDescription = "Wallpaper",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
         } else {
-            // Use solid background when no wallpaper is available
+            // Use solid background when no wallpaper is available or conversion failed
             Box(
                 modifier = Modifier
                     .fillMaxSize()
