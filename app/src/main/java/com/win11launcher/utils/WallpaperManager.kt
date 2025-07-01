@@ -31,16 +31,24 @@ class SystemWallpaperManager(private val context: Context) {
             ) == PackageManager.PERMISSION_GRANTED
             
             Log.d("WallpaperManager", "READ_EXTERNAL_STORAGE permission: $hasPermission")
+            Log.d("WallpaperManager", "Device manufacturer: ${Build.MANUFACTURER}")
             
             // Try different methods to get the wallpaper
             var drawable: Drawable? = null
             
+            // Samsung-specific handling
+            if (Build.MANUFACTURER.equals("samsung", ignoreCase = true)) {
+                drawable = getSamsungWallpaper()
+            }
+            
             // Method 1: Try regular drawable first (user-selected wallpaper)
-            try {
-                drawable = wallpaperManager.drawable
-                Log.d("WallpaperManager", "Regular wallpaper drawable: $drawable")
-            } catch (e: Exception) {
-                Log.w("WallpaperManager", "Failed to get regular wallpaper", e)
+            if (drawable == null) {
+                try {
+                    drawable = wallpaperManager.drawable
+                    Log.d("WallpaperManager", "Regular wallpaper drawable: $drawable")
+                } catch (e: Exception) {
+                    Log.w("WallpaperManager", "Failed to get regular wallpaper", e)
+                }
             }
             
             // Method 2: Try peekDrawable for live wallpapers
@@ -56,23 +64,12 @@ class SystemWallpaperManager(private val context: Context) {
             // Method 3: Try with specific flags for Samsung devices
             if (drawable == null) {
                 try {
-                    // For Samsung devices, try getting the home screen wallpaper specifically
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         drawable = wallpaperManager.getDrawable(WallpaperManager.FLAG_SYSTEM)
                         Log.d("WallpaperManager", "System flag wallpaper drawable: $drawable")
                     }
                 } catch (e: Exception) {
                     Log.w("WallpaperManager", "Failed to get system flag wallpaper", e)
-                }
-            }
-            
-            // Method 4: Try built-in drawable as last resort
-            if (drawable == null) {
-                try {
-                    drawable = wallpaperManager.builtInDrawable
-                    Log.d("WallpaperManager", "Built-in wallpaper drawable: $drawable")
-                } catch (e: Exception) {
-                    Log.w("WallpaperManager", "Failed to get built-in wallpaper", e)
                 }
             }
             
@@ -86,6 +83,42 @@ class SystemWallpaperManager(private val context: Context) {
         } catch (e: Exception) {
             Log.e("WallpaperManager", "Failed to load wallpaper", e)
             _wallpaper.value = null
+        }
+    }
+    
+    private fun getSamsungWallpaper(): Drawable? {
+        return try {
+            Log.d("WallpaperManager", "Attempting Samsung-specific wallpaper access")
+            
+            // Try to get Samsung wallpaper using reflection to avoid the SemWallpaperResourcesInfo error
+            val semWallpaperManagerClass = Class.forName("android.app.SemWallpaperManager")
+            val getInstance = semWallpaperManagerClass.getMethod("getInstance", Context::class.java)
+            val semWallpaperManager = getInstance.invoke(null, context)
+            
+            // Try to get the wallpaper drawable through Samsung's API
+            val getDrawableMethod = semWallpaperManagerClass.getMethod("getDrawable")
+            val drawable = getDrawableMethod.invoke(semWallpaperManager) as? Drawable
+            
+            Log.d("WallpaperManager", "Samsung wallpaper drawable: $drawable")
+            drawable
+        } catch (e: Exception) {
+            Log.w("WallpaperManager", "Samsung-specific wallpaper access failed", e)
+            
+            // Fallback: Try to get wallpaper file directly
+            try {
+                val wallpaperFile = wallpaperManager.wallpaperFile
+                Log.d("WallpaperManager", "Wallpaper file: $wallpaperFile")
+                if (wallpaperFile != null) {
+                    val drawable = Drawable.createFromStream(wallpaperFile, null)
+                    Log.d("WallpaperManager", "File-based wallpaper drawable: $drawable")
+                    drawable
+                } else {
+                    null
+                }
+            } catch (e2: Exception) {
+                Log.w("WallpaperManager", "File-based wallpaper access failed", e2)
+                null
+            }
         }
     }
     
