@@ -128,10 +128,6 @@ class NotificationManager(private val context: Context) {
                     // Approach 1: Use ActivityOptions with background launch flags
                     try {
                         val activityOptions = ActivityOptions.makeBasic()
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                            activityOptions.setPendingIntentLauncherFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
-                        
                         val bundle = activityOptions.toBundle()
                         bundle.putBoolean("android.pendingIntent.backgroundActivityAllowed", true)
                         bundle.putBoolean("android.activity.allowDuringSetup", true)
