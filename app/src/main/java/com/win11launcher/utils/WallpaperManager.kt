@@ -52,6 +52,13 @@ class SystemWallpaperManager(private val context: Context) {
             try {
                 drawable = wallpaperManager.peekDrawable()
                 Log.d("WallpaperManager", "Peek wallpaper drawable: $drawable")
+                if (drawable != null) {
+                    // Ensure the drawable has proper bounds
+                    if (drawable.intrinsicWidth > 0 && drawable.intrinsicHeight > 0) {
+                        drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
+                        Log.d("WallpaperManager", "Set bounds for peek drawable: ${drawable.bounds}")
+                    }
+                }
             } catch (e: Exception) {
                 Log.w("WallpaperManager", "Failed to peek wallpaper", e)
             }
@@ -61,6 +68,10 @@ class SystemWallpaperManager(private val context: Context) {
                 try {
                     drawable = wallpaperManager.drawable
                     Log.d("WallpaperManager", "Regular wallpaper drawable: $drawable")
+                    if (drawable != null && drawable.intrinsicWidth > 0 && drawable.intrinsicHeight > 0) {
+                        drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
+                        Log.d("WallpaperManager", "Set bounds for regular drawable: ${drawable.bounds}")
+                    }
                 } catch (e: Exception) {
                     Log.w("WallpaperManager", "Failed to get regular wallpaper", e)
                 }
@@ -71,6 +82,10 @@ class SystemWallpaperManager(private val context: Context) {
                 try {
                     drawable = wallpaperManager.getDrawable(WallpaperManager.FLAG_SYSTEM)
                     Log.d("WallpaperManager", "System flag wallpaper drawable: $drawable")
+                    if (drawable != null && drawable.intrinsicWidth > 0 && drawable.intrinsicHeight > 0) {
+                        drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
+                        Log.d("WallpaperManager", "Set bounds for system flag drawable: ${drawable.bounds}")
+                    }
                 } catch (e: Exception) {
                     Log.w("WallpaperManager", "Failed to get system flag wallpaper", e)
                 }
