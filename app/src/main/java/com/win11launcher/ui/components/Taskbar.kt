@@ -271,13 +271,13 @@ private fun DateTimeDisplay(
     Column(
         modifier = modifier
             .clickable { onClick() }
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = 8.dp, vertical = 2.dp),
         horizontalAlignment = Alignment.End
     ) {
         Text(
             text = systemStatus.currentTime,
             color = Color.White,
-            fontSize = 13.sp,
+            fontSize = 11.sp,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.End
         )
@@ -285,7 +285,7 @@ private fun DateTimeDisplay(
         Text(
             text = systemStatus.currentDate,
             color = Color.White,
-            fontSize = 11.sp,
+            fontSize = 9.sp,
             textAlign = TextAlign.End
         )
     }
