@@ -144,30 +144,11 @@ class NotificationManager(private val context: Context) {
                         // Create ActivityOptions with bubble context
                         val activityOptions = ActivityOptions.makeBasic()
                         
-                        // Set the pending intent creator background activity start mode
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                            try {
-                                // Use reflection to access the method if available
-                                val setPendingIntentCreatorBackgroundActivityStartModeMethod = 
-                                    ActivityOptions::class.java.getMethod(
-                                        "setPendingIntentCreatorBackgroundActivityStartMode", 
-                                        Int::class.javaPrimitiveType
-                                    )
-                                setPendingIntentCreatorBackgroundActivityStartModeMethod.invoke(
-                                    activityOptions, 
-                                    1 // MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-                                )
-                                android.util.Log.d("NotificationManager", "Set background activity start mode")
-                            } catch (e: Exception) {
-                                android.util.Log.w("NotificationManager", "Could not set background activity start mode", e)
-                            }
-                        }
-                        
                         val bundle = activityOptions.toBundle()
                         
-                        // Add additional flags to signal legitimate launch
-                        bundle.putBoolean("android.pendingIntent.backgroundActivityAllowed", true)
-                        bundle.putBoolean("android.activity.allowDuringSetup", true)
+                        // Add additional flags to signal legitimate launch - use correct Integer types
+                        bundle.putInt("android.pendingIntent.backgroundActivityAllowed", 1) // 1 = MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                        bundle.putInt("android.activity.allowDuringSetup", 1)
                         bundle.putBoolean("android.intent.extra.USER_INITIATED", true)
                         
                         // Send the PendingIntent with proper context
@@ -186,9 +167,9 @@ class NotificationManager(private val context: Context) {
                         val activityOptions = ActivityOptions.makeBasic()
                         val bundle = activityOptions.toBundle()
                         
-                        // Signal that this is a user-initiated action from foreground app
-                        bundle.putBoolean("android.pendingIntent.backgroundActivityAllowed", true)
-                        bundle.putBoolean("android.activity.allowDuringSetup", true)
+                        // Signal that this is a user-initiated action from foreground app - use correct Integer types
+                        bundle.putInt("android.pendingIntent.backgroundActivityAllowed", 1) // 1 = MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                        bundle.putInt("android.activity.allowDuringSetup", 1)
                         bundle.putBoolean("android.intent.extra.USER_INITIATED", true)
                         bundle.putString("android.intent.extra.CALLING_PACKAGE", context.packageName)
                         bundle.putInt("android.activity.launchDisplayId", 0)
