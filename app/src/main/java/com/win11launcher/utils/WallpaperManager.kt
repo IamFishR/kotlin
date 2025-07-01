@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.Log
+import java.io.InputStream
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -104,14 +105,21 @@ class SystemWallpaperManager(private val context: Context) {
         } catch (e: Exception) {
             Log.w("WallpaperManager", "Samsung-specific wallpaper access failed", e)
             
-            // Fallback: Try to get wallpaper file directly
+            // Fallback: Try to get wallpaper using different Samsung methods
             try {
-                val wallpaperFile = wallpaperManager.wallpaperFile
-                Log.d("WallpaperManager", "Wallpaper file: $wallpaperFile")
-                if (wallpaperFile != null) {
-                    val drawable = Drawable.createFromStream(wallpaperFile, null)
-                    Log.d("WallpaperManager", "File-based wallpaper drawable: $drawable")
-                    drawable
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    // Try to get the wallpaper file using getWallpaperFile
+                    val wallpaperFileMethod = wallpaperManager.javaClass.getMethod("getWallpaperFile", Int::class.javaPrimitiveType)
+                    val inputStream = wallpaperFileMethod.invoke(wallpaperManager, WallpaperManager.FLAG_SYSTEM) as java.io.InputStream?
+                    Log.d("WallpaperManager", "Wallpaper input stream: $inputStream")
+                    if (inputStream != null) {
+                        val drawable = Drawable.createFromStream(inputStream, null)
+                        Log.d("WallpaperManager", "File-based wallpaper drawable: $drawable")
+                        inputStream.close()
+                        drawable
+                    } else {
+                        null
+                    }
                 } else {
                     null
                 }
