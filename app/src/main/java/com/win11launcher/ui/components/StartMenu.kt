@@ -10,6 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.ui.res.painterResource
+import com.win11launcher.R
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -89,7 +91,7 @@ private fun SearchBar(
         },
         leadingIcon = {
             Icon(
-                imageVector = Icons.Default.Search,
+                painter = painterResource(R.drawable.ic_fluent_search_24_regular),
                 contentDescription = null,
                 tint = Color(0xFF999999)
             )
@@ -228,12 +230,21 @@ private fun PinnedAppIcon(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = app.icon,
-                contentDescription = app.name,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
+            if (app.icon != null) {
+                Icon(
+                    imageVector = app.icon,
+                    contentDescription = app.name,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else if (app.iconRes != null) {
+                Icon(
+                    painter = painterResource(app.iconRes),
+                    contentDescription = app.name,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
         
         Spacer(modifier = Modifier.height(4.dp))
@@ -263,7 +274,7 @@ private fun BottomActions(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.AccountCircle,
+                painter = painterResource(R.drawable.ic_fluent_person_24_regular),
                 contentDescription = "User",
                 tint = Color.White,
                 modifier = Modifier.size(32.dp)
@@ -283,7 +294,7 @@ private fun BottomActions(
                 onClick = { showPowerMenu = true }
             ) {
                 Icon(
-                    imageVector = Icons.Default.PowerSettingsNew,
+                    painter = painterResource(R.drawable.ic_fluent_power_24_regular),
                     contentDescription = "Power",
                     tint = Color.White
                 )

@@ -7,7 +7,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.*
+import com.win11launcher.R
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -98,7 +100,7 @@ private fun SearchButton(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = Icons.Default.Search,
+            painter = painterResource(R.drawable.ic_fluent_search_24_regular),
             contentDescription = "Search",
             tint = Color.White,
             modifier = Modifier.size(18.dp)
@@ -130,7 +132,7 @@ private fun SystemTray(
             modifier = Modifier.size(24.dp)
         ) {
             Icon(
-                imageVector = if (showExpandedTray) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                painter = painterResource(if (showExpandedTray) R.drawable.ic_fluent_chevron_down_24_regular else R.drawable.ic_fluent_chevron_up_24_regular),
                 contentDescription = "Expand system tray",
                 tint = Color.White,
                 modifier = Modifier.size(12.dp)
@@ -157,19 +159,19 @@ private fun SystemStatusIcons(systemStatus: SystemStatus) {
         // Network icons
         if (systemStatus.wifiConnected) {
             NetworkIcon(
-                icon = Icons.Default.Wifi,
+                iconRes = R.drawable.ic_fluent_wifi_1_24_regular,
                 strength = systemStatus.wifiSignalStrength
             )
         } else if (systemStatus.mobileDataConnected) {
             NetworkIcon(
-                icon = Icons.Default.SignalCellularAlt,
+                iconRes = R.drawable.ic_fluent_cellular_data_1_24_regular,
                 strength = systemStatus.mobileSignalStrength
             )
         }
         
         // Additional system icons
         Icon(
-            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+            painter = painterResource(R.drawable.ic_fluent_speaker_2_24_regular),
             contentDescription = "Volume",
             tint = Color.White,
             modifier = Modifier.size(16.dp)
@@ -192,14 +194,14 @@ private fun EssentialSystemIcons(systemStatus: SystemStatus) {
         // Primary network icon (always visible)
         if (systemStatus.wifiConnected) {
             Icon(
-                imageVector = Icons.Default.Wifi,
+                painter = painterResource(R.drawable.ic_fluent_wifi_1_24_regular),
                 contentDescription = "WiFi",
                 tint = Color.White,
                 modifier = Modifier.size(16.dp)
             )
         } else if (systemStatus.mobileDataConnected) {
             Icon(
-                imageVector = Icons.Default.SignalCellularAlt,
+                painter = painterResource(R.drawable.ic_fluent_cellular_data_1_24_regular),
                 contentDescription = "Mobile Data",
                 tint = Color.White,
                 modifier = Modifier.size(16.dp)
@@ -210,7 +212,7 @@ private fun EssentialSystemIcons(systemStatus: SystemStatus) {
 
 @Composable
 private fun NetworkIcon(
-    icon: ImageVector,
+    iconRes: Int,
     strength: Int,
     modifier: Modifier = Modifier
 ) {
@@ -223,7 +225,7 @@ private fun NetworkIcon(
     }
     
     Icon(
-        imageVector = icon,
+        painter = painterResource(iconRes),
         contentDescription = "Network Signal",
         tint = Color.White.copy(alpha = alpha),
         modifier = modifier.size(16.dp)
@@ -236,15 +238,15 @@ private fun BatteryIcon(
     isCharging: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val batteryIcon = when {
-        isCharging -> Icons.Default.BatteryChargingFull
-        level >= 90 -> Icons.Default.BatteryFull
-        level >= 60 -> Icons.Default.BatteryFull
-        level >= 50 -> Icons.Default.BatteryFull
-        level >= 30 -> Icons.Default.BatteryFull
-        level >= 20 -> Icons.Default.Battery2Bar
-        level >= 10 -> Icons.Default.Battery1Bar
-        else -> Icons.Default.BatteryAlert
+    val batteryIconRes = when {
+        isCharging -> R.drawable.ic_fluent_battery_charge_24_regular
+        level >= 90 -> R.drawable.ic_fluent_battery_10_24_regular
+        level >= 60 -> R.drawable.ic_fluent_battery_7_24_regular
+        level >= 50 -> R.drawable.ic_fluent_battery_6_24_regular
+        level >= 30 -> R.drawable.ic_fluent_battery_4_24_regular
+        level >= 20 -> R.drawable.ic_fluent_battery_2_24_regular
+        level >= 10 -> R.drawable.ic_fluent_battery_1_24_regular
+        else -> R.drawable.ic_fluent_battery_warning_24_regular
     }
     
     val batteryColor = when {
@@ -255,7 +257,7 @@ private fun BatteryIcon(
     }
     
     Icon(
-        imageVector = batteryIcon,
+        painter = painterResource(batteryIconRes),
         contentDescription = "Battery $level%",
         tint = batteryColor,
         modifier = modifier.size(16.dp)

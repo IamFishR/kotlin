@@ -10,12 +10,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.filled.Note
 import androidx.compose.material.icons.filled.*
+import com.win11launcher.R
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.net.toUri
 
 data class PinnedApp(
     val name: String,
-    val icon: ImageVector,
+    val icon: ImageVector? = null,
+    val iconRes: Int? = null,
     val packageName: String = "",
     val intentAction: String = "",
     val launchAction: AppLaunchAction
@@ -43,18 +45,18 @@ class AppLauncher(private val context: Context) {
     
     fun getPinnedApps(): List<PinnedApp> {
         return listOf(
-            PinnedApp("Settings", Icons.Default.Settings, launchAction = AppLaunchAction.Settings),
-            PinnedApp("Files", Icons.Default.Folder, launchAction = AppLaunchAction.Files),
-            PinnedApp("Calculator", Icons.Default.Calculate, launchAction = AppLaunchAction.Calculator),
-            PinnedApp("Camera", Icons.Default.CameraAlt, launchAction = AppLaunchAction.Camera),
-            PinnedApp("Photos", Icons.Default.Photo, launchAction = AppLaunchAction.Photos),
-            PinnedApp("Store", Icons.Default.Store, launchAction = AppLaunchAction.Store),
-            PinnedApp("Notes Hub", Icons.AutoMirrored.Filled.Note, launchAction = AppLaunchAction.NotesHub),
-            PinnedApp("Mail", Icons.Default.Mail, launchAction = AppLaunchAction.Mail),
-            PinnedApp("Calendar", Icons.Default.CalendarToday, launchAction = AppLaunchAction.Calendar),
-            PinnedApp("Music", Icons.Default.MusicNote, launchAction = AppLaunchAction.Music),
-            PinnedApp("Videos", Icons.Default.VideoLibrary, launchAction = AppLaunchAction.Videos),
-            PinnedApp("News", Icons.AutoMirrored.Filled.Article, launchAction = AppLaunchAction.News)
+            PinnedApp("Settings", iconRes = R.drawable.ic_fluent_settings_24_regular, launchAction = AppLaunchAction.Settings),
+            PinnedApp("Files", iconRes = R.drawable.ic_fluent_folder_24_regular, launchAction = AppLaunchAction.Files),
+            PinnedApp("Calculator", iconRes = R.drawable.ic_fluent_calculator_24_regular, launchAction = AppLaunchAction.Calculator),
+            PinnedApp("Camera", iconRes = R.drawable.ic_fluent_camera_24_regular, launchAction = AppLaunchAction.Camera),
+            PinnedApp("Photos", iconRes = R.drawable.ic_fluent_image_24_regular, launchAction = AppLaunchAction.Photos),
+            PinnedApp("Store", iconRes = R.drawable.ic_fluent_store_microsoft_24_regular, launchAction = AppLaunchAction.Store),
+            PinnedApp("Notes Hub", iconRes = R.drawable.ic_fluent_notepad_24_regular, launchAction = AppLaunchAction.NotesHub),
+            PinnedApp("Mail", iconRes = R.drawable.ic_fluent_mail_24_regular, launchAction = AppLaunchAction.Mail),
+            PinnedApp("Calendar", iconRes = R.drawable.ic_fluent_calendar_24_regular, launchAction = AppLaunchAction.Calendar),
+            PinnedApp("Music", iconRes = R.drawable.ic_fluent_music_note_1_24_regular, launchAction = AppLaunchAction.Music),
+            PinnedApp("Videos", iconRes = R.drawable.ic_fluent_video_24_regular, launchAction = AppLaunchAction.Videos),
+            PinnedApp("News", iconRes = R.drawable.ic_fluent_news_24_regular, launchAction = AppLaunchAction.News)
         )
     }
     
