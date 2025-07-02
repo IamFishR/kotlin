@@ -42,6 +42,12 @@ interface NoteDao {
     
     @Query("SELECT * FROM notes WHERE rule_id = :ruleId AND title = :title AND content = :content AND created_at >= :sinceTime LIMIT 1")
     suspend fun findExactRecentNote(ruleId: String, title: String, content: String, sinceTime: Long): Note?
+    
+    @Query("SELECT * FROM notes WHERE rule_id = :ruleId AND created_at >= :sinceTime ORDER BY created_at DESC")
+    suspend fun findRecentNotesByRule(ruleId: String, sinceTime: Long): List<Note>
+    
+    @Query("SELECT * FROM notes WHERE created_at >= :sinceTime ORDER BY created_at DESC")
+    suspend fun findAllRecentNotes(sinceTime: Long): List<Note>
 
     
     

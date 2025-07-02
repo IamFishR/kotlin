@@ -72,6 +72,18 @@ data class TrackingRule(
     @ColumnInfo(name = "duplicate_detection_enabled")
     val duplicateDetectionEnabled: Boolean = true,
     
+    @ColumnInfo(name = "fuzzy_duplicate_detection_enabled")
+    val fuzzyDuplicateDetectionEnabled: Boolean = false,
+    
+    @ColumnInfo(name = "duplicate_similarity_threshold")
+    val duplicateSimilarityThreshold: Double = 0.85, // 85% similarity threshold
+    
+    @ColumnInfo(name = "duplicate_detection_time_window_hours")
+    val duplicateDetectionTimeWindowHours: Int = 24, // Configurable time window
+    
+    @ColumnInfo(name = "cross_rule_duplicate_detection_enabled")
+    val crossRuleDuplicateDetectionEnabled: Boolean = false, // Check duplicates across all rules
+    
     @ColumnInfo(name = "min_content_length")
     val minContentLength: Int = 0,
     
