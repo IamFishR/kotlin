@@ -9,11 +9,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,9 +23,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.win11launcher.data.entities.Folder
+import androidx.core.graphics.toColorInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -389,7 +390,7 @@ private fun FolderOption(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(android.graphics.Color.parseColor(folder.color)))
+                    .background(Color(folder.color.toColorInt()))
                     .padding(8.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -443,7 +444,7 @@ private fun ColorOption(
         modifier = Modifier
             .size(40.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(android.graphics.Color.parseColor(color)))
+            .background(Color(color.toColorInt()))
             .clickable { onClick() }
             .then(
                 if (isSelected) {
@@ -543,10 +544,10 @@ private val folderIcons = listOf(
     "work" to Icons.Default.Work,
     "star" to Icons.Default.Star,
     "bookmark" to Icons.Default.Bookmark,
-    "label" to Icons.Default.Label,
+    "label" to Icons.AutoMirrored.Filled.Label,
     "category" to Icons.Default.Category,
     "archive" to Icons.Default.Archive,
-    "assignment" to Icons.Default.Assignment
+    "assignment" to Icons.AutoMirrored.Filled.Assignment
 )
 
 private fun getIconFromName(iconName: String): ImageVector {

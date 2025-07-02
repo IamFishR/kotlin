@@ -6,6 +6,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.win11launcher.data.entities.Note
 import com.win11launcher.data.entities.Folder
@@ -48,7 +50,7 @@ fun NoteDetailScreen(
         ) {
             IconButton(onClick = onBack) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back"
                 )
             }
@@ -314,10 +316,10 @@ private fun getIconFromName(iconName: String): androidx.compose.ui.graphics.vect
         "work" -> Icons.Default.Work
         "star" -> Icons.Default.Star
         "bookmark" -> Icons.Default.Bookmark
-        "label" -> Icons.Default.Label
+        "label" -> Icons.AutoMirrored.Filled.Label
         "category" -> Icons.Default.Category
         "archive" -> Icons.Default.Archive
-        "assignment" -> Icons.Default.Assignment
+        "assignment" -> Icons.AutoMirrored.Filled.Assignment
         else -> Icons.Default.Folder
     }
 }

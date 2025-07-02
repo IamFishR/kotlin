@@ -261,7 +261,7 @@ class FinancialTransactionAnalyzer {
             val matcher = pattern.matcher(content)
             if (matcher.find()) {
                 return try {
-                    matcher.group(1).replace(",", "").toDouble()
+                    matcher.group(1)?.replace(",", "")?.toDouble()
                 } catch (e: NumberFormatException) {
                     null
                 }
@@ -281,9 +281,11 @@ class FinancialTransactionAnalyzer {
         merchantPatterns.forEach { pattern ->
             val matcher = pattern.matcher(content)
             if (matcher.find()) {
-                val merchant = matcher.group(1).trim()
-                if (merchant.length > 2 && merchant.length < 50) {
-                    return merchant
+                val merchant = matcher.group(1)?.trim()
+                if (merchant != null) {
+                    if (merchant.length in 3..49) {
+                        return merchant
+                    }
                 }
             }
         }

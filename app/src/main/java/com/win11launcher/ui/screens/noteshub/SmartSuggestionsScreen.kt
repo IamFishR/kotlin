@@ -4,8 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -186,18 +187,18 @@ private fun FinancialInsightsCard(insights: FinancialInsights) {
                 InsightItem(
                     label = "Expenses",
                     value = "₹${String.format("%.0f", insights.totalExpenses)}",
-                    icon = Icons.Default.TrendingDown,
+                    icon = Icons.AutoMirrored.Filled.TrendingDown,
                     color = MaterialTheme.colorScheme.error
                 )
                 InsightItem(
                     label = "Investments",
                     value = "₹${String.format("%.0f", insights.totalInvestments)}",
-                    icon = Icons.Default.TrendingUp,
+                    icon = Icons.AutoMirrored.Filled.TrendingUp,
                     color = MaterialTheme.colorScheme.tertiary
                 )
                 InsightItem(
                     label = "Top Category",
-                    value = insights?.topExpenseCategory ?: "N/A",
+                    value = insights.topExpenseCategory,
                     icon = Icons.Default.Category,
                     color = MaterialTheme.colorScheme.secondary
                 )
@@ -295,7 +296,7 @@ private fun SuggestionCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.TrendingUp,
+                    imageVector = Icons.AutoMirrored.Filled.TrendingUp,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.primary
@@ -534,7 +535,7 @@ private fun getCategoryDisplayName(category: String): String {
 private fun getCategoryIcon(category: String): ImageVector {
     return when (category) {
         SuggestionCategory.FINANCE -> Icons.Default.AccountBalance
-        SuggestionCategory.INVESTMENT -> Icons.Default.TrendingUp
+        SuggestionCategory.INVESTMENT -> Icons.AutoMirrored.Filled.TrendingUp
         SuggestionCategory.RESEARCH -> Icons.Default.Science
         SuggestionCategory.MARKET_NEWS -> Icons.Default.Newspaper
         SuggestionCategory.PRODUCTIVITY -> Icons.Default.Speed

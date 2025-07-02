@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Note
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,6 +26,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.core.graphics.toColorInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +59,7 @@ fun NotesViewScreen(
             ) {
                 IconButton(onClick = onBack) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back"
                     )
                 }
@@ -120,7 +123,7 @@ fun NotesViewScreen(
                             modifier = Modifier
                                 .size(16.dp)
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(Color(android.graphics.Color.parseColor(folder.color)))
+                                .background(Color(folder.color.toColorInt()))
                         )
                     }
                 )
@@ -137,7 +140,7 @@ fun NotesViewScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Note,
+                        imageVector = Icons.AutoMirrored.Filled.Note,
                         contentDescription = "No notes",
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -209,7 +212,7 @@ private fun NoteCard(
                             modifier = Modifier
                                 .size(12.dp)
                                 .clip(RoundedCornerShape(2.dp))
-                                .background(Color(android.graphics.Color.parseColor(it.color)))
+                                .background(Color(it.color.toColorInt()))
                         )
                         
                         Text(

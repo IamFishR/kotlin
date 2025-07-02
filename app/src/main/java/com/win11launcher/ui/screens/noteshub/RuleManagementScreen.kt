@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Note
+import androidx.compose.material.icons.automirrored.filled.Rule
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -136,7 +138,7 @@ fun RuleManagementScreen(
             StatsCard(
                 title = "Total Rules",
                 value = rules.size.toString(),
-                icon = Icons.Default.Rule,
+                icon = Icons.AutoMirrored.Filled.Rule,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f)
             )
@@ -144,7 +146,7 @@ fun RuleManagementScreen(
             StatsCard(
                 title = "Notes Created",
                 value = rules.sumOf { it.notesCapturedCount }.toString(),
-                icon = Icons.Default.Note,
+                icon = Icons.AutoMirrored.Filled.Note,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.weight(1f)
             )
@@ -522,7 +524,7 @@ private fun EmptyStateCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
-                imageVector = Icons.Default.Rule,
+                imageVector = Icons.AutoMirrored.Filled.Rule,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant

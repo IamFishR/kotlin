@@ -2,11 +2,10 @@ package com.win11launcher.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -20,7 +19,6 @@ fun NotesHubScreen(
     onNavigateBack: () -> Unit,
     viewModel: NotesHubViewModel = viewModel()
 ) {
-    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val ruleCreationState by viewModel.ruleCreationState.collectAsStateWithLifecycle()
     val folders by viewModel.folders.collectAsStateWithLifecycle(emptyList())
@@ -64,7 +62,7 @@ fun NotesHubScreen(
                     }
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back"
                     )
                 }

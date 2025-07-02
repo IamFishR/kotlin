@@ -2,15 +2,16 @@ package com.win11launcher.utils
 
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
 import android.provider.MediaStore
 import android.provider.CalendarContract
-import android.provider.ContactsContract
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Article
+import androidx.compose.material.icons.automirrored.filled.Note
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.core.net.toUri
 
 data class PinnedApp(
     val name: String,
@@ -48,12 +49,12 @@ class AppLauncher(private val context: Context) {
             PinnedApp("Camera", Icons.Default.CameraAlt, launchAction = AppLaunchAction.Camera),
             PinnedApp("Photos", Icons.Default.Photo, launchAction = AppLaunchAction.Photos),
             PinnedApp("Store", Icons.Default.Store, launchAction = AppLaunchAction.Store),
-            PinnedApp("Notes Hub", Icons.Default.Note, launchAction = AppLaunchAction.NotesHub),
+            PinnedApp("Notes Hub", Icons.AutoMirrored.Filled.Note, launchAction = AppLaunchAction.NotesHub),
             PinnedApp("Mail", Icons.Default.Mail, launchAction = AppLaunchAction.Mail),
             PinnedApp("Calendar", Icons.Default.CalendarToday, launchAction = AppLaunchAction.Calendar),
             PinnedApp("Music", Icons.Default.MusicNote, launchAction = AppLaunchAction.Music),
             PinnedApp("Videos", Icons.Default.VideoLibrary, launchAction = AppLaunchAction.Videos),
-            PinnedApp("News", Icons.Default.Article, launchAction = AppLaunchAction.News)
+            PinnedApp("News", Icons.AutoMirrored.Filled.Article, launchAction = AppLaunchAction.News)
         )
     }
     
@@ -150,7 +151,7 @@ class AppLauncher(private val context: Context) {
             createPackageIntent("com.xiaomi.market"), // Mi Store
             createPackageIntent("com.samsung.android.galaxystore"), // Galaxy Store
             Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("market://")
+                data = "market://".toUri()
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
         )
@@ -164,7 +165,7 @@ class AppLauncher(private val context: Context) {
             createPackageIntent("com.microsoft.office.outlook"), // Outlook
             createPackageIntent("com.samsung.android.email.provider"), // Samsung Email
             Intent(Intent.ACTION_SENDTO).apply {
-                data = Uri.parse("mailto:")
+                data = "mailto:".toUri()
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
         )

@@ -3,9 +3,9 @@ package com.win11launcher.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -169,7 +169,7 @@ private fun SystemStatusIcons(systemStatus: SystemStatus) {
         
         // Additional system icons
         Icon(
-            imageVector = Icons.Default.VolumeUp,
+            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
             contentDescription = "Volume",
             tint = Color.White,
             modifier = Modifier.size(16.dp)
