@@ -147,16 +147,16 @@ class RuleEngine(private val context: Context) {
     
     private suspend fun isDuplicate(rule: TrackingRule, notification: AppNotification): Boolean {
         val recentTimeThreshold = System.currentTimeMillis() - (24 * 60 * 60 * 1000) // 24 hours
-        val content = "${notification.title} ${notification.content}"
         
-        // Look for similar content in recent notes from this rule
-        val similarNote = database.noteDao().findSimilarRecentNote(
+        // Look for an exact match in recent notes from this rule
+        val exactMatch = database.noteDao().findExactRecentNote(
             rule.id,
-            content.take(50), // Use first 50 chars for similarity check
+            notification.title,
+            notification.content,
             recentTimeThreshold
         )
         
-        return similarNote != null
+        return exactMatch != null
     }
     
     private fun createNoteFromNotification(rule: TrackingRule, notification: AppNotification): Note {

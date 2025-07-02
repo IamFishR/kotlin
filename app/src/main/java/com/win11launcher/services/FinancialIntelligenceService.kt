@@ -283,7 +283,7 @@ class FinancialIntelligenceService @Inject constructor(
             id = ruleId,
             name = suggestion.title,
             description = suggestion.description,
-            sourceApps = "[]", // Will be populated from config
+            sourcePackages = "[]", // Will be populated from config
             filterType = "KEYWORD_INCLUDE", // Default, will be updated from config
             filterCriteria = suggestion.automatedRuleConfig,
             destinationFolderId = folderId,

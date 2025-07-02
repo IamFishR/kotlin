@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.win11launcher.data.entities.*
 import com.win11launcher.viewmodels.NotesHubViewModel
+import com.win11launcher.services.FinancialInsights
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -196,7 +197,7 @@ private fun FinancialInsightsCard(insights: FinancialInsights) {
                 )
                 InsightItem(
                     label = "Top Category",
-                    value = insights.topExpenseCategory,
+                    value = insights?.topExpenseCategory ?: "N/A",
                     icon = Icons.Default.Category,
                     color = MaterialTheme.colorScheme.secondary
                 )

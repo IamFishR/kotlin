@@ -318,7 +318,7 @@ class FinanceSmartSuggestionEngine @Inject constructor(
     private fun createInvestmentRuleConfig(app: String): String {
         return JSONObject().apply {
             put("filterType", "ALL")
-            put("sourceApps", JSONArray(listOf(app)))
+            put("sourcePackages", JSONArray(listOf(app)))
             put("autoTags", JSONArray(listOf("#investment", "#portfolio")))
         }.toString()
     }

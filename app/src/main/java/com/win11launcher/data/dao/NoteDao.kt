@@ -40,8 +40,10 @@ interface NoteDao {
     @Query("SELECT COUNT(*) FROM notes WHERE rule_id = :ruleId AND created_at >= :startTime")
     suspend fun getNotesCountByRuleSince(ruleId: String, startTime: Long): Int
     
-    @Query("SELECT * FROM notes WHERE rule_id = :ruleId AND content LIKE '%' || :content || '%' AND created_at >= :sinceTime LIMIT 1")
-    suspend fun findSimilarRecentNote(ruleId: String, content: String, sinceTime: Long): Note?
+    @Query("SELECT * FROM notes WHERE rule_id = :ruleId AND title = :title AND content = :content AND created_at >= :sinceTime LIMIT 1")
+    suspend fun findExactRecentNote(ruleId: String, title: String, content: String, sinceTime: Long): Note?
+
+    
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNote(note: Note)

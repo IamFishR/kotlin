@@ -84,7 +84,7 @@ class FinancialTransactionAnalyzer {
     )
     
     fun analyzeNotification(notification: AppNotification): FinancialPattern? {
-        val content = "${notification.title} ${notification.text}".lowercase()
+        val content = "${notification.title} ${notification.content}".lowercase()
         
         // Check if this is a financial notification
         if (!isFinancialNotification(notification)) {
@@ -94,8 +94,8 @@ class FinancialTransactionAnalyzer {
         val transactionType = detectTransactionType(content)
         val amount = extractAmount(content)
         val merchant = extractMerchant(content, notification)
-        val category = detectCategory(content, merchant, notification.sourceAppName)
-        val bankName = detectBankName(content, notification.sourceAppName)
+        val category = detectCategory(content, merchant, notification.packageName)
+        val bankName = detectBankName(content, notification.packageName)
         val timePattern = detectTimePattern(notification.timestamp)
         val keywords = extractKeywords(content)
         
@@ -111,7 +111,7 @@ class FinancialTransactionAnalyzer {
             isRecurring = false, // Will be updated by pattern matching
             lastSeen = notification.timestamp,
             confidence = calculateConfidence(content, transactionType, amount, category),
-            sourcePackage = notification.sourcePackage,
+            sourcePackage = notification.packageName,
             patternKeywords = keywords,
             createdAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis(),
@@ -216,7 +216,7 @@ class FinancialTransactionAnalyzer {
             suggestions.add(
                 InvestmentTrackingSuggestion(
                     appPackage = packageName ?: "",
-                    appName = appPatterns.firstOrNull()?.sourcePackage ?: "Investment App",
+                    appName = "Investment App",
                     totalInvested = totalInvested,
                     transactionCount = frequency,
                     averageAmount = if (frequency > 0) totalInvested / frequency else 0.0,
@@ -230,11 +230,11 @@ class FinancialTransactionAnalyzer {
     }
     
     private fun isFinancialNotification(notification: AppNotification): Boolean {
-        val content = "${notification.title} ${notification.text}".lowercase()
+        val content = "${notification.title} ${notification.content}".lowercase()
         
         // Check if from banking/payment app
-        if (bankingApps.contains(notification.sourcePackage) || 
-            investmentApps.contains(notification.sourcePackage)) {
+        if (bankingApps.contains(notification.packageName) || 
+            investmentApps.contains(notification.packageName)) {
             return true
         }
         

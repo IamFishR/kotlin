@@ -23,7 +23,7 @@ interface FinancialPatternDao {
     suspend fun getPatternsByBank(bankName: String): List<FinancialPattern>
     
     @Query("SELECT * FROM financial_patterns WHERE is_recurring = 1 ORDER BY confidence DESC")
-    suspend fun getRecurringPatterns(): Flow<List<FinancialPattern>>
+    fun getRecurringPatterns(): Flow<List<FinancialPattern>>
     
     @Query("SELECT * FROM financial_patterns WHERE confidence >= :minConfidence ORDER BY confidence DESC")
     suspend fun getHighConfidencePatterns(minConfidence: Float): List<FinancialPattern>
