@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
+import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.net.wifi.WifiManager
 import android.os.BatteryManager
 import android.telephony.TelephonyManager
@@ -38,13 +40,13 @@ class SystemStatusManager(private val context: Context) {
     private var isReceiverRegistered = false
     private var timeUpdateJob: Job? = null
     private var scope: CoroutineScope? = null
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
     
     private val batteryReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 Intent.ACTION_BATTERY_CHANGED -> updateBatteryStatus(intent)
                 Intent.ACTION_TIME_TICK -> updateDateTime()
-                ConnectivityManager.CONNECTIVITY_ACTION -> updateNetworkStatus()
             }
         }
     }
@@ -58,7 +60,6 @@ class SystemStatusManager(private val context: Context) {
             val filter = IntentFilter().apply {
                 addAction(Intent.ACTION_BATTERY_CHANGED)
                 addAction(Intent.ACTION_TIME_TICK)
-                addAction(ConnectivityManager.CONNECTIVITY_ACTION)
             }
             try {
                 context.registerReceiver(batteryReceiver, filter)
@@ -67,6 +68,9 @@ class SystemStatusManager(private val context: Context) {
                 // Handle registration failure
             }
         }
+        
+        // Register network callback
+        registerNetworkCallback()
         
         // Initial updates
         try {
@@ -94,6 +98,9 @@ class SystemStatusManager(private val context: Context) {
                 isReceiverRegistered = false
             }
         }
+        
+        // Unregister network callback
+        unregisterNetworkCallback()
         
         scope?.cancel()
         scope = null
@@ -190,6 +197,49 @@ class SystemStatusManager(private val context: Context) {
         } catch (e: Exception) {
             0
         }
+    }
+    
+    private fun registerNetworkCallback() {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        
+        networkCallback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                updateNetworkStatus()
+            }
+            
+            override fun onLost(network: Network) {
+                updateNetworkStatus()
+            }
+            
+            override fun onCapabilitiesChanged(
+                network: Network,
+                networkCapabilities: NetworkCapabilities
+            ) {
+                updateNetworkStatus()
+            }
+        }
+        
+        val networkRequest = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+        
+        try {
+            connectivityManager.registerNetworkCallback(networkRequest, networkCallback!!)
+        } catch (e: Exception) {
+            // Handle registration failure
+        }
+    }
+    
+    private fun unregisterNetworkCallback() {
+        networkCallback?.let { callback ->
+            try {
+                val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                connectivityManager.unregisterNetworkCallback(callback)
+            } catch (e: Exception) {
+                // Handle unregister failure
+            }
+        }
+        networkCallback = null
     }
     
     private fun startTimeUpdates() {
