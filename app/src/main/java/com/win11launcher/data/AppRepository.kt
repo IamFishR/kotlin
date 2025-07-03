@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.graphics.drawable.Drawable
+import android.os.Build
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
 
@@ -26,7 +27,13 @@ class AppRepository(private val context: Context) {
             addCategory(Intent.CATEGORY_LAUNCHER)
         }
 
-        val apps = packageManager.queryIntentActivities(intent, 0)
+        val queryFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            PackageManager.MATCH_ALL
+        } else {
+            0
+        }
+        
+        val apps = packageManager.queryIntentActivities(intent, queryFlags)
             .filter { it.activityInfo.packageName != context.packageName }
             .map { resolveInfo ->
                 InstalledApp(
