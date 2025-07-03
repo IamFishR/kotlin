@@ -45,18 +45,18 @@ class AppLauncher(private val context: Context) {
     
     fun getPinnedApps(): List<PinnedApp> {
         return listOf(
-            PinnedApp("Settings", iconRes = R.drawable.ic_fluent_settings_24_regular, launchAction = AppLaunchAction.Settings),
-            PinnedApp("Files", iconRes = R.drawable.ic_fluent_folder_24_regular, launchAction = AppLaunchAction.Files),
-            PinnedApp("Calculator", iconRes = R.drawable.ic_fluent_calculator_24_regular, launchAction = AppLaunchAction.Calculator),
-            PinnedApp("Camera", iconRes = R.drawable.ic_fluent_camera_24_regular, launchAction = AppLaunchAction.Camera),
-            PinnedApp("Photos", iconRes = R.drawable.ic_fluent_image_24_regular, launchAction = AppLaunchAction.Photos),
-            PinnedApp("Store", iconRes = R.drawable.ic_fluent_store_microsoft_24_regular, launchAction = AppLaunchAction.Store),
-            PinnedApp("Notes Hub", iconRes = R.drawable.ic_fluent_notepad_24_regular, launchAction = AppLaunchAction.NotesHub),
-            PinnedApp("Mail", iconRes = R.drawable.ic_fluent_mail_24_regular, launchAction = AppLaunchAction.Mail),
-            PinnedApp("Calendar", iconRes = R.drawable.ic_fluent_calendar_24_regular, launchAction = AppLaunchAction.Calendar),
-            PinnedApp("Music", iconRes = R.drawable.ic_fluent_music_note_1_24_regular, launchAction = AppLaunchAction.Music),
-            PinnedApp("Videos", iconRes = R.drawable.ic_fluent_video_24_regular, launchAction = AppLaunchAction.Videos),
-            PinnedApp("News", iconRes = R.drawable.ic_fluent_news_24_regular, launchAction = AppLaunchAction.News)
+            PinnedApp("Settings", icon = Icons.Default.Settings, launchAction = AppLaunchAction.Settings),
+            PinnedApp("Files", icon = Icons.Default.Folder, launchAction = AppLaunchAction.Files),
+            PinnedApp("Calculator", icon = Icons.Default.Calculate, launchAction = AppLaunchAction.Calculator),
+            PinnedApp("Camera", icon = Icons.Default.Camera, launchAction = AppLaunchAction.Camera),
+            PinnedApp("Photos", icon = Icons.Default.Photo, launchAction = AppLaunchAction.Photos),
+            PinnedApp("Store", icon = Icons.Default.Store, launchAction = AppLaunchAction.Store),
+            PinnedApp("Notes Hub", icon = Icons.Default.NoteAlt, launchAction = AppLaunchAction.NotesHub),
+            PinnedApp("Mail", icon = Icons.Default.Mail, launchAction = AppLaunchAction.Mail),
+            PinnedApp("Calendar", icon = Icons.Default.CalendarToday, launchAction = AppLaunchAction.Calendar),
+            PinnedApp("Music", icon = Icons.Default.MusicNote, launchAction = AppLaunchAction.Music),
+            PinnedApp("Videos", icon = Icons.Default.VideoLibrary, launchAction = AppLaunchAction.Videos),
+            PinnedApp("News", icon = Icons.Default.Article, launchAction = AppLaunchAction.News)
         )
     }
     

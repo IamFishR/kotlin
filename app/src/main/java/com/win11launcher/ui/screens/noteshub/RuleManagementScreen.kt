@@ -41,11 +41,14 @@ fun RuleManagementScreen(
     val activeRules = rules.filter { it.isActive }
     val inactiveRules = rules.filter { !it.isActive }
     
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 80.dp) // Extra bottom padding for taskbar
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 80.dp) // Extra bottom padding for taskbar
+        ) {
         // Header with stats
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -116,13 +119,18 @@ fun RuleManagementScreen(
                 
                 FloatingActionButton(
                     onClick = onCreateNewRule,
-                    modifier = Modifier.size(48.dp),
-                    containerColor = MaterialTheme.colorScheme.primary
+                    modifier = Modifier.size(56.dp),
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 6.dp,
+                        pressedElevation = 12.dp
+                    )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Create new rule",
-                        tint = MaterialTheme.colorScheme.onPrimary
+                        contentDescription = "Add new rule",
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
@@ -217,6 +225,28 @@ fun RuleManagementScreen(
                 item {
                     EmptyStateCard(onCreateNewRule = onCreateNewRule)
                 }
+            }
+        }
+        }
+        
+        // Always visible floating action button at bottom right
+        if (rules.isNotEmpty()) {
+            FloatingActionButton(
+                onClick = onCreateNewRule,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 24.dp, bottom = 96.dp), // Above taskbar
+                containerColor = MaterialTheme.colorScheme.primary,
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 6.dp,
+                    pressedElevation = 12.dp
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add new rule",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
             }
         }
     }
