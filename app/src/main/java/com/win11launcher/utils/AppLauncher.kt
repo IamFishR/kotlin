@@ -2,15 +2,9 @@ package com.win11launcher.utils
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.provider.Settings
 import android.provider.MediaStore
 import android.provider.CalendarContract
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Article
-import androidx.compose.material.icons.automirrored.filled.Note
-import androidx.compose.material.icons.filled.*
-import com.win11launcher.R
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.net.toUri
 
@@ -45,18 +39,18 @@ class AppLauncher(private val context: Context) {
     
     fun getPinnedApps(): List<PinnedApp> {
         return listOf(
-            PinnedApp("Settings", iconRes = R.drawable.ic_fluent_settings_24_regular, launchAction = AppLaunchAction.Settings),
-            PinnedApp("Files", iconRes = R.drawable.ic_fluent_folder_24_regular, launchAction = AppLaunchAction.Files),
-            PinnedApp("Calculator", iconRes = R.drawable.ic_fluent_calculator_24_regular, launchAction = AppLaunchAction.Calculator),
-            PinnedApp("Camera", iconRes = R.drawable.ic_fluent_camera_24_regular, launchAction = AppLaunchAction.Camera),
-            PinnedApp("Photos", iconRes = R.drawable.ic_fluent_image_24_regular, launchAction = AppLaunchAction.Photos),
-            PinnedApp("Store", iconRes = R.drawable.ic_fluent_store_microsoft_24_regular, launchAction = AppLaunchAction.Store),
-            PinnedApp("Notes Hub", iconRes = R.drawable.ic_fluent_notepad_24_regular, launchAction = AppLaunchAction.NotesHub),
-            PinnedApp("Mail", iconRes = R.drawable.ic_fluent_mail_24_regular, launchAction = AppLaunchAction.Mail),
-            PinnedApp("Calendar", iconRes = R.drawable.ic_fluent_calendar_24_regular, launchAction = AppLaunchAction.Calendar),
-            PinnedApp("Music", iconRes = R.drawable.ic_fluent_music_note_1_24_regular, launchAction = AppLaunchAction.Music),
-            PinnedApp("Videos", iconRes = R.drawable.ic_fluent_video_24_regular, launchAction = AppLaunchAction.Videos),
-            PinnedApp("News", iconRes = R.drawable.ic_fluent_news_24_regular, launchAction = AppLaunchAction.News)
+            PinnedApp("Settings", iconRes = com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_settings_24_regular, launchAction = AppLaunchAction.Settings),
+            PinnedApp("Files", iconRes = com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_folder_24_regular, launchAction = AppLaunchAction.Files),
+            PinnedApp("Calculator", iconRes = com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_calculator_24_regular, launchAction = AppLaunchAction.Calculator),
+            PinnedApp("Camera", iconRes = com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_camera_24_regular, launchAction = AppLaunchAction.Camera),
+            PinnedApp("Photos", iconRes = com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_image_24_regular, launchAction = AppLaunchAction.Photos),
+            PinnedApp("Store", iconRes = com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_store_microsoft_24_regular, launchAction = AppLaunchAction.Store),
+            PinnedApp("Notes Hub", iconRes = com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_notepad_24_regular, launchAction = AppLaunchAction.NotesHub),
+            PinnedApp("Mail", iconRes = com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_mail_24_regular, launchAction = AppLaunchAction.Mail),
+            PinnedApp("Calendar", iconRes = com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_calendar_24_regular, launchAction = AppLaunchAction.Calendar),
+            PinnedApp("Music", iconRes = com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_music_note_1_24_regular, launchAction = AppLaunchAction.Music),
+            PinnedApp("Videos", iconRes = com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_video_24_regular, launchAction = AppLaunchAction.Videos),
+            PinnedApp("News", iconRes = com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_news_24_regular, launchAction = AppLaunchAction.News)
         )
     }
     

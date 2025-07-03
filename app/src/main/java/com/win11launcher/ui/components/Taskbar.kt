@@ -4,18 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.*
-import com.win11launcher.R
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -100,7 +95,7 @@ private fun SearchButton(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painter = painterResource(R.drawable.ic_fluent_search_24_regular),
+            painter = painterResource(com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_search_24_regular),
             contentDescription = "Search",
             tint = Color.White,
             modifier = Modifier.size(18.dp)
@@ -132,7 +127,7 @@ private fun SystemTray(
             modifier = Modifier.size(24.dp)
         ) {
             Icon(
-                painter = painterResource(if (showExpandedTray) R.drawable.ic_fluent_chevron_down_24_regular else R.drawable.ic_fluent_chevron_up_24_regular),
+                painter = painterResource(if (showExpandedTray) com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_chevron_down_24_regular else com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_chevron_up_24_regular),
                 contentDescription = "Expand system tray",
                 tint = Color.White,
                 modifier = Modifier.size(12.dp)
@@ -159,19 +154,19 @@ private fun SystemStatusIcons(systemStatus: SystemStatus) {
         // Network icons
         if (systemStatus.wifiConnected) {
             NetworkIcon(
-                iconRes = R.drawable.ic_fluent_wifi_1_24_regular,
+                iconRes = com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_wifi_1_24_regular,
                 strength = systemStatus.wifiSignalStrength
             )
         } else if (systemStatus.mobileDataConnected) {
             NetworkIcon(
-                iconRes = R.drawable.ic_fluent_cellular_data_1_24_regular,
+                iconRes = com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_cellular_data_1_24_regular,
                 strength = systemStatus.mobileSignalStrength
             )
         }
         
         // Additional system icons
         Icon(
-            painter = painterResource(R.drawable.ic_fluent_speaker_2_24_regular),
+            painter = painterResource(com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_speaker_2_24_regular),
             contentDescription = "Volume",
             tint = Color.White,
             modifier = Modifier.size(16.dp)
@@ -194,14 +189,14 @@ private fun EssentialSystemIcons(systemStatus: SystemStatus) {
         // Primary network icon (always visible)
         if (systemStatus.wifiConnected) {
             Icon(
-                painter = painterResource(R.drawable.ic_fluent_wifi_1_24_regular),
+                painter = painterResource(com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_wifi_1_24_regular),
                 contentDescription = "WiFi",
                 tint = Color.White,
                 modifier = Modifier.size(16.dp)
             )
         } else if (systemStatus.mobileDataConnected) {
             Icon(
-                painter = painterResource(R.drawable.ic_fluent_cellular_data_1_24_regular),
+                painter = painterResource(com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_cellular_data_1_24_regular),
                 contentDescription = "Mobile Data",
                 tint = Color.White,
                 modifier = Modifier.size(16.dp)
@@ -239,14 +234,14 @@ private fun BatteryIcon(
     modifier: Modifier = Modifier
 ) {
     val batteryIconRes = when {
-        isCharging -> R.drawable.ic_fluent_battery_charge_24_regular
-        level >= 90 -> R.drawable.ic_fluent_battery_10_24_regular
-        level >= 60 -> R.drawable.ic_fluent_battery_7_24_regular
-        level >= 50 -> R.drawable.ic_fluent_battery_6_24_regular
-        level >= 30 -> R.drawable.ic_fluent_battery_4_24_regular
-        level >= 20 -> R.drawable.ic_fluent_battery_2_24_regular
-        level >= 10 -> R.drawable.ic_fluent_battery_1_24_regular
-        else -> R.drawable.ic_fluent_battery_warning_24_regular
+        isCharging -> com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_battery_charge_24_regular
+        level >= 90 -> com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_battery_10_24_regular
+        level >= 60 -> com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_battery_7_24_regular
+        level >= 50 -> com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_battery_6_24_regular
+        level >= 30 -> com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_battery_4_24_regular
+        level >= 20 -> com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_battery_2_24_regular
+        level >= 10 -> com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_battery_1_24_regular
+        else -> com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_battery_warning_24_regular
     }
     
     val batteryColor = when {

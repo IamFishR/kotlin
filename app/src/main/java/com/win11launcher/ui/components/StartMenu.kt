@@ -7,11 +7,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.ui.res.painterResource
-import com.win11launcher.R
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -91,7 +88,7 @@ private fun SearchBar(
         },
         leadingIcon = {
             Icon(
-                painter = painterResource(R.drawable.ic_fluent_search_24_regular),
+                painter = painterResource(com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_search_24_regular),
                 contentDescription = null,
                 tint = Color(0xFF999999)
             )
@@ -274,7 +271,7 @@ private fun BottomActions(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_fluent_person_24_regular),
+                painter = painterResource(com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_person_24_regular),
                 contentDescription = "User",
                 tint = Color.White,
                 modifier = Modifier.size(32.dp)
@@ -294,7 +291,7 @@ private fun BottomActions(
                 onClick = { showPowerMenu = true }
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_fluent_power_24_regular),
+                    painter = painterResource(com.microsoft.fluent.mobile.icons.R.drawable.ic_fluent_power_24_regular),
                     contentDescription = "Power",
                     tint = Color.White
                 )
