@@ -1,10 +1,13 @@
 package com.win11launcher.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -33,7 +36,7 @@ fun NotesHubScreen(
             .fillMaxSize()
             .padding(bottom = 56.dp) // Account for taskbar
     ) {
-        // Top app bar
+        // Top app bar with Windows-style controls
         TopAppBar(
             title = {
                 Text(
@@ -67,9 +70,58 @@ fun NotesHubScreen(
                     )
                 }
             },
+            actions = {
+                WindowsControls(
+                    onMinimize = {
+                        // TODO: Implement minimize functionality
+                    },
+                    onMaximize = {
+                        // TODO: Implement maximize functionality
+                    },
+                    onClose = onNavigateBack
+                )
+            },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.surface
             )
+        )
+        
+        // Windows-style menu bar
+        WindowsMenuBar(
+            onFileMenuAction = { action ->
+                when (action) {
+                    "new_rule" -> viewModel.startRuleCreation()
+                    "export" -> {
+                        // TODO: Implement export functionality
+                    }
+                    "exit" -> onNavigateBack()
+                }
+            },
+            onEditMenuAction = { action ->
+                when (action) {
+                    "search" -> {
+                        // TODO: Implement search functionality
+                    }
+                    "preferences" -> {
+                        // TODO: Implement preferences
+                    }
+                }
+            },
+            onViewMenuAction = { action ->
+                when (action) {
+                    "notes" -> viewModel.navigateToNotesView()
+                    "rules" -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
+                    "suggestions" -> viewModel.navigateToScreen(Screen.SMART_SUGGESTIONS)
+                }
+            },
+            onToolsMenuAction = { action ->
+                when (action) {
+                    "smart_suggestions" -> viewModel.navigateToScreen(Screen.SMART_SUGGESTIONS)
+                    "analytics" -> {
+                        // TODO: Implement analytics
+                    }
+                }
+            }
         )
         
         // Screen content
@@ -236,3 +288,163 @@ fun NotesHubScreen(
         }
     }
 }
+
+@Composable
+private fun WindowsMenuBar(
+    onFileMenuAction: (String) -> Unit,
+    onEditMenuAction: (String) -> Unit,
+    onViewMenuAction: (String) -> Unit,
+    onToolsMenuAction: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(32.dp)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        MenuBarItem(
+            text = "File",
+            menuItems = listOf(
+                MenuBarDropdownItem("New Rule", Icons.Default.Add, "new_rule"),
+                MenuBarDropdownItem("Export Data", Icons.Default.Download, "export"),
+                MenuBarDropdownItem("Exit", Icons.Default.Close, "exit")
+            ),
+            onMenuItemClick = onFileMenuAction
+        )
+        
+        MenuBarItem(
+            text = "Edit",
+            menuItems = listOf(
+                MenuBarDropdownItem("Search", Icons.Default.Search, "search"),
+                MenuBarDropdownItem("Preferences", Icons.Default.Settings, "preferences")
+            ),
+            onMenuItemClick = onEditMenuAction
+        )
+        
+        MenuBarItem(
+            text = "View",
+            menuItems = listOf(
+                MenuBarDropdownItem("Notes", Icons.Default.Visibility, "notes"),
+                MenuBarDropdownItem("Rules", Icons.Default.Rule, "rules"),
+                MenuBarDropdownItem("Suggestions", Icons.Default.Lightbulb, "suggestions")
+            ),
+            onMenuItemClick = onViewMenuAction
+        )
+        
+        MenuBarItem(
+            text = "Tools",
+            menuItems = listOf(
+                MenuBarDropdownItem("Smart Suggestions", Icons.Default.Lightbulb, "smart_suggestions"),
+                MenuBarDropdownItem("Analytics", Icons.Default.Analytics, "analytics")
+            ),
+            onMenuItemClick = onToolsMenuAction
+        )
+    }
+}
+
+@Composable
+private fun MenuBarItem(
+    text: String,
+    menuItems: List<MenuBarDropdownItem>,
+    onMenuItemClick: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    
+    Box {
+        TextButton(
+            onClick = { expanded = true },
+            modifier = Modifier.height(32.dp),
+            colors = ButtonDefaults.textButtonColors(
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+        
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+        ) {
+            menuItems.forEach { item ->
+                DropdownMenuItem(
+                    text = { Text(item.text) },
+                    onClick = {
+                        onMenuItemClick(item.action)
+                        expanded = false
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun WindowsControls(
+    onMinimize: () -> Unit,
+    onMaximize: () -> Unit,
+    onClose: () -> Unit
+) {
+    Row {
+        // Minimize button
+        IconButton(
+            onClick = onMinimize,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Minimize,
+                contentDescription = "Minimize",
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        
+        // Maximize button
+        IconButton(
+            onClick = onMaximize,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.CropSquare,
+                contentDescription = "Maximize",
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        
+        // Close button
+        IconButton(
+            onClick = onClose,
+            modifier = Modifier.size(32.dp),
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Close",
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+}
+
+private data class MenuBarDropdownItem(
+    val text: String,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val action: String
+)
