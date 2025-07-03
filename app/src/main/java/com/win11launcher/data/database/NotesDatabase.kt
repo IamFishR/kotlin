@@ -24,7 +24,7 @@ import com.win11launcher.data.dao.SmartSuggestionDao
 @Database(
     entities = [Note::class, Folder::class, TrackingRule::class, RuleActivity::class, FinancialPattern::class, ResearchPattern::class, SmartSuggestion::class],
     version = 3,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class NotesDatabase : RoomDatabase() {
     

@@ -280,7 +280,13 @@ class NotificationManager(private val context: Context) {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
             }
             
-            val resolveInfoList = context.packageManager.queryIntentActivities(mainIntent, 0)
+            val queryFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                PackageManager.MATCH_ALL
+            } else {
+                0
+            }
+            
+            val resolveInfoList = context.packageManager.queryIntentActivities(mainIntent, queryFlags)
             if (resolveInfoList.isNotEmpty()) {
                 val resolveInfo = resolveInfoList[0]
                 val componentName = ComponentName(

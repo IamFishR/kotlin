@@ -41,9 +41,6 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15"
-    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -51,6 +48,10 @@ android {
     }
 }
 
+// Room schema location configuration
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
 
 dependencies {
     implementation("androidx.core:core-ktx:1.16.0")
@@ -75,9 +76,9 @@ dependencies {
     ksp("com.google.dagger:hilt-compiler:2.56.2")
 
     // Room database
-    implementation("androidx.room:room-runtime:2.7.2")
-    implementation("androidx.room:room-ktx:2.7.2")
-    ksp("androidx.room:room-compiler:2.7.2")
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
     
     // JSON parsing for rule criteria
     implementation("com.google.code.gson:gson:2.13.1")

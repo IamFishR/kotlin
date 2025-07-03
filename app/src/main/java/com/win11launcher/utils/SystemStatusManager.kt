@@ -136,7 +136,7 @@ class SystemStatusManager(private val context: Context) {
         
         // Check WiFi
         val wifiConnected = isWifiConnected(connectivityManager)
-        val wifiSignalStrength = if (wifiConnected) getWifiSignalStrength(wifiManager) else 0
+        val wifiSignalStrength = if (wifiConnected) getWifiSignalStrength() else 0
         
         // Check Mobile Data
         val mobileDataConnected = isMobileDataConnected(connectivityManager)
@@ -175,16 +175,23 @@ class SystemStatusManager(private val context: Context) {
         return networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
     }
     
-    private fun getWifiSignalStrength(wifiManager: WifiManager): Int {
-        val wifiInfo = wifiManager.connectionInfo
-        val rssi = wifiInfo.rssi
-        return when {
-            rssi >= -50 -> 4  // Excellent
-            rssi >= -60 -> 3  // Good
-            rssi >= -70 -> 2  // Fair
-            rssi >= -80 -> 1  // Poor
-            else -> 0         // No signal
+    private fun getWifiSignalStrength(): Int {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return 0
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(network) ?: return 0
+        
+        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+            val wifiInfo = networkCapabilities.transportInfo as? android.net.wifi.WifiInfo
+            val rssi = wifiInfo?.rssi ?: return 0
+            return when {
+                rssi >= -50 -> 4  // Excellent
+                rssi >= -60 -> 3  // Good
+                rssi >= -70 -> 2  // Fair
+                rssi >= -80 -> 1  // Poor
+                else -> 0         // No signal
+            }
         }
+        return 0
     }
     
     private fun getMobileSignalStrength(telephonyManager: TelephonyManager): Int {
