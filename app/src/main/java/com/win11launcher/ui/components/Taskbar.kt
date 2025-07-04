@@ -227,10 +227,14 @@ private fun SystemTray(
         // Popup for system status icons
         if (showExpandedTray) {
             Popup(
-                alignment = Alignment.TopCenter,
-                offset = IntOffset(0, -60),
+                alignment = Alignment.BottomEnd,
+                offset = IntOffset(-16, -200),
                 onDismissRequest = { showExpandedTray = false },
-                properties = PopupProperties(focusable = true)
+                properties = PopupProperties(
+                    focusable = true,
+                    dismissOnBackPress = true,
+                    dismissOnClickOutside = true
+                )
             ) {
                 SystemTrayTooltip(systemStatus)
             }
@@ -242,19 +246,20 @@ private fun SystemTray(
 private fun SystemTrayTooltip(systemStatus: SystemStatus) {
     Card(
         modifier = Modifier
-            .wrapContentSize()
-            .padding(4.dp),
+            .width(200.dp)
+            .wrapContentHeight()
+            .clip(RoundedCornerShape(8.dp)),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF2D2D2D)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
         shape = RoundedCornerShape(8.dp)
     ) {
         LazyVerticalGrid(
-            columns = GridCells.Fixed(5),
-            modifier = Modifier.padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            columns = GridCells.Fixed(4),
+            modifier = Modifier.padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             // System icons in grid format
             items(getSystemIcons(systemStatus)) { iconData ->
@@ -276,7 +281,7 @@ private fun TooltipIcon(
 ) {
     Box(
         modifier = Modifier
-            .size(32.dp)
+            .size(24.dp)
             .clip(RoundedCornerShape(4.dp))
             .background(Color.Transparent)
             .clickable { },
@@ -286,7 +291,7 @@ private fun TooltipIcon(
             imageVector = icon,
             contentDescription = contentDescription,
             tint = tint,
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(16.dp)
         )
     }
 }
@@ -299,7 +304,7 @@ private data class SystemIconData(
 
 private fun getSystemIcons(systemStatus: SystemStatus): List<SystemIconData> {
     return listOf(
-        SystemIconData(Icons.Default.VolumeUp, "Volume"),
+        SystemIconData(Icons.AutoMirrored.Filled.VolumeUp, "Volume"),
         SystemIconData(Icons.Default.Brightness6, "Brightness"),
         SystemIconData(Icons.Default.Bluetooth, "Bluetooth"),
         SystemIconData(Icons.Default.LocationOn, "Location"),
@@ -335,7 +340,7 @@ private fun SystemStatusIcons(systemStatus: SystemStatus) {
         
         // Additional system icons
         Icon(
-            imageVector = Icons.Default.VolumeUp,
+            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
             contentDescription = "Volume",
             tint = Color.White,
             modifier = Modifier.size(16.dp)
