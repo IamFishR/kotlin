@@ -49,6 +49,18 @@ fun Taskbar(
                 .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // create a small text with R
+            Text(
+                text = "R",
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color(0xFF0078D4))
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            )
             StartButton(
                 onClick = onStartClick,
                 modifier = Modifier.padding(end = 8.dp)
