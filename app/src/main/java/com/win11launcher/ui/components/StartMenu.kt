@@ -9,11 +9,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.ScrollState
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.ui.text.style.TextAlign
+import kotlinx.coroutines.launch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -179,69 +190,117 @@ private fun AllAppsView(
     appRepository: AppRepository,
     onBackClick: () -> Unit
 ) {
-    Column(modifier = modifier) {
-        // Header with back button
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+    
+    // Alphabetically grouped apps
+    val groupedApps = remember(installedApps) {
+        installedApps
+            .sortedBy { it.name }
+            .groupBy { it.name.first().uppercaseChar() }
+            .toSortedMap()
+    }
+    
+    // Create a map of letter to item index for quick scrolling
+    val letterToIndex = remember(groupedApps) {
+        var index = 0
+        groupedApps.keys.associateWith { letter ->
+            val currentIndex = index
+            index += 1 + (groupedApps[letter]?.size ?: 0) // +1 for header
+            currentIndex
+        }
+    }
+    
+    Row(modifier = modifier) {
+        // Main content area
+        Column(modifier = Modifier.weight(1f)) {
+            // Header with back button
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = onBackClick,
-                    modifier = Modifier.size(32.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    
+                    Text(
+                        text = "All apps",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
-                
-                Text(
-                    text = "All apps",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold
-                )
+            }
+            
+            // Apps list with scrollbar
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                groupedApps.forEach { (letter, apps) ->
+                    item {
+                        // Letter header
+                        Text(
+                            text = letter.toString(),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                    
+                    items(apps) { app ->
+                        AllAppsItem(
+                            app = app,
+                            onClick = { appRepository.launchApp(app) }
+                        )
+                    }
+                }
             }
         }
         
-        // Alphabetically grouped apps
-        val groupedApps = remember(installedApps) {
-            installedApps
-                .sortedBy { it.name }
-                .groupBy { it.name.first().uppercaseChar() }
-                .toSortedMap()
-        }
-        
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        // Alphabet navigation sidebar
+        Column(
+            modifier = Modifier
+                .width(24.dp)
+                .fillMaxHeight()
+                .padding(start = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            groupedApps.forEach { (letter, apps) ->
-                item {
-                    // Letter header
-                    Text(
-                        text = letter.toString(),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-                
-                items(apps) { app ->
-                    AllAppsItem(
-                        app = app,
-                        onClick = { appRepository.launchApp(app) }
-                    )
-                }
+            groupedApps.keys.forEach { letter ->
+                Text(
+                    text = letter.toString(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF0078D4),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            letterToIndex[letter]?.let { index ->
+                                coroutineScope.launch {
+                                    listState.animateScrollToItem(index)
+                                }
+                            }
+                        }
+                        .padding(vertical = 2.dp)
+                )
             }
         }
     }
