@@ -1,6 +1,7 @@
 package com.win11launcher.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,12 +36,17 @@ fun Taskbar(
                 Color(0xFF1F1F1F),
                 RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
             )
+            .border(
+                width = 1.dp,
+                color = Color(0xFF404040),
+                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+            )
             .padding(horizontal = 8.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 4.dp),
+                .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             StartButton(
@@ -76,14 +82,67 @@ private fun StartButton(
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
+        // Custom four-box Windows 11 style start icon
         Box(
-            modifier = Modifier
-                .size(20.dp)
-                .background(
-                    Color(0xFF0078D4),
-                    RoundedCornerShape(2.dp)
-                )
-        )
+            modifier = Modifier.size(20.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    // Top-left box - Blue
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .background(
+                                Color(0xFF0078D4),
+                                RoundedCornerShape(1.dp)
+                            )
+                    )
+                    // Bottom-left box - Green
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .background(
+                                Color(0xFF107C10),
+                                RoundedCornerShape(1.dp)
+                            )
+                    )
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    // Top-right box - Orange
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .background(
+                                Color(0xFFFF8C00),
+                                RoundedCornerShape(1.dp)
+                            )
+                    )
+                    // Bottom-right box - Red
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .background(
+                                Color(0xFFD13438),
+                                RoundedCornerShape(1.dp)
+                            )
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -288,7 +347,7 @@ private fun DateTimeDisplay(
         Text(
             text = systemStatus.currentDate,
             color = Color.White,
-            fontSize = 9.sp,
+            fontSize = 11.sp,
             textAlign = TextAlign.End
         )
     }

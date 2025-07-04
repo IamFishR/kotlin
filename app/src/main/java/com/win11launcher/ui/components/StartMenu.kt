@@ -1,11 +1,18 @@
 package com.win11launcher.ui.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.with
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -24,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.win11launcher.utils.AppLauncher
 import com.win11launcher.utils.PinnedApp
+import com.win11launcher.data.AppRepository
+import com.win11launcher.data.InstalledApp
 
 data class AppItem(
     val name: String,
@@ -31,6 +40,7 @@ data class AppItem(
     val packageName: String = ""
 )
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun StartMenu(
     modifier: Modifier = Modifier,
@@ -38,6 +48,28 @@ fun StartMenu(
     onAllAppsClick: () -> Unit = {},
     onNotesHubClick: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val appRepository = remember { AppRepository(context) }
+    var searchQuery by remember { mutableStateOf("") }
+    var showAllApps by remember { mutableStateOf(false) }
+    
+    // Load installed apps when component is created
+    LaunchedEffect(Unit) {
+        appRepository.loadInstalledApps()
+    }
+    
+    val installedApps by appRepository.installedApps
+    
+    // Filter apps based on search query
+    val filteredApps = remember(installedApps, searchQuery) {
+        if (searchQuery.isEmpty()) {
+            emptyList()
+        } else {
+            installedApps.filter { app ->
+                app.name.contains(searchQuery, ignoreCase = true)
+            }
+        }
+    }
     Card(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp)),
@@ -54,16 +86,47 @@ fun StartMenu(
             SearchBar(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = 16.dp),
+                searchQuery = searchQuery,
+                onSearchQueryChange = { searchQuery = it }
             )
             
-            PinnedAppsSection(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                onAllAppsClick = onAllAppsClick,
-                onNotesHubClick = onNotesHubClick
-            )
+            // Show search results, all apps, or pinned apps
+            if (searchQuery.isNotEmpty()) {
+                SearchResultsSection(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    searchResults = filteredApps,
+                    appRepository = appRepository
+                )
+            } else {
+                AnimatedContent(
+                    targetState = showAllApps,
+                    transitionSpec = {
+                        slideInHorizontally(initialOffsetX = { if (targetState) it else -it }) with
+                        slideOutHorizontally(targetOffsetX = { if (targetState) -it else it })
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) { isShowingAllApps ->
+                    if (isShowingAllApps) {
+                        AllAppsView(
+                            modifier = Modifier.fillMaxSize(),
+                            installedApps = installedApps,
+                            appRepository = appRepository,
+                            onBackClick = { showAllApps = false }
+                        )
+                    } else {
+                        PinnedAppsSection(
+                            modifier = Modifier.fillMaxSize(),
+                            onAllAppsClick = { showAllApps = true },
+                            onNotesHubClick = onNotesHubClick
+                        )
+                    }
+                }
+            }
             
             Spacer(modifier = Modifier.height(16.dp))
             
@@ -77,11 +140,13 @@ fun StartMenu(
 
 @Composable
 private fun SearchBar(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit
 ) {
     OutlinedTextField(
-        value = "",
-        onValueChange = { },
+        value = searchQuery,
+        onValueChange = onSearchQueryChange,
         modifier = modifier,
         placeholder = {
             Text(
@@ -105,6 +170,211 @@ private fun SearchBar(
         ),
         shape = RoundedCornerShape(8.dp)
     )
+}
+
+@Composable
+private fun AllAppsView(
+    modifier: Modifier = Modifier,
+    installedApps: List<InstalledApp>,
+    appRepository: AppRepository,
+    onBackClick: () -> Unit
+) {
+    Column(modifier = modifier) {
+        // Header with back button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                
+                Text(
+                    text = "All apps",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+        
+        // Alphabetically grouped apps
+        val groupedApps = remember(installedApps) {
+            installedApps
+                .sortedBy { it.name }
+                .groupBy { it.name.first().uppercaseChar() }
+                .toSortedMap()
+        }
+        
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            groupedApps.forEach { (letter, apps) ->
+                item {
+                    // Letter header
+                    Text(
+                        text = letter.toString(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+                
+                items(apps) { app ->
+                    AllAppsItem(
+                        app = app,
+                        onClick = { appRepository.launchApp(app) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AllAppsItem(
+    app: InstalledApp,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // App icon
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(
+                    Color(0xFF323233),
+                    RoundedCornerShape(8.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Apps,
+                contentDescription = app.name,
+                tint = Color.White,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        
+        Spacer(modifier = Modifier.width(12.dp))
+        
+        // App name
+        Text(
+            text = app.name,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.White,
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun SearchResultsSection(
+    modifier: Modifier = Modifier,
+    searchResults: List<InstalledApp>,
+    appRepository: AppRepository
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = "Apps (${searchResults.size})",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+        
+        if (searchResults.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No apps found",
+                    color = Color(0xFF999999),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(6),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(searchResults) { app ->
+                    SearchResultAppIcon(
+                        app = app,
+                        onClick = { appRepository.launchApp(app) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchResultAppIcon(
+    app: InstalledApp,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .background(
+                    Color(0xFF323233),
+                    RoundedCornerShape(8.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            // Use a default icon for now since we can't easily convert Drawable to ImageVector
+            Icon(
+                imageVector = Icons.Default.Apps,
+                contentDescription = app.name,
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        Text(
+            text = app.name,
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.White,
+            fontSize = 11.sp,
+            maxLines = 1
+        )
+    }
 }
 
 @Composable
