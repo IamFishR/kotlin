@@ -18,15 +18,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.drawable.toBitmap
 import com.win11launcher.data.AppRepository
 import com.win11launcher.data.InstalledApp
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -155,13 +154,9 @@ private fun AppItem(
             .padding(4.dp)
     ) {
         // App icon
-        val bitmap = remember(app.iconDrawable) {
-            app.iconDrawable?.toBitmap(48, 48)
-        }
-        
-        bitmap?.let {
+        app.iconDrawable?.let { drawable ->
             Image(
-                bitmap = it.asImageBitmap(),
+                painter = rememberDrawablePainter(drawable),
                 contentDescription = app.name,
                 modifier = Modifier
                     .size(48.dp)

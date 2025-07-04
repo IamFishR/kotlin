@@ -14,6 +14,7 @@ import android.net.NetworkRequest
 import android.net.wifi.WifiManager
 import android.os.BatteryManager
 import android.telephony.TelephonyManager
+import android.provider.Settings
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
 import kotlinx.coroutines.*
@@ -341,4 +342,24 @@ class SystemStatusManager(private val context: Context) {
     fun getBluetoothManager(): BluetoothManager = bluetoothManager
     fun getLocationManager(): LocationManager = locationManager
     fun getWiFiManager(): WiFiManager = wifiManager
+
+    /**
+     * Open Airplane Mode settings
+     */
+    fun openAirplaneModeSettings() {
+        val intent = Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        context.startActivity(intent)
+    }
+
+    /**
+     * Open Do Not Disturb settings
+     */
+    fun openDoNotDisturbSettings() {
+        val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        context.startActivity(intent)
+    }
 }

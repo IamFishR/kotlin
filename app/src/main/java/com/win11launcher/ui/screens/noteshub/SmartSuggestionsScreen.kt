@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.win11launcher.data.entities.*
 import com.win11launcher.viewmodels.NotesHubViewModel
-import com.win11launcher.services.FinancialInsights
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,7 +30,6 @@ fun SmartSuggestionsScreen(
     onSuggestionDismissed: (String) -> Unit = {}
 ) {
     val suggestions by viewModel.smartSuggestions.collectAsState()
-    val insights by viewModel.financialInsights.collectAsState()
     val isLoading by viewModel.isLoadingSuggestions.collectAsState()
     
     var selectedCategory by remember { mutableStateOf("ALL") }
@@ -42,12 +40,6 @@ fun SmartSuggestionsScreen(
             .fillMaxSize()
             .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 80.dp)
     ) {
-        // Header with insights summary
-        insights?.let { insights ->
-            FinancialInsightsCard(insights = insights)
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-        
         // Stats Cards Row
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -71,9 +63,9 @@ fun SmartSuggestionsScreen(
             }
             item {
                 StatsCard(
-                    title = "Financial",
-                    value = suggestions.count { it.isFinanceRelated }.toString(),
-                    icon = Icons.Default.AccountBalance,
+                    title = "General",
+                    value = suggestions.count { it.category == SuggestionCategory.GENERAL }.toString(),
+                    icon = Icons.Default.Category,
                     color = MaterialTheme.colorScheme.tertiary
                 )
             }
@@ -150,95 +142,6 @@ fun SmartSuggestionsScreen(
     }
 }
 
-@Composable
-private fun FinancialInsightsCard(insights: FinancialInsights) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-        ),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Insights,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "📊 Financial Intelligence",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                InsightItem(
-                    label = "Expenses",
-                    value = "₹${String.format("%.0f", insights.totalExpenses)}",
-                    icon = Icons.AutoMirrored.Filled.TrendingDown,
-                    color = MaterialTheme.colorScheme.error
-                )
-                InsightItem(
-                    label = "Investments",
-                    value = "₹${String.format("%.0f", insights.totalInvestments)}",
-                    icon = Icons.AutoMirrored.Filled.TrendingUp,
-                    color = MaterialTheme.colorScheme.tertiary
-                )
-                InsightItem(
-                    label = "Top Category",
-                    value = insights.topExpenseCategory,
-                    icon = Icons.Default.Category,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun InsightItem(
-    label: String,
-    value: String,
-    icon: ImageVector,
-    color: Color
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SuggestionCard(
@@ -263,8 +166,7 @@ private fun SuggestionCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     CategoryChip(
-                        category = suggestion.category,
-                        isFinanceRelated = suggestion.isFinanceRelated
+                        category = suggestion.category
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     PriorityIndicator(priority = suggestion.priority)
@@ -292,43 +194,27 @@ private fun SuggestionCard(
             Spacer(modifier = Modifier.height(8.dp))
             
             // Expected benefit
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.TrendingUp,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = suggestion.expectedBenefit,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-            
-            // Estimated savings
-            suggestion.estimatedSavings?.let { savings ->
+            suggestion.expectedBenefit?.let { benefit ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Default.AccessTime,
+                        imageVector = Icons.AutoMirrored.Filled.TrendingUp,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.secondary
+                        tint = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Save ${savings.toInt()} ${suggestion.savingsType?.replace("_", " ")?.lowercase() ?: "units"}",
+                        text = benefit,
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.secondary
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
+            
+            
             
             Spacer(modifier = Modifier.height(16.dp))
             
@@ -369,8 +255,7 @@ private fun SuggestionCard(
 
 @Composable
 private fun CategoryChip(
-    category: String,
-    isFinanceRelated: Boolean
+    category: String
 ) {
     AssistChip(
         onClick = { },
@@ -388,10 +273,7 @@ private fun CategoryChip(
             )
         },
         colors = AssistChipDefaults.assistChipColors(
-            containerColor = if (isFinanceRelated) 
-                MaterialTheme.colorScheme.primaryContainer 
-            else 
-                MaterialTheme.colorScheme.secondaryContainer
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     )
 }
@@ -528,6 +410,9 @@ private fun getCategoryDisplayName(category: String): String {
         SuggestionCategory.MARKET_NEWS -> "Market News"
         SuggestionCategory.PRODUCTIVITY -> "Productivity"
         SuggestionCategory.ORGANIZATION -> "Organization"
+        SuggestionCategory.GENERAL -> "General"
+        SuggestionCategory.COMMUNICATION -> "Communication"
+        SuggestionCategory.REMINDER -> "Reminder"
         else -> category.lowercase().replaceFirstChar { it.uppercase() }
     }
 }
@@ -540,6 +425,9 @@ private fun getCategoryIcon(category: String): ImageVector {
         SuggestionCategory.MARKET_NEWS -> Icons.Default.Newspaper
         SuggestionCategory.PRODUCTIVITY -> Icons.Default.Speed
         SuggestionCategory.ORGANIZATION -> Icons.Default.FolderOpen
+        SuggestionCategory.GENERAL -> Icons.Default.Lightbulb
+        SuggestionCategory.COMMUNICATION -> Icons.Default.Chat
+        SuggestionCategory.REMINDER -> Icons.Default.Alarm
         else -> Icons.Default.Lightbulb
     }
 }

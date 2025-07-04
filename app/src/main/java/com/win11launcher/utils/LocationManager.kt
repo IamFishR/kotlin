@@ -153,7 +153,7 @@ class LocationManager(private val context: Context) {
     /**
      * Open location settings
      */
-    private fun openLocationSettings() {
+    fun openLocationSettings() {
         val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }

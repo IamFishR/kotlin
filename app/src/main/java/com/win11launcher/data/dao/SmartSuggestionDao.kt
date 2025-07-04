@@ -19,7 +19,7 @@ interface SmartSuggestionDao {
     @Query("SELECT * FROM smart_suggestions WHERE sub_category = :subCategory AND is_dismissed = 0 ORDER BY confidence_score DESC")
     suspend fun getSuggestionsBySubCategory(subCategory: String): List<SmartSuggestion>
     
-    @Query("SELECT * FROM smart_suggestions WHERE is_finance_related = 1 AND is_dismissed = 0 ORDER BY priority ASC, confidence_score DESC")
+    @Query("SELECT * FROM smart_suggestions WHERE category = 'FINANCE' AND is_dismissed = 0 ORDER BY priority ASC, confidence_score DESC")
     suspend fun getFinancialSuggestions(): List<SmartSuggestion>
     
     @Query("SELECT * FROM smart_suggestions WHERE priority = :priority AND is_dismissed = 0 ORDER BY confidence_score DESC")
@@ -40,8 +40,7 @@ interface SmartSuggestionDao {
     @Query("SELECT COUNT(*) FROM smart_suggestions WHERE category = :category AND is_dismissed = 0")
     suspend fun getSuggestionCountByCategory(category: String): Int
     
-    @Query("SELECT COUNT(*) FROM smart_suggestions WHERE is_finance_related = 1 AND is_dismissed = 0")
-    suspend fun getFinancialSuggestionCount(): Int
+    
     
     @Query("SELECT COUNT(*) FROM smart_suggestions WHERE priority = 1 AND is_dismissed = 0")
     suspend fun getHighPrioritySuggestionCount(): Int

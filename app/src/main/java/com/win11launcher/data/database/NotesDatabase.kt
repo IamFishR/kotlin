@@ -18,6 +18,7 @@ import com.win11launcher.data.entities.PermissionState
 import com.win11launcher.data.entities.UserProfile
 import com.win11launcher.data.entities.UserCustomization
 import com.win11launcher.data.entities.UserFile
+import com.win11launcher.data.entities.ExtractedNotificationData
 import com.win11launcher.data.dao.NoteDao
 import com.win11launcher.data.dao.FolderDao
 import com.win11launcher.data.dao.TrackingRuleDao
@@ -27,12 +28,15 @@ import com.win11launcher.data.dao.ResearchPatternDao
 import com.win11launcher.data.dao.SmartSuggestionDao
 import com.win11launcher.data.dao.AppSettingDao
 import com.win11launcher.data.dao.UserProfileDao
+import com.win11launcher.data.dao.ExtractedNotificationDataDao
+import com.win11launcher.data.converters.Converters
 
 @Database(
-    entities = [Note::class, Folder::class, TrackingRule::class, RuleActivity::class, FinancialPattern::class, ResearchPattern::class, SmartSuggestion::class, AppSetting::class, PermissionState::class, UserProfile::class, UserCustomization::class, UserFile::class],
-    version = 5,
+    entities = [Note::class, Folder::class, TrackingRule::class, RuleActivity::class, FinancialPattern::class, ResearchPattern::class, SmartSuggestion::class, AppSetting::class, PermissionState::class, UserProfile::class, UserCustomization::class, UserFile::class, ExtractedNotificationData::class],
+    version = 6,
     exportSchema = true
 )
+@androidx.room.TypeConverters(Converters::class)
 abstract class NotesDatabase : RoomDatabase() {
     
     abstract fun noteDao(): NoteDao
@@ -44,6 +48,7 @@ abstract class NotesDatabase : RoomDatabase() {
     abstract fun smartSuggestionDao(): SmartSuggestionDao
     abstract fun appSettingDao(): AppSettingDao
     abstract fun userProfileDao(): UserProfileDao
+    abstract fun extractedNotificationDataDao(): ExtractedNotificationDataDao
     
     companion object {
         @Volatile
@@ -57,7 +62,7 @@ abstract class NotesDatabase : RoomDatabase() {
                     "notes_database"
                 )
                 .addCallback(DatabaseCallback())
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                 .build()
                 INSTANCE = instance
                 instance
@@ -317,6 +322,25 @@ abstract class NotesDatabase : RoomDatabase() {
                     INSERT INTO user_customizations (profileId, createdAt, updatedAt)
                     VALUES ('default', $currentTime, $currentTime)
                 """)
+            }
+        }
+        
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS extracted_notification_data (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        source_package TEXT NOT NULL,
+                        notification_title TEXT,
+                        notification_content TEXT,
+                        extracted_keywords TEXT NOT NULL,
+                        suggested_category TEXT NOT NULL,
+                        timestamp INTEGER NOT NULL
+                    )
+                """)
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_extracted_notification_data_source_package ON extracted_notification_data (source_package)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_extracted_notification_data_timestamp ON extracted_notification_data (timestamp)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_extracted_notification_data_suggested_category ON extracted_notification_data (suggested_category)")
             }
         }
         

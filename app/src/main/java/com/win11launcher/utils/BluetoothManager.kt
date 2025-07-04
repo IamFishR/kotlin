@@ -86,119 +86,80 @@ class BluetoothManager(private val context: Context) {
      * Uses direct toggle for all Android versions with fallback methods
      */
     @SuppressLint("MissingPermission")
-    fun toggleBluetooth(): Boolean {
+    fun toggleBluetooth() {
         if (!isBluetoothSupported()) {
-            return false
+            return
         }
-        
+
         // Check permissions first
         if (!hasBluetoothPermissions()) {
-            return false
+            openBluetoothSettings()
+            return
         }
-        
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // For Android 10+, try reflection method first
-            toggleBluetoothReflection() || toggleBluetoothViaSettings()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // For Android 10 (API 29) and above, direct toggling of Bluetooth is restricted.
+            // Applications should open the Bluetooth settings panel for the user to make the change.
+            openBluetoothSettings()
         } else {
-            // For older versions, directly toggle Bluetooth
-            try {
-                if (isBluetoothEnabled()) {
-                    bluetoothAdapter?.disable() == true
-                } else {
-                    bluetoothAdapter?.enable() == true
-                }
-            } catch (e: SecurityException) {
-                // Try reflection as fallback
-                toggleBluetoothReflection()
-            }
-        }
-    }
-    
-    /**
-     * Toggle Bluetooth using reflection (works on some devices/ROMs)
-     */
-    @SuppressLint("MissingPermission")
-    private fun toggleBluetoothReflection(): Boolean {
-        return try {
-            val adapter = bluetoothAdapter ?: return false
-            val method: Method = if (isBluetoothEnabled()) {
-                adapter.javaClass.getDeclaredMethod("disable")
+            // For older versions, direct toggling is allowed with BLUETOOTH_ADMIN permission.
+            if (isBluetoothEnabled()) {
+                bluetoothAdapter?.disable()
             } else {
-                adapter.javaClass.getDeclaredMethod("enable")
+                bluetoothAdapter?.enable()
             }
-            method.isAccessible = true
-            val result = method.invoke(adapter) as Boolean
-            result
-        } catch (e: Exception) {
-            false
         }
     }
-    
+
     /**
-     * Toggle Bluetooth via Settings.Global (alternative method)
+     * Open Bluetooth settings
      */
-    private fun toggleBluetoothViaSettings(): Boolean {
-        return try {
-            val currentState = if (isBluetoothEnabled()) 1 else 0
-            val newState = if (currentState == 1) 0 else 1
-            Settings.Global.putInt(context.contentResolver, Settings.Global.BLUETOOTH_ON, newState)
-            true
-        } catch (e: Exception) {
-            false
+    private fun openBluetoothSettings() {
+        val intent = Intent(Settings.ACTION_BLUETOOTH_SETTINGS).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
+        context.startActivity(intent)
     }
-    
+
     /**
      * Enable Bluetooth
      */
     @SuppressLint("MissingPermission")
-    fun enableBluetooth(): Boolean {
+    fun enableBluetooth() {
         if (!isBluetoothSupported()) {
-            return false
+            return
         }
-        
+
         if (!hasBluetoothPermissions()) {
             openBluetoothSettings()
-            return false
+            return
         }
-        
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             openBluetoothSettings()
-            true
         } else {
-            try {
-                bluetoothAdapter?.enable() ?: false
-            } catch (e: SecurityException) {
-                openBluetoothSettings()
-                false
-            }
+            bluetoothAdapter?.enable()
         }
     }
-    
+
     /**
      * Disable Bluetooth
      */
     @SuppressLint("MissingPermission")
-    fun disableBluetooth(): Boolean {
+    fun disableBluetooth() {
         if (!isBluetoothSupported()) {
-            return false
+            return
         }
-        
+
         if (!hasBluetoothPermissions()) {
             openBluetoothSettings()
-            return false
+            return
         }
-        
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             openBluetoothSettings()
-            true
         } else {
-            try {
-                bluetoothAdapter?.disable() ?: false
-            } catch (e: SecurityException) {
-                openBluetoothSettings()
-                false
-            }
+            bluetoothAdapter?.disable()
         }
     }
     
@@ -304,17 +265,6 @@ class BluetoothManager(private val context: Context) {
             ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_GRANTED
         }
     }
-    
-    /**
-     * Open Bluetooth settings
-     */
-    private fun openBluetoothSettings() {
-        val intent = Intent(Settings.ACTION_BLUETOOTH_SETTINGS).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-        context.startActivity(intent)
-    }
-    
     
     /**
      * Register broadcast receiver for Bluetooth events
