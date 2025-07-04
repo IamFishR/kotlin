@@ -40,10 +40,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.win11launcher.utils.AppLauncher
 import com.win11launcher.utils.PinnedApp
 import com.win11launcher.data.AppRepository
 import com.win11launcher.data.InstalledApp
+import com.win11launcher.data.entities.UserProfile
+import com.win11launcher.data.entities.UserCustomization
+import com.win11launcher.viewmodels.SettingsViewModel
+import java.io.File
 
 data class AppItem(
     val name: String,
@@ -57,12 +65,17 @@ fun StartMenu(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
     onAllAppsClick: () -> Unit = {},
-    onNotesHubClick: () -> Unit = {}
+    onNotesHubClick: () -> Unit = {},
+    settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val appRepository = remember { AppRepository(context) }
     var searchQuery by remember { mutableStateOf("") }
     var showAllApps by remember { mutableStateOf(false) }
+    
+    // Get user profile data
+    val userProfile by settingsViewModel.userProfile.collectAsStateWithLifecycle()
+    val userCustomization by settingsViewModel.userCustomization.collectAsStateWithLifecycle()
     
     // Load installed apps when component is created
     LaunchedEffect(Unit) {
@@ -143,6 +156,8 @@ fun StartMenu(
             
             BottomActions(
                 modifier = Modifier.fillMaxWidth(),
+                userProfile = userProfile,
+                userCustomization = userCustomization,
                 onPowerClick = onDismiss
             )
         }
@@ -591,6 +606,8 @@ private fun PinnedAppIcon(
 @Composable
 private fun BottomActions(
     modifier: Modifier = Modifier,
+    userProfile: UserProfile?,
+    userCustomization: UserCustomization?,
     onPowerClick: () -> Unit = {}
 ) {
     var showPowerMenu by remember { mutableStateOf(false) }
@@ -602,20 +619,39 @@ private fun BottomActions(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "User",
-                tint = Color.White,
-                modifier = Modifier.size(32.dp)
-            )
+            // Show profile picture if enabled and available
+            if (userCustomization?.showUserPictureInStartMenu != false) {
+                if (!userProfile?.profilePicturePath.isNullOrEmpty() && 
+                    File(userProfile?.profilePicturePath ?: "").exists()) {
+                    AsyncImage(
+                        model = File(userProfile?.profilePicturePath ?: ""),
+                        contentDescription = "Profile Picture",
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(RoundedCornerShape(16.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "User",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
             
-            Spacer(modifier = Modifier.width(8.dp))
-            
-            Text(
-                text = "User",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White
-            )
+            // Show username if enabled
+            if (userCustomization?.showUsernameInStartMenu != false) {
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                Text(
+                    text = userProfile?.displayName?.takeIf { it.isNotEmpty() } 
+                        ?: userProfile?.username ?: "User",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White
+                )
+            }
         }
         
         Box {
