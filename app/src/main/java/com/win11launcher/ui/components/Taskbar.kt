@@ -4,6 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
@@ -21,6 +24,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import com.win11launcher.utils.SystemStatus
 
 @Composable
@@ -36,13 +42,16 @@ fun Taskbar(
                 Color(0xFF1F1F1F),
                 RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
             )
-            .border(
-                width = 1.dp,
-                color = Color(0xFF404040),
-                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
-            )
             .padding(horizontal = 8.dp)
     ) {
+        // Top border only
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color(0xFF404040))
+                .align(Alignment.TopCenter)
+        )
         Row(
             modifier = Modifier
                 .fillMaxSize()
@@ -187,38 +196,122 @@ private fun SystemTray(
 ) {
     var showExpandedTray by remember { mutableStateOf(false) }
     
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        // System status icons (hidden by default, shown when expanded)
-        if (showExpandedTray) {
-            SystemStatusIcons(systemStatus)
-        }
-        
-        // Up arrow to expand/collapse system tray
-        IconButton(
-            onClick = { showExpandedTray = !showExpandedTray },
-            modifier = Modifier.size(24.dp)
+    Box(modifier = modifier) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(
-                imageVector = if (showExpandedTray) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = "Expand system tray",
-                tint = Color.White,
-                modifier = Modifier.size(12.dp)
+            // Up arrow to expand/collapse system tray
+            IconButton(
+                onClick = { showExpandedTray = !showExpandedTray },
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    imageVector = if (showExpandedTray) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = "Expand system tray",
+                    tint = Color.White,
+                    modifier = Modifier.size(12.dp)
+                )
+            }
+            
+            // Always visible essential icons
+            EssentialSystemIcons(systemStatus)
+            
+            // Date and time (clickable for notifications)
+            DateTimeDisplay(
+                systemStatus = systemStatus,
+                onClick = onSystemTrayClick
             )
         }
         
-        // Always visible essential icons
-        EssentialSystemIcons(systemStatus)
-        
-        // Date and time (clickable for notifications)
-        DateTimeDisplay(
-            systemStatus = systemStatus,
-            onClick = onSystemTrayClick
+        // Popup for system status icons
+        if (showExpandedTray) {
+            Popup(
+                alignment = Alignment.TopCenter,
+                offset = IntOffset(0, -60),
+                onDismissRequest = { showExpandedTray = false },
+                properties = PopupProperties(focusable = true)
+            ) {
+                SystemTrayTooltip(systemStatus)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SystemTrayTooltip(systemStatus: SystemStatus) {
+    Card(
+        modifier = Modifier
+            .wrapContentSize()
+            .padding(4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF2D2D2D)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(5),
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // System icons in grid format
+            items(getSystemIcons(systemStatus)) { iconData ->
+                TooltipIcon(
+                    icon = iconData.icon,
+                    contentDescription = iconData.description,
+                    tint = iconData.tint
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TooltipIcon(
+    icon: ImageVector,
+    contentDescription: String,
+    tint: Color = Color.White
+) {
+    Box(
+        modifier = Modifier
+            .size(32.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color.Transparent)
+            .clickable { },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = tint,
+            modifier = Modifier.size(18.dp)
         )
     }
+}
+
+private data class SystemIconData(
+    val icon: ImageVector,
+    val description: String,
+    val tint: Color = Color.White
+)
+
+private fun getSystemIcons(systemStatus: SystemStatus): List<SystemIconData> {
+    return listOf(
+        SystemIconData(Icons.Default.VolumeUp, "Volume"),
+        SystemIconData(Icons.Default.Brightness6, "Brightness"),
+        SystemIconData(Icons.Default.Bluetooth, "Bluetooth"),
+        SystemIconData(Icons.Default.LocationOn, "Location"),
+        SystemIconData(Icons.Default.AirplanemodeActive, "Airplane Mode"),
+        SystemIconData(Icons.Default.Wifi, "WiFi Hotspot"),
+        SystemIconData(Icons.Default.DataUsage, "Data Usage"),
+        SystemIconData(Icons.Default.DoNotDisturb, "Do Not Disturb"),
+        SystemIconData(Icons.Default.FlashOn, "Flashlight"),
+        SystemIconData(Icons.Default.ScreenRotation, "Screen Rotation"),
+        SystemIconData(Icons.Default.Cast, "Cast"),
+        SystemIconData(Icons.Default.NearMe, "Nearby Share")
+    )
 }
 
 @Composable
