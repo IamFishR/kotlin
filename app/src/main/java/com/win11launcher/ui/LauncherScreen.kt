@@ -78,10 +78,6 @@ fun LauncherScreen() {
                         .width(600.dp)
                         .height(680.dp),
                     onDismiss = { showStartMenu = false },
-                    onAllAppsClick = {
-                        showStartMenu = false
-                        showAllApps = true
-                    },
                     onNotesHubClick = {
                         showStartMenu = false
                         showNotesHub = true
