@@ -192,7 +192,10 @@ private fun QuickActionsSection(
                     !systemStatus.locationHasPermission && systemStatus.locationEnabled -> "Permission required"
                     else -> ""
                 },
-                onClick = { locationManager.toggleLocation() }
+                onClick = { 
+                    // Location cannot be directly toggled by apps for security reasons
+                    // Show a brief message or do nothing
+                }
             ),
             QuickAction(
                 name = "Airplane",

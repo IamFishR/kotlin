@@ -11,6 +11,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
+import java.lang.reflect.Method
 
 data class WiFiInfo(
     val isEnabled: Boolean = false,
@@ -38,14 +39,13 @@ class WiFiManager(private val context: Context) {
     
     /**
      * Toggle WiFi on/off
-     * Note: For Android 10+ (API 29+), this will open WiFi settings instead of directly toggling
+     * Uses direct toggle for all Android versions with fallback methods
      */
     @SuppressLint("MissingPermission")
     fun toggleWiFi(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // For Android 10+, open WiFi settings
-            openWiFiSettings()
-            true
+            // For Android 10+, try reflection method first
+            toggleWiFiReflection() || toggleWiFiViaSettings()
         } else {
             // For older versions, directly toggle WiFi
             try {
@@ -56,10 +56,38 @@ class WiFiManager(private val context: Context) {
                 }
                 true
             } catch (e: SecurityException) {
-                // If permission is denied, open settings
-                openWiFiSettings()
-                false
+                // Try reflection as fallback
+                toggleWiFiReflection()
             }
+        }
+    }
+    
+    /**
+     * Toggle WiFi using reflection (works on some devices/ROMs)
+     */
+    @SuppressLint("MissingPermission")
+    private fun toggleWiFiReflection(): Boolean {
+        return try {
+            val method: Method = wifiManager.javaClass.getDeclaredMethod("setWifiEnabled", Boolean::class.javaPrimitiveType)
+            method.isAccessible = true
+            val result = method.invoke(wifiManager, !isWiFiEnabled()) as Boolean
+            result
+        } catch (e: Exception) {
+            false
+        }
+    }
+    
+    /**
+     * Toggle WiFi via Settings.System (alternative method)
+     */
+    private fun toggleWiFiViaSettings(): Boolean {
+        return try {
+            val currentState = if (isWiFiEnabled()) 1 else 0
+            val newState = if (currentState == 1) 0 else 1
+            Settings.System.putInt(context.contentResolver, "wifi_on", newState)
+            true
+        } catch (e: Exception) {
+            false
         }
     }
     
@@ -110,6 +138,7 @@ class WiFiManager(private val context: Context) {
         }
         context.startActivity(intent)
     }
+    
     
     /**
      * Get current WiFi connection info
