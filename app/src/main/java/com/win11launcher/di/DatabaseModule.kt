@@ -3,7 +3,9 @@ package com.win11launcher.di
 import android.content.Context
 import androidx.room.Room
 import com.win11launcher.data.dao.AppSettingDao
+import com.win11launcher.data.dao.UserProfileDao
 import com.win11launcher.data.database.NotesDatabase
+import com.win11launcher.utils.ProfileImageManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,5 +26,16 @@ object DatabaseModule {
     @Provides
     fun provideAppSettingDao(database: NotesDatabase): AppSettingDao {
         return database.appSettingDao()
+    }
+    
+    @Provides
+    fun provideUserProfileDao(database: NotesDatabase): UserProfileDao {
+        return database.userProfileDao()
+    }
+    
+    @Provides
+    @Singleton
+    fun provideProfileImageManager(@ApplicationContext context: Context): ProfileImageManager {
+        return ProfileImageManager(context)
     }
 }

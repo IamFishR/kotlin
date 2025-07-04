@@ -13,7 +13,7 @@ android {
     defaultConfig {
         applicationId = "com.win11launcher"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
