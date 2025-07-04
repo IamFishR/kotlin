@@ -67,7 +67,7 @@ fun NotificationPanel(
     if (showPanel) {
         Popup(
             alignment = Alignment.BottomEnd,
-            offset = androidx.compose.ui.unit.IntOffset(-16, -168), // -72 original + -56 taskbar height
+            offset = androidx.compose.ui.unit.IntOffset(-16, -72), // Position above taskbar
             onDismissRequest = onDismiss,
             properties = PopupProperties(
                 focusable = true,
@@ -167,10 +167,8 @@ private fun QuickActionsSection(
                 icon = Icons.Default.Wifi,
                 isEnabled = systemStatus.wifiEnabled,
                 subtitle = when {
-                    !systemStatus.wifiEnabled -> "Off"
                     systemStatus.wifiConnected && systemStatus.wifiSsid.isNotEmpty() -> systemStatus.wifiSsid
-                    systemStatus.wifiEnabled -> "On"
-                    else -> "Off"
+                    else -> ""
                 },
                 onClick = { wifiManager.toggleWiFi() }
             ),
@@ -180,10 +178,9 @@ private fun QuickActionsSection(
                 isEnabled = systemStatus.bluetoothEnabled,
                 subtitle = when {
                     !systemStatus.bluetoothSupported -> "Not supported"
-                    !systemStatus.bluetoothEnabled -> "Off"
-                    systemStatus.bluetoothConnectedDevicesCount == 0 -> "On"
                     systemStatus.bluetoothConnectedDevicesCount == 1 -> "1 device"
-                    else -> "${systemStatus.bluetoothConnectedDevicesCount} devices"
+                    systemStatus.bluetoothConnectedDevicesCount > 1 -> "${systemStatus.bluetoothConnectedDevicesCount} devices"
+                    else -> ""
                 },
                 onClick = { bluetoothManager.toggleBluetooth() }
             ),
@@ -192,10 +189,8 @@ private fun QuickActionsSection(
                 icon = Icons.Default.LocationOn,
                 isEnabled = systemStatus.locationEnabled,
                 subtitle = when {
-                    !systemStatus.locationEnabled -> "Off"
-                    !systemStatus.locationHasPermission -> "Permission required"
-                    systemStatus.locationEnabled -> "On"
-                    else -> "Off"
+                    !systemStatus.locationHasPermission && systemStatus.locationEnabled -> "Permission required"
+                    else -> ""
                 },
                 onClick = { locationManager.toggleLocation() }
             ),
@@ -203,22 +198,15 @@ private fun QuickActionsSection(
                 name = "Airplane",
                 icon = Icons.Default.AirplanemodeActive,
                 isEnabled = false,
-                subtitle = "Off",
+                subtitle = "",
                 onClick = { /* TODO: Implement airplane mode */ }
             ),
             QuickAction(
                 name = "Focus",
                 icon = Icons.Default.DoNotDisturb,
                 isEnabled = false,
-                subtitle = "Off",
+                subtitle = "",
                 onClick = { /* TODO: Implement focus mode */ }
-            ),
-            QuickAction(
-                name = "Battery",
-                icon = Icons.Default.BatteryFull,
-                isEnabled = true,
-                subtitle = "${systemStatus.batteryLevel}%${if (systemStatus.isCharging) " ⚡" else ""}",
-                onClick = { /* TODO: Open battery settings */ }
             )
         )
     }
@@ -248,6 +236,8 @@ private fun QuickActionsSection(
                     modifier = Modifier.weight(1f)
                 )
             }
+            // Add spacer for third empty slot to maintain layout
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

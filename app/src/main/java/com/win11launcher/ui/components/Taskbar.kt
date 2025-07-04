@@ -309,30 +309,99 @@ private fun BatteryIcon(
     isCharging: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val batteryIcon = when {
-        isCharging -> Icons.Default.BatteryChargingFull
-        level >= 90 -> Icons.Default.BatteryFull
-        level >= 60 -> Icons.Default.Battery6Bar
-        level >= 50 -> Icons.Default.Battery5Bar
-        level >= 30 -> Icons.Default.Battery3Bar
-        level >= 20 -> Icons.Default.Battery2Bar
-        level >= 10 -> Icons.Default.Battery1Bar
-        else -> Icons.Default.BatteryAlert
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        // Custom horizontal battery icon
+        HorizontalBatteryIcon(
+            level = level,
+            isCharging = isCharging
+        )
+        
+        // Battery percentage text
+        Text(
+            text = "$level%",
+            color = Color.White,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium
+        )
     }
-    
+}
+
+@Composable
+private fun HorizontalBatteryIcon(
+    level: Int,
+    isCharging: Boolean,
+    modifier: Modifier = Modifier
+) {
     val batteryColor = when {
-        isCharging -> Color.Green
-        level <= 15 -> Color.Red
-        level <= 30 -> Color.Yellow
+        isCharging -> Color(0xFF10B981) // Green when charging
+        level <= 15 -> Color(0xFFEF4444) // Red when critical
+        level <= 30 -> Color(0xFFF59E0B) // Orange when low
         else -> Color.White
     }
     
-    Icon(
-        imageVector = batteryIcon,
-        contentDescription = "Battery $level%",
-        tint = batteryColor,
-        modifier = modifier.size(16.dp)
-    )
+    val fillPercentage = level / 100f
+    
+    Box(
+        modifier = modifier.size(width = 20.dp, height = 12.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        // Battery body (main rectangle)
+        Box(
+            modifier = Modifier
+                .size(width = 17.dp, height = 10.dp)
+                .border(
+                    width = 1.dp,
+                    color = batteryColor,
+                    shape = RoundedCornerShape(1.dp)
+                )
+        ) {
+            // Battery fill based on percentage
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(fillPercentage)
+                    .background(
+                        color = batteryColor,
+                        shape = RoundedCornerShape(
+                            topStart = 1.dp,
+                            bottomStart = 1.dp,
+                            topEnd = if (fillPercentage >= 0.95f) 1.dp else 0.dp,
+                            bottomEnd = if (fillPercentage >= 0.95f) 1.dp else 0.dp
+                        )
+                    )
+            )
+        }
+        
+        // Battery tip (small rectangle on the right)
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .size(width = 2.dp, height = 6.dp)
+                .background(
+                    color = batteryColor,
+                    shape = RoundedCornerShape(
+                        topEnd = 1.dp,
+                        bottomEnd = 1.dp
+                    )
+                )
+        )
+        
+        // Charging indicator (lightning bolt icon)
+        if (isCharging) {
+            Icon(
+                imageVector = Icons.Default.FlashOn,
+                contentDescription = "Charging",
+                tint = Color.White,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(8.dp)
+            )
+        }
+    }
 }
 
 @Composable
