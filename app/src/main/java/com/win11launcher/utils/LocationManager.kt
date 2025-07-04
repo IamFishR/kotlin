@@ -85,11 +85,13 @@ class LocationManager(private val context: Context) {
     
     /**
      * Toggle location services
-     * Note: This will open location settings since apps cannot directly toggle location
+     * Note: Location services cannot be directly toggled by apps for security reasons
+     * This method will return false to indicate the toggle was not successful
      */
     fun toggleLocation(): Boolean {
-        openLocationSettings()
-        return true
+        // Location services cannot be directly toggled by third-party apps
+        // for security and privacy reasons. This is enforced by Android.
+        return false
     }
     
     /**
@@ -157,6 +159,7 @@ class LocationManager(private val context: Context) {
         }
         context.startActivity(intent)
     }
+    
     
     /**
      * Register broadcast receiver for location events
