@@ -24,6 +24,10 @@ import androidx.compose.ui.window.PopupProperties
 import com.win11launcher.models.AppNotification
 import com.win11launcher.utils.NotificationManager
 import com.win11launcher.utils.SystemStatus
+import com.win11launcher.utils.SystemStatusManager
+import com.win11launcher.utils.WiFiManager
+import com.win11launcher.utils.BluetoothManager
+import com.win11launcher.utils.LocationManager
 import com.win11launcher.utils.rememberNotifications
 import java.text.SimpleDateFormat
 import java.util.*
@@ -32,6 +36,7 @@ data class QuickAction(
     val name: String,
     val icon: ImageVector,
     val isEnabled: Boolean = true,
+    val subtitle: String = "",
     val onClick: () -> Unit = {}
 )
 
@@ -47,10 +52,17 @@ data class NotificationItem(
 fun NotificationPanel(
     showPanel: Boolean,
     systemStatus: SystemStatus,
+    systemStatusManager: SystemStatusManager,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     val notificationManager = remember { NotificationManager(context) }
+    
+    // Get system managers from SystemStatusManager
+    val wifiManager = remember { systemStatusManager.getWiFiManager() }
+    val bluetoothManager = remember { systemStatusManager.getBluetoothManager() }
+    val locationManager = remember { systemStatusManager.getLocationManager() }
+    
     val realNotifications = rememberNotifications(notificationManager)
     if (showPanel) {
         Popup(
@@ -83,16 +95,29 @@ fun NotificationPanel(
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    // Quick actions
-                    QuickActionsSection()
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    // Notifications
+                    // Notifications at the top
                     NotificationsSection(
                         notifications = realNotifications,
                         notificationManager = notificationManager,
                         modifier = Modifier.weight(1f)
+                    )
+                    
+                    // Light border separator
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(Color(0xFF404040))
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // System toggles at the bottom
+                    QuickActionsSection(
+                        systemStatus = systemStatus,
+                        wifiManager = wifiManager,
+                        bluetoothManager = bluetoothManager,
+                        locationManager = locationManager
                     )
                 }
             }
@@ -119,15 +144,82 @@ private fun DateTimeHeader(systemStatus: SystemStatus) {
 }
 
 @Composable
-private fun QuickActionsSection() {
-    val quickActions = remember {
+private fun QuickActionsSection(
+    systemStatus: SystemStatus,
+    wifiManager: WiFiManager,
+    bluetoothManager: BluetoothManager,
+    locationManager: LocationManager
+) {
+    val quickActions = remember(
+        systemStatus.wifiEnabled, 
+        systemStatus.wifiConnected, 
+        systemStatus.wifiSsid,
+        systemStatus.bluetoothEnabled,
+        systemStatus.bluetoothConnected,
+        systemStatus.bluetoothConnectedDevicesCount,
+        systemStatus.locationEnabled,
+        systemStatus.locationHasPermission,
+        systemStatus.batteryLevel
+    ) {
         listOf(
-            QuickAction("Wi-Fi", Icons.Default.Wifi, true),
-            QuickAction("Bluetooth", Icons.Default.Bluetooth, false),
-            QuickAction("Location", Icons.Default.LocationOn, true),
-            QuickAction("Airplane", Icons.Default.AirplanemodeActive, false),
-            QuickAction("Focus", Icons.Default.DoNotDisturb, false),
-            QuickAction("Battery", Icons.Default.BatteryFull, true)
+            QuickAction(
+                name = "Wi-Fi",
+                icon = Icons.Default.Wifi,
+                isEnabled = systemStatus.wifiEnabled,
+                subtitle = when {
+                    !systemStatus.wifiEnabled -> "Off"
+                    systemStatus.wifiConnected && systemStatus.wifiSsid.isNotEmpty() -> systemStatus.wifiSsid
+                    systemStatus.wifiEnabled -> "On"
+                    else -> "Off"
+                },
+                onClick = { wifiManager.toggleWiFi() }
+            ),
+            QuickAction(
+                name = "Bluetooth",
+                icon = Icons.Default.Bluetooth,
+                isEnabled = systemStatus.bluetoothEnabled,
+                subtitle = when {
+                    !systemStatus.bluetoothSupported -> "Not supported"
+                    !systemStatus.bluetoothEnabled -> "Off"
+                    systemStatus.bluetoothConnectedDevicesCount == 0 -> "On"
+                    systemStatus.bluetoothConnectedDevicesCount == 1 -> "1 device"
+                    else -> "${systemStatus.bluetoothConnectedDevicesCount} devices"
+                },
+                onClick = { bluetoothManager.toggleBluetooth() }
+            ),
+            QuickAction(
+                name = "Location",
+                icon = Icons.Default.LocationOn,
+                isEnabled = systemStatus.locationEnabled,
+                subtitle = when {
+                    !systemStatus.locationEnabled -> "Off"
+                    !systemStatus.locationHasPermission -> "Permission required"
+                    systemStatus.locationEnabled -> "On"
+                    else -> "Off"
+                },
+                onClick = { locationManager.toggleLocation() }
+            ),
+            QuickAction(
+                name = "Airplane",
+                icon = Icons.Default.AirplanemodeActive,
+                isEnabled = false,
+                subtitle = "Off",
+                onClick = { /* TODO: Implement airplane mode */ }
+            ),
+            QuickAction(
+                name = "Focus",
+                icon = Icons.Default.DoNotDisturb,
+                isEnabled = false,
+                subtitle = "Off",
+                onClick = { /* TODO: Implement focus mode */ }
+            ),
+            QuickAction(
+                name = "Battery",
+                icon = Icons.Default.BatteryFull,
+                isEnabled = true,
+                subtitle = "${systemStatus.batteryLevel}%${if (systemStatus.isCharging) " ⚡" else ""}",
+                onClick = { /* TODO: Open battery settings */ }
+            )
         )
     }
     
@@ -191,8 +283,18 @@ private fun QuickActionButton(
             Text(
                 text = action.name,
                 color = Color.White,
-                fontSize = 12.sp
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium
             )
+            
+            if (action.subtitle.isNotEmpty()) {
+                Text(
+                    text = action.subtitle,
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 10.sp,
+                    maxLines = 1
+                )
+            }
         }
     }
 }

@@ -1,9 +1,12 @@
 package com.win11launcher.utils
 
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.location.LocationManager as AndroidLocationManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -20,11 +23,20 @@ import java.util.*
 data class SystemStatus(
     val batteryLevel: Int = 100,
     val isCharging: Boolean = false,
+    val wifiEnabled: Boolean = false,
     val wifiConnected: Boolean = false,
+    val wifiSsid: String = "",
     val wifiSignalStrength: Int = 0, // 0-4 levels
     val mobileDataConnected: Boolean = false,
     val mobileSignalStrength: Int = 0, // 0-4 levels
     val networkOperator: String = "",
+    val bluetoothEnabled: Boolean = false,
+    val bluetoothConnected: Boolean = false,
+    val bluetoothConnectedDevicesCount: Int = 0,
+    val bluetoothSupported: Boolean = false,
+    val locationEnabled: Boolean = false,
+    val locationSupported: Boolean = false,
+    val locationHasPermission: Boolean = false,
     val currentTime: String = "",
     val currentDate: String = ""
 )
@@ -33,6 +45,10 @@ class SystemStatusManager(private val context: Context) {
     
     private val _systemStatus = mutableStateOf(SystemStatus())
     val systemStatus: State<SystemStatus> = _systemStatus
+    
+    private val bluetoothManager = BluetoothManager(context)
+    private val locationManager = LocationManager(context)
+    private val wifiManager = WiFiManager(context)
     
     private val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
     private val dateFormat = SimpleDateFormat("M/d/yyyy", Locale.getDefault())
@@ -47,6 +63,12 @@ class SystemStatusManager(private val context: Context) {
             when (intent.action) {
                 Intent.ACTION_BATTERY_CHANGED -> updateBatteryStatus(intent)
                 Intent.ACTION_TIME_TICK -> updateDateTime()
+                WifiManager.WIFI_STATE_CHANGED_ACTION -> updateNetworkStatus()
+                WifiManager.NETWORK_STATE_CHANGED_ACTION -> updateNetworkStatus()
+                BluetoothAdapter.ACTION_STATE_CHANGED -> updateBluetoothStatus()
+                BluetoothDevice.ACTION_ACL_CONNECTED -> updateBluetoothStatus()
+                BluetoothDevice.ACTION_ACL_DISCONNECTED -> updateBluetoothStatus()
+                AndroidLocationManager.PROVIDERS_CHANGED_ACTION -> updateLocationStatus()
             }
         }
     }
@@ -60,6 +82,12 @@ class SystemStatusManager(private val context: Context) {
             val filter = IntentFilter().apply {
                 addAction(Intent.ACTION_BATTERY_CHANGED)
                 addAction(Intent.ACTION_TIME_TICK)
+                addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
+                addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION)
+                addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
+                addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+                addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+                addAction(AndroidLocationManager.PROVIDERS_CHANGED_ACTION)
             }
             try {
                 context.registerReceiver(batteryReceiver, filter)
@@ -76,6 +104,8 @@ class SystemStatusManager(private val context: Context) {
         try {
             updateBatteryStatus()
             updateNetworkStatus()
+            updateBluetoothStatus()
+            updateLocationStatus()
             updateDateTime()
             
             // Start periodic time updates
@@ -101,6 +131,10 @@ class SystemStatusManager(private val context: Context) {
         
         // Unregister network callback
         unregisterNetworkCallback()
+        
+        // Clean up managers
+        bluetoothManager.unregisterReceiver()
+        locationManager.unregisterReceiver()
         
         scope?.cancel()
         scope = null
@@ -135,7 +169,9 @@ class SystemStatusManager(private val context: Context) {
         val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         
         // Check WiFi
+        val wifiEnabled = wifiManager.isWifiEnabled
         val wifiConnected = isWifiConnected(connectivityManager)
+        val wifiSsid = if (wifiConnected) getWifiSsid() else ""
         val wifiSignalStrength = if (wifiConnected) getWifiSignalStrength() else 0
         
         // Check Mobile Data
@@ -144,11 +180,36 @@ class SystemStatusManager(private val context: Context) {
         val networkOperator = telephonyManager.networkOperatorName ?: ""
         
         _systemStatus.value = _systemStatus.value.copy(
+            wifiEnabled = wifiEnabled,
             wifiConnected = wifiConnected,
+            wifiSsid = wifiSsid,
             wifiSignalStrength = wifiSignalStrength,
             mobileDataConnected = mobileDataConnected,
             mobileSignalStrength = mobileSignalStrength,
             networkOperator = networkOperator
+        )
+    }
+    
+    private fun updateBluetoothStatus() {
+        bluetoothManager.refreshBluetoothInfo()
+        val bluetoothInfo = bluetoothManager.bluetoothInfo.value
+        
+        _systemStatus.value = _systemStatus.value.copy(
+            bluetoothEnabled = bluetoothInfo.isEnabled,
+            bluetoothConnected = bluetoothInfo.connectedDevices.any { it.isConnected },
+            bluetoothConnectedDevicesCount = bluetoothInfo.connectedDevices.count { it.isConnected },
+            bluetoothSupported = bluetoothInfo.isSupported
+        )
+    }
+    
+    private fun updateLocationStatus() {
+        locationManager.refreshLocationInfo()
+        val locationInfo = locationManager.locationInfo.value
+        
+        _systemStatus.value = _systemStatus.value.copy(
+            locationEnabled = locationInfo.isEnabled,
+            locationSupported = locationInfo.isSupported,
+            locationHasPermission = locationInfo.hasPermission
         )
     }
     
@@ -192,6 +253,18 @@ class SystemStatusManager(private val context: Context) {
             }
         }
         return 0
+    }
+    
+    private fun getWifiSsid(): String {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return ""
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(network) ?: return ""
+        
+        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+            val wifiInfo = networkCapabilities.transportInfo as? android.net.wifi.WifiInfo
+            return wifiInfo?.ssid?.removeSurrounding("\"") ?: ""
+        }
+        return ""
     }
     
     private fun getMobileSignalStrength(telephonyManager: TelephonyManager): Int {
@@ -263,4 +336,9 @@ class SystemStatusManager(private val context: Context) {
             }
         }
     }
+    
+    // Getter methods for external access to managers
+    fun getBluetoothManager(): BluetoothManager = bluetoothManager
+    fun getLocationManager(): LocationManager = locationManager
+    fun getWiFiManager(): WiFiManager = wifiManager
 }

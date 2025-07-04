@@ -26,7 +26,9 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.win11launcher.ui.LauncherScreen
 import com.win11launcher.ui.components.PermissionsScreen
 import com.win11launcher.ui.theme.Win11LauncherTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     
     private var permissionsGranted by mutableStateOf(false)

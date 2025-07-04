@@ -74,6 +74,7 @@ dependencies {
     // Hilt dependencies
     implementation("com.google.dagger:hilt-android:2.56.2")
     ksp("com.google.dagger:hilt-compiler:2.56.2")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // Room database
     implementation("androidx.room:room-runtime:2.6.1")
@@ -82,6 +83,9 @@ dependencies {
     
     // JSON parsing for rule criteria
     implementation("com.google.code.gson:gson:2.13.1")
+    
+    // Image loading
+    implementation("io.coil-kt:coil-compose:2.7.0")
     
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
