@@ -7,6 +7,7 @@ import com.win11launcher.data.dao.AppSettingDao
 import com.win11launcher.data.entities.AppSetting
 import com.win11launcher.data.entities.PermissionState
 import com.win11launcher.data.entities.SettingType
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -16,7 +17,7 @@ import javax.inject.Singleton
 @Singleton
 class SettingsRepository @Inject constructor(
     private val appSettingDao: AppSettingDao,
-    private val context: Context
+    @ApplicationContext private val context: Context
 ) {
     
     // Settings operations
