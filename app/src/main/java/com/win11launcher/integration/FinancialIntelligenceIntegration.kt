@@ -3,7 +3,7 @@ package com.win11launcher.integration
 import android.content.Context
 import com.win11launcher.data.entities.SmartSuggestion
 import com.win11launcher.services.FinancialIntelligenceService
-import com.win11launcher.services.FinancialInsights
+
 import com.win11launcher.services.Win11NotificationListenerService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -18,17 +18,17 @@ class FinancialIntelligenceIntegration(private val context: Context) {
         get() = Win11NotificationListenerService.getFinancialIntelligenceService()
     
     /**
-     * Get active smart suggestions
+     * Get all smart suggestions
      */
-    fun getActiveSuggestions(): Flow<List<SmartSuggestion>> {
-        return financialService?.getActiveSuggestions() ?: flowOf(emptyList())
+    fun getAllSuggestions(): Flow<List<SmartSuggestion>> {
+        return financialService?.getAllSuggestions() ?: flowOf(emptyList())
     }
     
     /**
-     * Get financial suggestions specifically
+     * Get a suggestion by its ID
      */
-    suspend fun getFinancialSuggestions(): List<SmartSuggestion> {
-        return financialService?.getFinancialSuggestions() ?: emptyList()
+    suspend fun getSuggestionById(suggestionId: String): SmartSuggestion? {
+        return financialService?.getSuggestionById(suggestionId)
     }
     
     /**
@@ -51,13 +51,6 @@ class FinancialIntelligenceIntegration(private val context: Context) {
      */
     suspend fun generateSmartSuggestions(): List<SmartSuggestion> {
         return financialService?.generateSmartSuggestions() ?: emptyList()
-    }
-    
-    /**
-     * Get financial insights
-     */
-    suspend fun getFinancialInsights(): FinancialInsights? {
-        return financialService?.getFinancialInsights()
     }
     
     /**

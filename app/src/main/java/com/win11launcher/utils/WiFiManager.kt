@@ -42,93 +42,17 @@ class WiFiManager(private val context: Context) {
      * Uses direct toggle for all Android versions with fallback methods
      */
     @SuppressLint("MissingPermission")
-    fun toggleWiFi(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // For Android 10+, try reflection method first
-            toggleWiFiReflection() || toggleWiFiViaSettings()
-        } else {
-            // For older versions, directly toggle WiFi
-            try {
-                if (isWiFiEnabled()) {
-                    wifiManager.isWifiEnabled = false
-                } else {
-                    wifiManager.isWifiEnabled = true
-                }
-                true
-            } catch (e: SecurityException) {
-                // Try reflection as fallback
-                toggleWiFiReflection()
-            }
-        }
-    }
-    
-    /**
-     * Toggle WiFi using reflection (works on some devices/ROMs)
-     */
-    @SuppressLint("MissingPermission")
-    private fun toggleWiFiReflection(): Boolean {
-        return try {
-            val method: Method = wifiManager.javaClass.getDeclaredMethod("setWifiEnabled", Boolean::class.javaPrimitiveType)
-            method.isAccessible = true
-            val result = method.invoke(wifiManager, !isWiFiEnabled()) as Boolean
-            result
-        } catch (e: Exception) {
-            false
-        }
-    }
-    
-    /**
-     * Toggle WiFi via Settings.System (alternative method)
-     */
-    private fun toggleWiFiViaSettings(): Boolean {
-        return try {
-            val currentState = if (isWiFiEnabled()) 1 else 0
-            val newState = if (currentState == 1) 0 else 1
-            Settings.System.putInt(context.contentResolver, "wifi_on", newState)
-            true
-        } catch (e: Exception) {
-            false
-        }
-    }
-    
-    /**
-     * Enable WiFi
-     */
-    @SuppressLint("MissingPermission")
-    fun enableWiFi(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    fun toggleWiFi() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // For Android 10 (API 29) and above, direct toggling of Wi-Fi is restricted.
+            // Applications should open the Wi-Fi settings panel for the user to make the change.
             openWiFiSettings()
-            true
         } else {
-            try {
-                wifiManager.isWifiEnabled = true
-                true
-            } catch (e: SecurityException) {
-                openWiFiSettings()
-                false
-            }
+            // For older versions, direct toggling is allowed with CHANGE_WIFI_STATE permission.
+            wifiManager.isWifiEnabled = !isWiFiEnabled()
         }
     }
-    
-    /**
-     * Disable WiFi
-     */
-    @SuppressLint("MissingPermission")
-    fun disableWiFi(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            openWiFiSettings()
-            true
-        } else {
-            try {
-                wifiManager.isWifiEnabled = false
-                true
-            } catch (e: SecurityException) {
-                openWiFiSettings()
-                false
-            }
-        }
-    }
-    
+
     /**
      * Open WiFi settings
      */

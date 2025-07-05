@@ -15,8 +15,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.win11launcher.models.AppNotification
-import com.win11launcher.analysis.FinancialTransactionAnalyzer
-import com.win11launcher.analysis.FinanceSmartSuggestionEngine
+import com.win11launcher.analysis.NotificationAnalyzer
+import com.win11launcher.analysis.GeneralSmartSuggestionEngine
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -60,20 +60,17 @@ class Win11NotificationListenerService : NotificationListenerService() {
         serviceInstance = this
         ruleEngine = RuleEngine(this)
         
-        // Initialize financial intelligence service
-        val financialAnalyzer = FinancialTransactionAnalyzer()
+        // Initialize smart suggestion service
+        val notificationAnalyzer = NotificationAnalyzer(this)
         val database = com.win11launcher.data.database.NotesDatabase.getDatabase(this)
-        val suggestionEngine = FinanceSmartSuggestionEngine(
-            database.financialPatternDao(),
-            database.smartSuggestionDao()
-        )
+        val suggestionEngine = GeneralSmartSuggestionEngine()
         financialIntelligenceService = FinancialIntelligenceService(
             this,
-            financialAnalyzer,
+            notificationAnalyzer,
             suggestionEngine
         )
         
-        Log.d(TAG, "NotificationListenerService created with financial intelligence")
+        Log.d(TAG, "NotificationListenerService created with smart suggestion service")
     }
     
     override fun onDestroy() {
@@ -145,8 +142,8 @@ class Win11NotificationListenerService : NotificationListenerService() {
                             // First process through standard rule engine
                             ruleEngine.processNotification(appNotification)
                             
-                            // Then process through financial intelligence service
-                            financialIntelligenceService.processNotificationForFinancialIntelligence(appNotification)
+                            // Then process through smart suggestion service
+                            financialIntelligenceService.processNotificationForSmartSuggestions(appNotification)
                         } catch (e: Exception) {
                             Log.e(TAG, "Error processing notification through engines", e)
                         }

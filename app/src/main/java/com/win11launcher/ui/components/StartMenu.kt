@@ -29,7 +29,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.ui.res.painterResource
-import com.win11launcher.R
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -507,48 +506,6 @@ private fun PinnedAppsSection(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun AppIcon(
-    app: AppItem,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .clickable { onClick() }
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .background(
-                    Color(0xFF323233),
-                    RoundedCornerShape(8.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = app.icon,
-                contentDescription = app.name,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(4.dp))
-        
-        Text(
-            text = app.name,
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.White,
-            fontSize = 11.sp,
-            maxLines = 1
-        )
     }
 }
 

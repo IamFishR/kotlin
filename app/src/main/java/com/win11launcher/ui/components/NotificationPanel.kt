@@ -115,6 +115,7 @@ fun NotificationPanel(
                     // System toggles at the bottom
                     QuickActionsSection(
                         systemStatus = systemStatus,
+                        systemStatusManager = systemStatusManager,
                         wifiManager = wifiManager,
                         bluetoothManager = bluetoothManager,
                         locationManager = locationManager
@@ -146,6 +147,7 @@ private fun DateTimeHeader(systemStatus: SystemStatus) {
 @Composable
 private fun QuickActionsSection(
     systemStatus: SystemStatus,
+    systemStatusManager: SystemStatusManager,
     wifiManager: WiFiManager,
     bluetoothManager: BluetoothManager,
     locationManager: LocationManager
@@ -192,24 +194,21 @@ private fun QuickActionsSection(
                     !systemStatus.locationHasPermission && systemStatus.locationEnabled -> "Permission required"
                     else -> ""
                 },
-                onClick = { 
-                    // Location cannot be directly toggled by apps for security reasons
-                    // Show a brief message or do nothing
-                }
+                                onClick = { locationManager.openLocationSettings() }
             ),
             QuickAction(
                 name = "Airplane",
                 icon = Icons.Default.AirplanemodeActive,
                 isEnabled = false,
                 subtitle = "",
-                onClick = { /* TODO: Implement airplane mode */ }
+                onClick = { systemStatusManager.openAirplaneModeSettings() }
             ),
             QuickAction(
                 name = "Focus",
                 icon = Icons.Default.DoNotDisturb,
                 isEnabled = false,
                 subtitle = "",
-                onClick = { /* TODO: Implement focus mode */ }
+                onClick = { systemStatusManager.openDoNotDisturbSettings() }
             )
         )
     }

@@ -1,5 +1,12 @@
 package com.win11launcher.ui.screens
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,6 +19,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,15 +33,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import android.net.Uri
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import java.io.File
 import com.win11launcher.data.entities.PermissionState
 import com.win11launcher.utils.SystemStatusManager
 import com.win11launcher.viewmodels.SettingsViewModel
+import androidx.core.content.ContextCompat
 
 enum class SettingsTab(
     val title: String,
@@ -53,30 +60,123 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     var selectedTab by remember { mutableStateOf(SettingsTab.PROFILE) }
     
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val permissionStates by viewModel.permissionStates.collectAsStateWithLifecycle()
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
     val permissionAnalytics by viewModel.permissionAnalytics.collectAsStateWithLifecycle()
+
+    // Launcher for requesting a single permission
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            viewModel.refreshPermissions()
+        }
+    }
+
+    // Launcher for requesting multiple permissions
+    val requestMultiplePermissionsLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.entries.all { it.value }
+        if (allGranted) {
+            viewModel.refreshPermissions()
+        }
+    }
+
+    val onRequestPermission: (String) -> Unit = { permissionName ->
+        when (permissionName) {
+            Manifest.permission.SYSTEM_ALERT_WINDOW -> {
+                if (!Settings.canDrawOverlays(context)) {
+                    val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + context.packageName))
+                    context.startActivity(intent)
+                }
+                viewModel.refreshPermissions()
+            }
+            Manifest.permission.WRITE_SETTINGS -> {
+                if (!Settings.System.canWrite(context)) {
+                    val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + context.packageName))
+                    context.startActivity(intent)
+                }
+                viewModel.refreshPermissions()
+            }
+            Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE -> {
+                val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                context.startActivity(intent)
+                viewModel.refreshPermissions()
+            }
+            else -> {
+                // For normal permissions, request directly
+                if (ContextCompat.checkSelfPermission(context, permissionName) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissionLauncher.launch(permissionName)
+                }
+            }
+        }
+    }
     
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF1E1E1E))
     ) {
-        // Left Sidebar
-        SettingsSidebar(
-            selectedTab = selectedTab,
-            onTabSelected = { selectedTab = it },
-            onNavigateBack = onNavigateBack
-        )
+        // Top Bar with Back Button and Title
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF2D2D2D))
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onNavigateBack,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(8.dp))
+            
+            Text(
+                text = "Settings",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
         
-        // Right Content Area
+        // Tabs for navigation
+        ScrollableTabRow(
+            selectedTabIndex = SettingsTab.values().indexOf(selectedTab),
+            containerColor = Color(0xFF2D2D2D),
+            contentColor = Color.White,
+            edgePadding = 0.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            SettingsTab.values().forEachIndexed { index, tab ->
+                Tab(
+                    selected = selectedTab == tab,
+                    onClick = { selectedTab = tab },
+                    text = { Text(tab.title) },
+                    icon = { Icon(tab.icon, contentDescription = tab.title) },
+                    selectedContentColor = Color(0xFF0078D4),
+                    unselectedContentColor = Color.White
+                )
+            }
+        }
+        
+        // Content Area
         Box(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight()
+                .fillMaxWidth()
                 .background(Color(0xFF232323))
         ) {
             when (selectedTab) {
@@ -88,7 +188,8 @@ fun SettingsScreen(
                     permissionAnalytics = permissionAnalytics,
                     isLoading = uiState.isLoading,
                     onRefreshPermissions = { viewModel.refreshPermissions() },
-                    onUpdateNotes = { permission, notes -> viewModel.updatePermissionNotes(permission, notes) }
+                    onUpdateNotes = { permission, notes -> viewModel.updatePermissionNotes(permission, notes) },
+                    onRequestPermission = onRequestPermission
                 )
                 SettingsTab.SYSTEM -> SystemContent(
                     appSettings = appSettings.filter { it.category == "system" },
@@ -114,111 +215,7 @@ fun SettingsScreen(
     }
 }
 
-@Composable
-private fun SettingsSidebar(
-    selectedTab: SettingsTab,
-    onTabSelected: (SettingsTab) -> Unit,
-    onNavigateBack: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .width(220.dp)
-            .fillMaxHeight()
-            .background(Color(0xFF2D2D2D))
-            .padding(16.dp)
-    ) {
-        // Header with back button
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = onNavigateBack,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            
-            Spacer(modifier = Modifier.width(8.dp))
-            
-            Text(
-                text = "Settings",
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-        
-        // Settings tabs
-        SettingsTab.values().forEach { tab ->
-            SettingsTabItem(
-                tab = tab,
-                isSelected = selectedTab == tab,
-                onClick = { onTabSelected(tab) }
-            )
-        }
-        
-        Spacer(modifier = Modifier.weight(1f))
-        
-        // Version info at bottom
-        Text(
-            text = "Win11 Launcher",
-            color = Color.Gray,
-            fontSize = 11.sp,
-            modifier = Modifier.padding(horizontal = 12.dp)
-        )
-        Text(
-            text = "Version 1.0.0",
-            color = Color.Gray,
-            fontSize = 10.sp,
-            modifier = Modifier.padding(horizontal = 12.dp)
-        )
-    }
-}
 
-@Composable
-private fun SettingsTabItem(
-    tab: SettingsTab,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(6.dp))
-            .clickable { onClick() }
-            .background(
-                if (isSelected) Color(0xFF0078D4) else Color.Transparent
-            )
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = tab.icon,
-            contentDescription = tab.title,
-            tint = Color.White,
-            modifier = Modifier.size(16.dp)
-        )
-        
-        Spacer(modifier = Modifier.width(12.dp))
-        
-        Text(
-            text = tab.title,
-            color = Color.White,
-            fontSize = 13.sp,
-            fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
-        )
-    }
-    
-    Spacer(modifier = Modifier.height(4.dp))
-}
 
 @Composable
 private fun ProfileContent(
@@ -743,7 +740,8 @@ private fun PermissionsContent(
     permissionAnalytics: com.win11launcher.data.repositories.PermissionAnalytics?,
     isLoading: Boolean,
     onRefreshPermissions: () -> Unit,
-    onUpdateNotes: (String, String) -> Unit
+    onUpdateNotes: (String, String) -> Unit,
+    onRequestPermission: (String) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier
@@ -805,7 +803,8 @@ private fun PermissionsContent(
         items(permissionStates) { permission ->
             DatabasePermissionCard(
                 permission = permission,
-                onUpdateNotes = onUpdateNotes
+                onUpdateNotes = onUpdateNotes,
+                onRequestPermission = onRequestPermission
             )
         }
         
@@ -936,7 +935,8 @@ private fun AnalyticsItem(
 @Composable
 private fun DatabasePermissionCard(
     permission: PermissionState,
-    onUpdateNotes: (String, String) -> Unit
+    onUpdateNotes: (String, String) -> Unit,
+    onRequestPermission: (String) -> Unit // New parameter
 ) {
     var showNotesDialog by remember { mutableStateOf(false) }
     var notesText by remember { mutableStateOf(permission.userNotes) }
@@ -1053,30 +1053,41 @@ private fun DatabasePermissionCard(
                             }
                         }
                         
-                        // Notes button
-                        if (permission.userNotes.isNotEmpty()) {
-                            IconButton(
-                                onClick = { showNotesDialog = true },
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Note,
-                                    contentDescription = "View notes",
-                                    tint = Color(0xFF2196F3),
-                                    modifier = Modifier.size(16.dp)
-                                )
+                        // Action buttons (Notes or Grant)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (!permission.isGranted) {
+                                TextButton(
+                                    onClick = { onRequestPermission(permission.permissionName) },
+                                    colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF0078D4))
+                                ) {
+                                    Text("Grant")
+                                }
                             }
-                        } else {
-                            IconButton(
-                                onClick = { showNotesDialog = true },
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.NoteAdd,
-                                    contentDescription = "Add notes",
-                                    tint = Color.Gray,
-                                    modifier = Modifier.size(16.dp)
-                                )
+                            
+                            if (permission.userNotes.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { showNotesDialog = true },
+                                    modifier = Modifier.size(32.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Note,
+                                        contentDescription = "View notes",
+                                        tint = Color(0xFF2196F3),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            } else {
+                                IconButton(
+                                    onClick = { showNotesDialog = true },
+                                    modifier = Modifier.size(32.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.NoteAdd,
+                                        contentDescription = "Add notes",
+                                        tint = Color.Gray,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
                         }
                     }
