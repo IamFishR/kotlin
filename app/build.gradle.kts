@@ -88,8 +88,8 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.google.accompanist:accompanist-drawablepainter:0.34.0")
     
-    // Google AI Edge SDK
-    implementation("com.google.ai.edge.aicore:aicore:0.0.1-exp01")
+    // MediaPipe LLM inference (stable API)
+    implementation("com.google.mediapipe:tasks-genai:0.10.24")
     
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

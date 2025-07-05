@@ -10,11 +10,13 @@ import java.io.FileOutputStream
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.google.mediapipe.tasks.genai.llminference.LlmInference
 
 @Singleton
 class AIService @Inject constructor(
     private val context: Context
 ) {
+    private var llmInference: LlmInference? = null
     private var isModelLoaded = false
     private var isLoading = false
     private val modelFileName = "gemma3-1B-it-int4.tflite"
@@ -32,7 +34,7 @@ class AIService @Inject constructor(
     suspend fun initializeModel(): AIResponse {
         return withContext(Dispatchers.IO) {
             try {
-                if (isModelLoaded) {
+                if (isModelLoaded && llmInference != null) {
                     return@withContext AIResponse(true, "Model already loaded")
                 }
                 
@@ -41,7 +43,7 @@ class AIService @Inject constructor(
                 }
                 
                 isLoading = true
-                Log.d(TAG, "Starting model initialization...")
+                Log.d(TAG, "Starting MediaPipe LLM model initialization...")
                 
                 // Copy model from assets to internal storage if needed
                 val modelFile = copyModelToInternalStorage()
@@ -51,18 +53,24 @@ class AIService @Inject constructor(
                     return@withContext AIResponse(false, "", "Model file not found")
                 }
                 
-                // Simulate model loading for now
-                delay(2000)
+                // Initialize MediaPipe LLM inference with the model file
+                val options = LlmInference.LlmInferenceOptions.builder()
+                    .setModelPath(modelFile.absolutePath)
+                    .setMaxTokens(1024)
+                    .build()
+                
+                llmInference = LlmInference.createFromOptions(context, options)
                 
                 isModelLoaded = true
                 isLoading = false
                 
-                Log.d(TAG, "Model initialized successfully")
-                AIResponse(true, "Gemma 3 model loaded successfully")
+                Log.d(TAG, "MediaPipe LLM model initialized successfully")
+                AIResponse(true, "Gemma 3 model loaded successfully via MediaPipe")
                 
             } catch (e: Exception) {
                 isLoading = false
-                Log.e(TAG, "Failed to initialize model", e)
+                llmInference = null
+                Log.e(TAG, "Failed to initialize MediaPipe LLM model", e)
                 AIResponse(false, "", "Failed to load model: ${e.message}")
             }
         }
@@ -71,7 +79,7 @@ class AIService @Inject constructor(
     suspend fun generateResponse(prompt: String): AIResponse {
         return withContext(Dispatchers.IO) {
             try {
-                if (!isModelLoaded) {
+                if (!isModelLoaded || llmInference == null) {
                     val initResult = initializeModel()
                     if (!initResult.success) {
                         return@withContext initResult
@@ -80,14 +88,19 @@ class AIService @Inject constructor(
                 
                 Log.d(TAG, "Generating response for: $prompt")
                 
-                // Simulate AI response generation for now
-                delay(1000)
+                // Format the prompt for Gemma 3
+                val formattedPrompt = formatPromptForGemma(prompt)
                 
-                // Generate a mock response based on the prompt
-                val mockResponse = generateMockResponse(prompt)
+                // Generate response using MediaPipe LLM inference
+                val response = llmInference!!.generateResponse(formattedPrompt)
                 
-                Log.d(TAG, "Response generated successfully")
-                AIResponse(true, mockResponse)
+                if (response != null && response.isNotEmpty()) {
+                    Log.d(TAG, "Response generated successfully")
+                    AIResponse(true, response.trim())
+                } else {
+                    Log.e(TAG, "Model returned null or empty response")
+                    AIResponse(false, "", "Model failed to generate response")
+                }
                 
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to generate response", e)
@@ -96,28 +109,12 @@ class AIService @Inject constructor(
         }
     }
     
-    private fun generateMockResponse(prompt: String): String {
-        // Generate contextual mock responses for testing
-        return when {
-            prompt.contains("hello", ignoreCase = true) -> 
-                "Hello! I'm Gemma 3, your on-device AI assistant. How can I help you today?"
-            prompt.contains("android", ignoreCase = true) -> 
-                "Android is a mobile operating system developed by Google. It's based on the Linux kernel and designed primarily for touchscreen mobile devices."
-            prompt.contains("kotlin", ignoreCase = true) -> 
-                "Kotlin is a modern programming language developed by JetBrains. It's fully interoperable with Java and is Google's preferred language for Android development."
-            prompt.contains("what", ignoreCase = true) -> 
-                "That's an interesting question! I'm currently running in mock mode while we set up the full AI model integration."
-            prompt.contains("how", ignoreCase = true) -> 
-                "Great question! I'm here to help explain things. Currently, I'm operating in demonstration mode."
-            else -> 
-                "I understand you're asking about: \"$prompt\". I'm Gemma 3 running on-device in your launcher. This is a demonstration response while we finalize the model integration."
-        }
-    }
     
     private fun formatPromptForGemma(userPrompt: String): String {
         // Format prompt according to Gemma 3 instruction format
         return "<start_of_turn>user\n$userPrompt<end_of_turn>\n<start_of_turn>model\n"
     }
+    
     
     private fun copyModelToInternalStorage(): File {
         val internalDir = File(context.filesDir, "ai_models")
@@ -162,6 +159,7 @@ class AIService @Inject constructor(
             Model: Gemma 3 (1B parameters)
             Format: TensorFlow Lite (INT4 quantized)
             Size: ~580MB
+            Runtime: MediaPipe LLM Inference
             Status: ${getModelStatus()}
             Capabilities: Text generation, Q&A, conversation
         """.trimIndent()
@@ -169,11 +167,13 @@ class AIService @Inject constructor(
     
     fun unloadModel() {
         try {
+            llmInference?.close()
+            llmInference = null
             isModelLoaded = false
             isLoading = false
-            Log.d(TAG, "Model unloaded successfully")
+            Log.d(TAG, "MediaPipe LLM model unloaded successfully")
         } catch (e: Exception) {
-            Log.e(TAG, "Error unloading model", e)
+            Log.e(TAG, "Error unloading MediaPipe LLM model", e)
         }
     }
 }
