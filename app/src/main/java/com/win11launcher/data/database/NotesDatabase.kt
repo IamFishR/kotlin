@@ -12,28 +12,24 @@ import com.win11launcher.data.entities.TrackingRule
 import com.win11launcher.data.entities.RuleActivity
 import com.win11launcher.data.entities.FinancialPattern
 import com.win11launcher.data.entities.ResearchPattern
-import com.win11launcher.data.entities.SmartSuggestion
 import com.win11launcher.data.entities.AppSetting
 import com.win11launcher.data.entities.PermissionState
 import com.win11launcher.data.entities.UserProfile
 import com.win11launcher.data.entities.UserCustomization
 import com.win11launcher.data.entities.UserFile
-import com.win11launcher.data.entities.ExtractedNotificationData
 import com.win11launcher.data.dao.NoteDao
 import com.win11launcher.data.dao.FolderDao
 import com.win11launcher.data.dao.TrackingRuleDao
 import com.win11launcher.data.dao.RuleActivityDao
 import com.win11launcher.data.dao.FinancialPatternDao
 import com.win11launcher.data.dao.ResearchPatternDao
-import com.win11launcher.data.dao.SmartSuggestionDao
 import com.win11launcher.data.dao.AppSettingDao
 import com.win11launcher.data.dao.UserProfileDao
-import com.win11launcher.data.dao.ExtractedNotificationDataDao
 import com.win11launcher.data.converters.Converters
 
 @Database(
-    entities = [Note::class, Folder::class, TrackingRule::class, RuleActivity::class, FinancialPattern::class, ResearchPattern::class, SmartSuggestion::class, AppSetting::class, PermissionState::class, UserProfile::class, UserCustomization::class, UserFile::class, ExtractedNotificationData::class],
-    version = 6,
+    entities = [Note::class, Folder::class, TrackingRule::class, RuleActivity::class, FinancialPattern::class, ResearchPattern::class, AppSetting::class, PermissionState::class, UserProfile::class, UserCustomization::class, UserFile::class],
+    version = 8,
     exportSchema = true
 )
 @androidx.room.TypeConverters(Converters::class)
@@ -45,10 +41,8 @@ abstract class NotesDatabase : RoomDatabase() {
     abstract fun ruleActivityDao(): RuleActivityDao
     abstract fun financialPatternDao(): FinancialPatternDao
     abstract fun researchPatternDao(): ResearchPatternDao
-    abstract fun smartSuggestionDao(): SmartSuggestionDao
     abstract fun appSettingDao(): AppSettingDao
     abstract fun userProfileDao(): UserProfileDao
-    abstract fun extractedNotificationDataDao(): ExtractedNotificationDataDao
     
     companion object {
         @Volatile
@@ -62,7 +56,7 @@ abstract class NotesDatabase : RoomDatabase() {
                     "notes_database"
                 )
                 .addCallback(DatabaseCallback())
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                 .build()
                 INSTANCE = instance
                 instance
@@ -341,6 +335,22 @@ abstract class NotesDatabase : RoomDatabase() {
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_extracted_notification_data_source_package ON extracted_notification_data (source_package)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_extracted_notification_data_timestamp ON extracted_notification_data (timestamp)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_extracted_notification_data_suggested_category ON extracted_notification_data (suggested_category)")
+            }
+        }
+        
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add new indices for duplicate prevention
+                database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_notes_original_notification_id ON notes (original_notification_id)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_notes_source_package_title_content ON notes (source_package, title, content)")
+            }
+        }
+        
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Drop smart suggestions related tables as they're no longer needed
+                database.execSQL("DROP TABLE IF EXISTS smart_suggestions")
+                database.execSQL("DROP TABLE IF EXISTS extracted_notification_data")
             }
         }
         

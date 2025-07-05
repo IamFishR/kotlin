@@ -26,7 +26,9 @@ import androidx.room.Index
         Index(value = ["folder_id"]),
         Index(value = ["rule_id"]),
         Index(value = ["created_at"]),
-        Index(value = ["source_package"])
+        Index(value = ["source_package"]),
+        Index(value = ["original_notification_id"], unique = true),
+        Index(value = ["source_package", "title", "content"])
     ]
 )
 data class Note(

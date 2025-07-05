@@ -27,6 +27,13 @@ class RuleEngine(private val context: Context) {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     
     suspend fun processNotification(notification: AppNotification) {
+        // Global duplicate check: Check if this notification ID already exists
+        val existingNote = database.noteDao().getNoteByOriginalNotificationId(notification.id)
+        if (existingNote != null) {
+            // Notification already processed, skip entirely
+            return
+        }
+        
         val activeRules = database.trackingRuleDao().getRulesForPackage(notification.packageName)
         
         for (rule in activeRules) {

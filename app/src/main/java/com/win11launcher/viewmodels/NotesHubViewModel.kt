@@ -9,12 +9,10 @@ import com.win11launcher.data.database.NotesDatabase
 import com.win11launcher.data.entities.Folder
 import com.win11launcher.data.entities.Note
 import com.win11launcher.data.entities.TrackingRule
-import com.win11launcher.data.entities.SmartSuggestion
 import com.win11launcher.data.models.FilterCriteria
 import com.win11launcher.data.models.FilterType
 import com.win11launcher.data.InstalledApp
 import com.win11launcher.data.AppRepository
-import com.win11launcher.integration.FinancialIntelligenceIntegration
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
@@ -23,7 +21,6 @@ class NotesHubViewModel(application: Application) : AndroidViewModel(application
     
     private val database = NotesDatabase.getDatabase(application)
     private val appRepository = AppRepository(application)
-    private val financialIntelligence = FinancialIntelligenceIntegration(application)
     private val gson = Gson()
     
     // Database flows
@@ -31,16 +28,6 @@ class NotesHubViewModel(application: Application) : AndroidViewModel(application
     val rules = database.trackingRuleDao().getAllRules()
     val notes = database.noteDao().getAllNotes()
     
-    // Smart suggestions
-    val smartSuggestions = financialIntelligence.getAllSuggestions()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-    
-    private val _isLoadingSuggestions = MutableStateFlow(false)
-    val isLoadingSuggestions: StateFlow<Boolean> = _isLoadingSuggestions.asStateFlow()
     
     // Notes view state
     private val _notesViewState = MutableStateFlow(NotesViewState())
@@ -118,69 +105,6 @@ class NotesHubViewModel(application: Application) : AndroidViewModel(application
         }
     }
     
-    // Smart suggestions methods
-    fun refreshSuggestions() {
-        viewModelScope.launch {
-            _isLoadingSuggestions.value = true
-            try {
-                financialIntelligence.generateSmartSuggestions()
-            } catch (e: Exception) {
-                // Handle error silently
-            } finally {
-                _isLoadingSuggestions.value = false
-            }
-        }
-    }
-    
-    fun applySuggestion(suggestionId: String) {
-        viewModelScope.launch {
-            try {
-                val suggestion = financialIntelligence.getSuggestionById(suggestionId)
-                if (suggestion != null) {
-                    // Pre-fill rule creation state with suggestion data
-                    _ruleCreationState.value = RuleCreationState(
-                        selectedApps = suggestion.sourcePackage?.let { setOf(it) } ?: emptySet(),
-                        filterType = when {
-                            !suggestion.extractedKeywords.isNullOrEmpty() -> FilterType.KEYWORD_INCLUDE
-                            !suggestion.automatedRuleConfig.isNullOrEmpty() -> FilterType.REGEX // Assuming automatedRuleConfig might contain regex
-                            else -> FilterType.ALL
-                        },
-                        keywords = suggestion.extractedKeywords?.let { gson.fromJson(it, object : TypeToken<List<String>>() {}.type) } ?: emptyList(),
-                        regexPattern = suggestion.automatedRuleConfig ?: "", // Use automatedRuleConfig for regex if applicable
-                        selectedFolderId = suggestion.suggestedFolderName, // Use suggestedFolderName as ID for now
-                        newFolderName = suggestion.suggestedFolderName ?: "",
-                        newFolderDescription = suggestion.description,
-                        selectedFolderColor = suggestion.suggestedFolderColor ?: "#2196F3",
-                        selectedFolderIcon = suggestion.suggestedFolderIcon ?: "folder",
-                        autoTags = suggestion.suggestedTags?.let { gson.fromJson(it, object : TypeToken<List<String>>() {}.type) } ?: emptyList()
-                    )
-                    
-                    // Mark suggestion as applied
-                    financialIntelligence.applySuggestion(suggestionId)
-                    
-                    // Navigate to the appropriate rule creation step
-                    if (suggestion.sourcePackage != null) {
-                        _uiState.value = _uiState.value.copy(currentScreen = NotesHubScreen.CONTENT_FILTERING)
-                    } else {
-                        _uiState.value = _uiState.value.copy(currentScreen = NotesHubScreen.APP_SELECTION)
-                    }
-                }
-            } catch (e: Exception) {
-                // Handle error
-            }
-        }
-    }
-    
-    fun dismissSuggestion(suggestionId: String, reason: String = "USER_DISMISSED") {
-        viewModelScope.launch {
-            try {
-                financialIntelligence.dismissSuggestion(suggestionId, reason)
-                refreshSuggestions()
-            } catch (e: Exception) {
-                // Handle error
-            }
-        }
-    }
     
     // Rule creation methods
     fun startRuleCreation() {
@@ -466,7 +390,6 @@ data class NotesViewState(
 
 enum class NotesHubScreen {
     RULE_MANAGEMENT,
-    SMART_SUGGESTIONS,
     SMART_NOTIFICATIONS,
     SIMPLE_NOTIFICATIONS,
     APP_SELECTION,

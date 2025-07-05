@@ -28,4 +28,15 @@ class SimpleNotificationsViewModel @Inject constructor(
             noteRepository.updateNoteArchived(notificationId, true)
         }
     }
+    
+    fun cleanupDuplicateNotifications() {
+        viewModelScope.launch {
+            try {
+                val duplicatesRemoved = noteRepository.removeDuplicates()
+                android.util.Log.d("SimpleNotifications", "Cleaned up $duplicatesRemoved duplicate notifications")
+            } catch (e: Exception) {
+                android.util.Log.e("SimpleNotifications", "Error cleaning up duplicates", e)
+            }
+        }
+    }
 }

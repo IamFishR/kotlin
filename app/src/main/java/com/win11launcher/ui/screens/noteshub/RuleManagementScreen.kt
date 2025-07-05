@@ -35,9 +35,7 @@ fun RuleManagementScreen(
     onCreateNewRule: () -> Unit,
     onRuleDetails: (String) -> Unit,
     onViewNotes: () -> Unit = {},
-    onSmartSuggestions: () -> Unit = {},
     onSmartNotifications: () -> Unit = {},
-    suggestionsCount: Int = 0
 ) {
     val activeRules = rules.filter { it.isActive }
     val inactiveRules = rules.filter { !it.isActive }
@@ -101,56 +99,17 @@ fun RuleManagementScreen(
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            OutlinedButton(
+                onClick = onViewNotes,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Box(modifier = Modifier.weight(1f)) {
-                    OutlinedButton(
-                        onClick = onSmartSuggestions,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Lightbulb,
-                            contentDescription = "Smart suggestions",
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Smart Suggestions")
-                    }
-                    
-                    // Badge for suggestion count
-                    if (suggestionsCount > 0) {
-                        Badge(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .offset(x = 8.dp, y = (-8).dp),
-                            containerColor = MaterialTheme.colorScheme.error
-                        ) {
-                            Text(
-                                text = suggestionsCount.toString(),
-                                color = MaterialTheme.colorScheme.onError,
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
-                }
-                
-                OutlinedButton(
-                    onClick = onViewNotes,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Visibility,
-                        contentDescription = "View notes",
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("View Notes")
-                }
+                Icon(
+                    imageVector = Icons.Default.Visibility,
+                    contentDescription = "View notes",
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("View Notes")
             }
             
             OutlinedButton(

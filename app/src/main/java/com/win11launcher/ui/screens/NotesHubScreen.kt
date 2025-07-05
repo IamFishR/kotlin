@@ -30,7 +30,6 @@ fun NotesHubScreen(
     val notes by viewModel.notes.collectAsStateWithLifecycle(emptyList())
     val filteredNotes by viewModel.filteredNotes.collectAsStateWithLifecycle()
     val notesViewState by viewModel.notesViewState.collectAsStateWithLifecycle()
-    val smartSuggestions by viewModel.smartSuggestions.collectAsStateWithLifecycle()
     
     Column(
         modifier = Modifier
@@ -43,7 +42,6 @@ fun NotesHubScreen(
                 Text(
                     text = when (uiState.currentScreen) {
                         Screen.RULE_MANAGEMENT -> "Notes Hub"
-                        Screen.SMART_SUGGESTIONS -> "Smart Suggestions"
                         Screen.SMART_NOTIFICATIONS -> "Smart Notifications"
                         Screen.SIMPLE_NOTIFICATIONS -> "All Notifications"
                         Screen.APP_SELECTION -> "Create Rule - Step 1"
@@ -60,7 +58,6 @@ fun NotesHubScreen(
                     onClick = {
                         when (uiState.currentScreen) {
                             Screen.RULE_MANAGEMENT -> onNavigateBack()
-                            Screen.SMART_SUGGESTIONS -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
                             Screen.SMART_NOTIFICATIONS -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
                             Screen.SIMPLE_NOTIFICATIONS -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
                             Screen.NOTES_VIEW -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
@@ -116,13 +113,11 @@ fun NotesHubScreen(
                 when (action) {
                     "notes" -> viewModel.navigateToNotesView()
                     "rules" -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
-                    "suggestions" -> viewModel.navigateToScreen(Screen.SMART_SUGGESTIONS)
                     "notifications" -> viewModel.navigateToScreen(Screen.SMART_NOTIFICATIONS)
                 }
             },
             onToolsMenuAction = { action ->
                 when (action) {
-                    "smart_suggestions" -> viewModel.navigateToScreen(Screen.SMART_SUGGESTIONS)
                     "analytics" -> {
                         // TODO: Implement analytics
                     }
@@ -146,23 +141,10 @@ fun NotesHubScreen(
                         // TODO: Navigate to rule details
                     },
                     onViewNotes = viewModel::navigateToNotesView,
-                    onSmartSuggestions = { viewModel.navigateToScreen(Screen.SMART_SUGGESTIONS) },
                     onSmartNotifications = { viewModel.navigateToScreen(Screen.SIMPLE_NOTIFICATIONS) },
-                    suggestionsCount = smartSuggestions.size
                 )
             }
             
-            Screen.SMART_SUGGESTIONS -> {
-                SmartSuggestionsScreen(
-                    viewModel = viewModel,
-                    onSuggestionApplied = { suggestionId ->
-                        // Suggestion applied successfully
-                    },
-                    onSuggestionDismissed = { suggestionId ->
-                        // Suggestion dismissed
-                    }
-                )
-            }
             
             Screen.SMART_NOTIFICATIONS -> {
                 SmartNotificationScreen(
@@ -350,7 +332,6 @@ private fun WindowsMenuBar(
             menuItems = listOf(
                 MenuBarDropdownItem("Notes", Icons.Default.Visibility, "notes"),
                 MenuBarDropdownItem("Rules", Icons.AutoMirrored.Filled.Rule, "rules"),
-                MenuBarDropdownItem("Suggestions", Icons.Default.Lightbulb, "suggestions"),
                 MenuBarDropdownItem("Smart Notifications", Icons.Default.Notifications, "notifications")
             ),
             onMenuItemClick = onViewMenuAction
@@ -359,7 +340,6 @@ private fun WindowsMenuBar(
         MenuBarItem(
             text = "Tools",
             menuItems = listOf(
-                MenuBarDropdownItem("Smart Suggestions", Icons.Default.Lightbulb, "smart_suggestions"),
                 MenuBarDropdownItem("Analytics", Icons.Default.Analytics, "analytics")
             ),
             onMenuItemClick = onToolsMenuAction

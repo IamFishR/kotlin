@@ -15,8 +15,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.win11launcher.models.AppNotification
-import com.win11launcher.analysis.NotificationAnalyzer
-import com.win11launcher.analysis.GeneralSmartSuggestionEngine
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -24,7 +22,6 @@ class Win11NotificationListenerService : NotificationListenerService() {
     
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private lateinit var ruleEngine: RuleEngine
-    private lateinit var financialIntelligenceService: FinancialIntelligenceService
     
     companion object {
         private const val TAG = "NotificationListener"
@@ -48,9 +45,6 @@ class Win11NotificationListenerService : NotificationListenerService() {
             serviceInstance?.cancelAllNotifications()
         }
         
-        fun getFinancialIntelligenceService(): FinancialIntelligenceService? {
-            return serviceInstance?.financialIntelligenceService
-        }
     }
     
     private val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
@@ -60,15 +54,6 @@ class Win11NotificationListenerService : NotificationListenerService() {
         serviceInstance = this
         ruleEngine = RuleEngine(this)
         
-        // Initialize smart suggestion service
-        val notificationAnalyzer = NotificationAnalyzer(this)
-        val database = com.win11launcher.data.database.NotesDatabase.getDatabase(this)
-        val suggestionEngine = GeneralSmartSuggestionEngine()
-        financialIntelligenceService = FinancialIntelligenceService(
-            this,
-            notificationAnalyzer,
-            suggestionEngine
-        )
         
         Log.d(TAG, "NotificationListenerService created with smart suggestion service")
     }
@@ -139,13 +124,10 @@ class Win11NotificationListenerService : NotificationListenerService() {
                     // Process notification through rule engine for notes conversion
                     coroutineScope.launch {
                         try {
-                            // First process through standard rule engine
+                            // Process through rule engine
                             ruleEngine.processNotification(appNotification)
-                            
-                            // Then process through smart suggestion service
-                            financialIntelligenceService.processNotificationForSmartSuggestions(appNotification)
                         } catch (e: Exception) {
-                            Log.e(TAG, "Error processing notification through engines", e)
+                            Log.e(TAG, "Error processing notification through rule engine", e)
                         }
                     }
                 }

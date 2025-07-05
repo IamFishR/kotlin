@@ -42,16 +42,25 @@ fun SimpleNotificationsScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "All Notifications",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "${notifications.size} notifications",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Column {
+                Text(
+                    text = "All Notifications",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${notifications.size} notifications",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            // Cleanup duplicates button
+            OutlinedButton(
+                onClick = { viewModel.cleanupDuplicateNotifications() }
+            ) {
+                Text("Clean Duplicates")
+            }
         }
         
         // Notifications list
@@ -94,7 +103,7 @@ private fun NotificationCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = notification.sourceAppName,
+                    text = "From: ${notification.sourceAppName}",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
@@ -106,22 +115,22 @@ private fun NotificationCard(
                 )
             }
             
-            // Title
+            // Notification Title
             Text(
                 text = notification.title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Medium,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(bottom = 4.dp)
+                modifier = Modifier.padding(bottom = 8.dp)
             )
             
-            // Content
+            // Notification Content
             Text(
                 text = notification.content,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
+                maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(bottom = 12.dp)
             )

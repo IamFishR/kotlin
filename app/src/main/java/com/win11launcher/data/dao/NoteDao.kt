@@ -22,6 +22,9 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE id = :noteId")
     suspend fun getNoteById(noteId: String): Note?
     
+    @Query("SELECT * FROM notes WHERE original_notification_id = :notificationId LIMIT 1")
+    suspend fun getNoteByOriginalNotificationId(notificationId: String): Note?
+    
     @Query("SELECT * FROM notes WHERE title LIKE '%' || :query || '%' OR content LIKE '%' || :query || '%'")
     fun searchNotes(query: String): Flow<List<Note>>
     
