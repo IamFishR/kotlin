@@ -138,4 +138,6 @@ android-sdk/
 
 # AI Models (large files)
 *.tflite
+*.task
 app/src/main/assets/*.tflite
+app/src/main/assets/*.task

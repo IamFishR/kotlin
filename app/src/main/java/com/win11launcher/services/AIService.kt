@@ -19,7 +19,7 @@ class AIService @Inject constructor(
     private var llmInference: LlmInference? = null
     private var isModelLoaded = false
     private var isLoading = false
-    private val modelFileName = "gemma3-1B-it-int4.tflite"
+    private val modelFileName = "gemma3-1B-it-int4.task"
     
     companion object {
         private const val TAG = "AIService"
@@ -157,7 +157,7 @@ class AIService @Inject constructor(
     fun getModelInfo(): String {
         return """
             Model: Gemma 3 (1B parameters)
-            Format: TensorFlow Lite (INT4 quantized)
+            Format: MediaPipe Task (INT4 quantized)
             Size: ~580MB
             Runtime: MediaPipe LLM Inference
             Status: ${getModelStatus()}
