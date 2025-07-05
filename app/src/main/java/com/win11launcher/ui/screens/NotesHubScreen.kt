@@ -337,7 +337,7 @@ private fun WindowsMenuBar(
             text = "View",
             menuItems = listOf(
                 MenuBarDropdownItem("Notes", Icons.Default.Visibility, "notes"),
-                MenuBarDropdownItem("Rules", Icons.AutoMirrored.Filled.Rule, "rules"),
+                MenuBarDropdownItem("Rules", Icons.Default.Rule, "rules"),
                 MenuBarDropdownItem("Suggestions", Icons.Default.Lightbulb, "suggestions"),
                 MenuBarDropdownItem("Smart Notifications", Icons.Default.Notifications, "notifications")
             ),
