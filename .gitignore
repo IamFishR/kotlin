@@ -35,7 +35,7 @@ $RECYCLE.BIN/
 .AppleDouble
 .LSOverride
 
-# Icon must end with two \r
+# Icon must end with two 
 Icon
 
 # Thumbnails
@@ -133,3 +133,5 @@ hs_err_pid*
 # local.properties file
 local.properties
 local.properties
+
+android-sdk/
