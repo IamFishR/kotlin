@@ -19,7 +19,7 @@ class AIService @Inject constructor(
     private var llmInference: LlmInference? = null
     private var isModelLoaded = false
     private var isLoading = false
-    private val modelFileName = "gemma3-1B-it-int4.task"
+    private val modelFileName = "gemma2-2b-it-gpu-int8.bin"
     
     companion object {
         private const val TAG = "AIService"
@@ -65,7 +65,7 @@ class AIService @Inject constructor(
                 isLoading = false
                 
                 Log.d(TAG, "MediaPipe LLM model initialized successfully")
-                AIResponse(true, "Gemma 3 model loaded successfully via MediaPipe")
+                AIResponse(true, "Gemma 2 model loaded successfully via MediaPipe")
                 
             } catch (e: Exception) {
                 isLoading = false
@@ -111,7 +111,7 @@ class AIService @Inject constructor(
     
     
     private fun formatPromptForGemma(userPrompt: String): String {
-        // Format prompt according to Gemma 3 instruction format
+        // Format prompt according to Gemma 2 instruction format
         return "<start_of_turn>user\n$userPrompt<end_of_turn>\n<start_of_turn>model\n"
     }
     
@@ -156,9 +156,9 @@ class AIService @Inject constructor(
     
     fun getModelInfo(): String {
         return """
-            Model: Gemma 3 (1B parameters)
-            Format: MediaPipe Task (INT4 quantized)
-            Size: ~580MB
+            Model: Gemma 2 (2B parameters)
+            Format: MediaPipe Binary (INT8 quantized, GPU optimized)
+            Size: ~1.2GB
             Runtime: MediaPipe LLM Inference
             Status: ${getModelStatus()}
             Capabilities: Text generation, Q&A, conversation

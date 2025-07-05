@@ -95,7 +95,7 @@ private fun CommandPromptWindow(
             .clip(RoundedCornerShape(8.dp))
             .border(
                 width = 1.dp,
-                color = Color(0xFF404040),
+                color = Color(0xFF808080),
                 shape = RoundedCornerShape(8.dp)
             ),
         colors = CardDefaults.cardColors(
@@ -235,11 +235,17 @@ private fun CommandPromptWindow(
                                 } else {
                                     // Handle regular commands synchronously
                                     val result = executeCommand(command, context)
-                                    commandHistory = commandHistory + CommandEntry(
-                                        command = command,
-                                        output = result,
-                                        timestamp = System.currentTimeMillis()
-                                    )
+                                    
+                                    // Handle clear/cls commands
+                                    if (command.lowercase().trim() in listOf("clear", "cls")) {
+                                        commandHistory = emptyList()
+                                    } else {
+                                        commandHistory = commandHistory + CommandEntry(
+                                            command = command,
+                                            output = result,
+                                            timestamp = System.currentTimeMillis()
+                                        )
+                                    }
                                     isProcessing = false
                                 }
                                 keyboardController?.hide()
@@ -336,7 +342,7 @@ ai-clear - Clear AI conversation history
 """
         }
         "clear", "cls" -> {
-            "Screen cleared." // Note: actual clearing would be handled by the UI
+            "" // Clear command returns empty string, actual clearing handled by UI
         }
         "date" -> {
             java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
