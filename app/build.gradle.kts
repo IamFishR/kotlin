@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.win11launcher"
-        minSdk = 26
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -87,6 +87,9 @@ dependencies {
     // Image loading
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.google.accompanist:accompanist-drawablepainter:0.34.0")
+    
+    // Google AI Edge SDK
+    implementation("com.google.ai.edge.aicore:aicore:0.0.1-exp01")
     
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

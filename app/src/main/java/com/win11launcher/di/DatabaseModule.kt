@@ -8,6 +8,7 @@ import com.win11launcher.data.dao.TrackingRuleDao
 import com.win11launcher.data.dao.UserProfileDao
 import com.win11launcher.data.database.NotesDatabase
 import com.win11launcher.utils.ProfileImageManager
+import com.win11launcher.services.AIService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,5 +50,11 @@ object DatabaseModule {
     @Singleton
     fun provideProfileImageManager(@ApplicationContext context: Context): ProfileImageManager {
         return ProfileImageManager(context)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideAIService(@ApplicationContext context: Context): AIService {
+        return AIService(context)
     }
 }

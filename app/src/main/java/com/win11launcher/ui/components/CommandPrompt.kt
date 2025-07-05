@@ -32,6 +32,10 @@ import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.delay
 import android.os.Build
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.win11launcher.services.AIService
+import com.win11launcher.viewmodel.AIServiceViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun CommandPrompt(
@@ -68,6 +72,8 @@ private fun CommandPromptWindow(
     val keyboardController = LocalSoftwareKeyboardController.current
     val listState = rememberLazyListState()
     val context = LocalContext.current
+    val aiService = hiltViewModel<AIServiceViewModel>().aiService
+    val coroutineScope = rememberCoroutineScope()
     
     // Auto-focus the input field when the dialog opens
     LaunchedEffect(Unit) {
@@ -88,7 +94,7 @@ private fun CommandPromptWindow(
             .fillMaxHeight(0.7f)
             .clip(RoundedCornerShape(8.dp))
             .border(
-                width = 2.dp,
+                width = 1.dp,
                 color = Color(0xFF404040),
                 shape = RoundedCornerShape(8.dp)
             ),
@@ -204,14 +210,38 @@ private fun CommandPromptWindow(
                             if (currentCommand.isNotBlank() && !isProcessing) {
                                 isProcessing = true
                                 val command = currentCommand.trim()
-                                val result = executeCommand(command, context)
-                                commandHistory = commandHistory + CommandEntry(
-                                    command = command,
-                                    output = result,
-                                    timestamp = System.currentTimeMillis()
-                                )
                                 currentCommand = ""
-                                isProcessing = false
+                                
+                                // Handle AI commands asynchronously
+                                if (command.startsWith("ai ") || command in listOf("ai-info", "ai-status", "ai-clear")) {
+                                    // Add processing entry immediately
+                                    commandHistory = commandHistory + CommandEntry(
+                                        command = command,
+                                        output = "🤖 AI is thinking...",
+                                        timestamp = System.currentTimeMillis(),
+                                        isProcessing = true
+                                    )
+                                    
+                                    coroutineScope.launch {
+                                        val result = executeAICommand(command, aiService)
+                                        // Update the last entry with the result
+                                        commandHistory = commandHistory.dropLast(1) + CommandEntry(
+                                            command = command,
+                                            output = result,
+                                            timestamp = System.currentTimeMillis()
+                                        )
+                                        isProcessing = false
+                                    }
+                                } else {
+                                    // Handle regular commands synchronously
+                                    val result = executeCommand(command, context)
+                                    commandHistory = commandHistory + CommandEntry(
+                                        command = command,
+                                        output = result,
+                                        timestamp = System.currentTimeMillis()
+                                    )
+                                    isProcessing = false
+                                }
                                 keyboardController?.hide()
                             }
                         }
@@ -242,13 +272,29 @@ private fun CommandEntry(
         
         // Command output
         if (entry.output.isNotBlank()) {
-            Text(
-                text = entry.output,
-                color = Color(0xFFCCCCCC),
-                fontSize = 12.sp,
-                fontFamily = FontFamily.Monospace,
-                modifier = Modifier.padding(start = 8.dp)
-            )
+            Row(
+                modifier = Modifier.padding(start = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = entry.output,
+                    color = Color(0xFFCCCCCC),
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier.weight(1f)
+                )
+                
+                // Show loading indicator for processing AI commands
+                if (entry.isProcessing) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .padding(start = 8.dp),
+                        color = Color(0xFF4CAF50),
+                        strokeWidth = 2.dp
+                    )
+                }
+            }
         }
     }
 }
@@ -256,7 +302,8 @@ private fun CommandEntry(
 private data class CommandEntry(
     val command: String,
     val output: String,
-    val timestamp: Long
+    val timestamp: Long,
+    val isProcessing: Boolean = false
 )
 
 private fun executeCommand(command: String, context: android.content.Context): String {
@@ -280,6 +327,12 @@ hardware - Show hardware information
 build - Show build information
 memory - Show memory information
 network - Show network information
+
+AI Commands (Powered by Gemma 3):
+ai <question> - Ask AI anything
+ai-info - Show AI model information
+ai-status - Check AI model status
+ai-clear - Clear AI conversation history
 """
         }
         "clear", "cls" -> {
@@ -486,5 +539,33 @@ Is Roaming: ${networkInfo.isRoaming}
         }
     } catch (e: Exception) {
         return "Network Information:\nError retrieving network info: ${e.message}"
+    }
+}
+
+private suspend fun executeAICommand(command: String, aiService: AIService): String {
+    return when {
+        command.startsWith("ai ") -> {
+            val question = command.substring(3).trim()
+            if (question.isBlank()) {
+                "Please provide a question. Example: ai What is Android?"
+            } else {
+                val response = aiService.generateResponse(question)
+                if (response.success) {
+                    "🤖 AI: ${response.response}"
+                } else {
+                    "❌ AI Error: ${response.error}"
+                }
+            }
+        }
+        command == "ai-info" -> {
+            "🤖 ${aiService.getModelInfo()}"
+        }
+        command == "ai-status" -> {
+            "🤖 Status: ${aiService.getModelStatus()}"
+        }
+        command == "ai-clear" -> {
+            "🤖 AI conversation history cleared"
+        }
+        else -> "Unknown AI command"
     }
 }

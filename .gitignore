@@ -135,3 +135,7 @@ local.properties
 local.properties
 
 android-sdk/
+
+# AI Models (large files)
+*.tflite
+app/src/main/assets/*.tflite
