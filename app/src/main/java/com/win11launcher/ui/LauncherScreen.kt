@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.win11launcher.data.AppRepository
 import com.win11launcher.ui.components.AllAppsScreen
+import com.win11launcher.ui.components.CommandPrompt
 import com.win11launcher.ui.components.NotificationPanel
 import com.win11launcher.ui.components.StartMenu
 import com.win11launcher.ui.components.Taskbar
@@ -34,6 +35,7 @@ fun LauncherScreen() {
     var showNotificationPanel by remember { mutableStateOf(false) }
     var showNotesHub by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
+    var showCommandPrompt by remember { mutableStateOf(false) }
     
     // Start monitoring system status
     LaunchedEffect(Unit) {
@@ -123,6 +125,12 @@ fun LauncherScreen() {
             onDismiss = { showNotificationPanel = false }
         )
         
+        // Command prompt
+        CommandPrompt(
+            isVisible = showCommandPrompt,
+            onDismiss = { showCommandPrompt = false }
+        )
+        
         Taskbar(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -131,6 +139,11 @@ fun LauncherScreen() {
             systemStatus = systemStatus,
             onStartClick = { 
                 showStartMenu = !showStartMenu
+                showNotificationPanel = false
+            },
+            onCommandClick = {
+                showCommandPrompt = true
+                showStartMenu = false
                 showNotificationPanel = false
             },
             onSystemTrayClick = { 

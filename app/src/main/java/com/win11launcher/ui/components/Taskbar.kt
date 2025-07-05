@@ -34,6 +34,7 @@ fun Taskbar(
     modifier: Modifier = Modifier,
     systemStatus: SystemStatus,
     onStartClick: () -> Unit,
+    onCommandClick: () -> Unit,
     onSystemTrayClick: () -> Unit
 ) {
     Box(
@@ -58,24 +59,13 @@ fun Taskbar(
                 .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // create a small text with R
-            Text(
-                text = "R",
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color(0xFF0078D4))
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
-            )
             StartButton(
                 onClick = onStartClick,
                 modifier = Modifier.padding(end = 8.dp)
             )
             
-            SearchButton(
+            CommandButton(
+                onClick = onCommandClick,
                 modifier = Modifier.padding(end = 8.dp)
             )
             
@@ -168,7 +158,8 @@ private fun StartButton(
 }
 
 @Composable
-private fun SearchButton(
+private fun CommandButton(
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -176,12 +167,12 @@ private fun SearchButton(
             .size(40.dp)
             .clip(RoundedCornerShape(4.dp))
             .background(Color.Transparent)
-            .clickable { },
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = Icons.Default.Search,
-            contentDescription = "Search",
+            imageVector = Icons.Default.Terminal,
+            contentDescription = "Command Prompt",
             tint = Color.White,
             modifier = Modifier.size(18.dp)
         )
