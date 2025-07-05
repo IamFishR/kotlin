@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.delay
+import android.os.Build
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun CommandPrompt(
@@ -65,6 +67,7 @@ private fun CommandPromptWindow(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val listState = rememberLazyListState()
+    val context = LocalContext.current
     
     // Auto-focus the input field when the dialog opens
     LaunchedEffect(Unit) {
@@ -83,7 +86,12 @@ private fun CommandPromptWindow(
         modifier = modifier
             .fillMaxWidth(0.9f)
             .fillMaxHeight(0.7f)
-            .clip(RoundedCornerShape(8.dp)),
+            .clip(RoundedCornerShape(8.dp))
+            .border(
+                width = 2.dp,
+                color = Color(0xFF404040),
+                shape = RoundedCornerShape(8.dp)
+            ),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF0C0C0C)
         ),
@@ -157,8 +165,8 @@ private fun CommandPromptWindow(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "C:\\> ",
-                    color = Color.White,
+                    text = "android> ",
+                    color = Color(0xFF4CAF50),
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold
@@ -196,7 +204,7 @@ private fun CommandPromptWindow(
                             if (currentCommand.isNotBlank() && !isProcessing) {
                                 isProcessing = true
                                 val command = currentCommand.trim()
-                                val result = executeCommand(command)
+                                val result = executeCommand(command, context)
                                 commandHistory = commandHistory + CommandEntry(
                                     command = command,
                                     output = result,
@@ -225,8 +233,8 @@ private fun CommandEntry(
     ) {
         // Command input
         Text(
-            text = "C:\\> ${entry.command}",
-            color = Color.White,
+            text = "android> ${entry.command}",
+            color = Color(0xFF4CAF50),
             fontSize = 12.sp,
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Bold
@@ -251,7 +259,7 @@ private data class CommandEntry(
     val timestamp: Long
 )
 
-private fun executeCommand(command: String): String {
+private fun executeCommand(command: String, context: android.content.Context): String {
     return when (command.lowercase().trim()) {
         "help" -> {
             """Available commands:
@@ -264,6 +272,14 @@ ver - Show version information
 exit - Close command prompt
 about - Show about information
 calc <expression> - Simple calculator (e.g., calc 2+2)
+
+Device Information Commands:
+device - Show device information
+system - Show system information
+hardware - Show hardware information
+build - Show build information
+memory - Show memory information
+network - Show network information
 """
         }
         "clear", "cls" -> {
@@ -288,6 +304,24 @@ Built with Jetpack Compose"""
         }
         "exit" -> {
             "Closing command prompt..."
+        }
+        "device" -> {
+            getDeviceInfo()
+        }
+        "system" -> {
+            getSystemInfo()
+        }
+        "hardware" -> {
+            getHardwareInfo()
+        }
+        "build" -> {
+            getBuildInfo()
+        }
+        "memory" -> {
+            getMemoryInfo(context)
+        }
+        "network" -> {
+            getNetworkInfo(context)
         }
         else -> {
             when {
@@ -363,5 +397,94 @@ private fun calculateExpression(expression: String): String {
         }
     } catch (e: Exception) {
         "Error: Invalid expression"
+    }
+}
+
+private fun getDeviceInfo(): String {
+    return """Device Information:
+Manufacturer: ${Build.MANUFACTURER}
+Brand: ${Build.BRAND}
+Model: ${Build.MODEL}
+Device: ${Build.DEVICE}
+Product: ${Build.PRODUCT}
+Board: ${Build.BOARD}
+Hardware: ${Build.HARDWARE}
+"""
+}
+
+private fun getSystemInfo(): String {
+    return """System Information:
+Android Version: ${Build.VERSION.RELEASE}
+API Level: ${Build.VERSION.SDK_INT}
+Security Patch: ${Build.VERSION.SECURITY_PATCH}
+Build ID: ${Build.ID}
+Display: ${Build.DISPLAY}
+Host: ${Build.HOST}
+User: ${Build.USER}
+"""
+}
+
+private fun getHardwareInfo(): String {
+    return """Hardware Information:
+Supported ABIs: ${Build.SUPPORTED_ABIS.joinToString(", ")}
+Supported 32-bit ABIs: ${Build.SUPPORTED_32_BIT_ABIS.joinToString(", ")}
+Supported 64-bit ABIs: ${Build.SUPPORTED_64_BIT_ABIS.joinToString(", ")}
+Hardware: ${Build.HARDWARE}
+Board: ${Build.BOARD}
+Bootloader: ${Build.BOOTLOADER}
+Radio Version: ${Build.getRadioVersion()}
+"""
+}
+
+private fun getBuildInfo(): String {
+    return """Build Information:
+Type: ${Build.TYPE}
+Tags: ${Build.TAGS}
+Fingerprint: ${Build.FINGERPRINT}
+Time: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date(Build.TIME))}
+Incremental: ${Build.VERSION.INCREMENTAL}
+Codename: ${Build.VERSION.CODENAME}
+"""
+}
+
+private fun getMemoryInfo(context: android.content.Context): String {
+    val activityManager = context.getSystemService(android.content.Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+    val memInfo = android.app.ActivityManager.MemoryInfo()
+    activityManager.getMemoryInfo(memInfo)
+    
+    val totalMemory = memInfo.totalMem / (1024 * 1024) // Convert to MB
+    val availableMemory = memInfo.availMem / (1024 * 1024) // Convert to MB
+    val usedMemory = totalMemory - availableMemory
+    val threshold = memInfo.threshold / (1024 * 1024) // Convert to MB
+    
+    return """Memory Information:
+Total Memory: ${totalMemory} MB
+Available Memory: ${availableMemory} MB
+Used Memory: ${usedMemory} MB
+Low Memory Threshold: ${threshold} MB
+Is Low Memory: ${memInfo.lowMemory}
+"""
+}
+
+private fun getNetworkInfo(context: android.content.Context): String {
+    try {
+        val connectivityManager = context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        
+        return if (networkInfo != null) {
+            """Network Information:
+Connected: ${networkInfo.isConnected}
+Type: ${networkInfo.typeName}
+Subtype: ${networkInfo.subtypeName}
+State: ${networkInfo.state}
+Detailed State: ${networkInfo.detailedState}
+Extra Info: ${networkInfo.extraInfo ?: "N/A"}
+Is Roaming: ${networkInfo.isRoaming}
+"""
+        } else {
+            "Network Information:\nNo active network connection"
+        }
+    } catch (e: Exception) {
+        return "Network Information:\nError retrieving network info: ${e.message}"
     }
 }
