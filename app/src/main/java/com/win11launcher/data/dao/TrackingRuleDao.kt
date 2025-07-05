@@ -13,11 +13,20 @@ interface TrackingRuleDao {
     @Query("SELECT * FROM tracking_rules WHERE is_active = 1 ORDER BY priority DESC")
     suspend fun getActiveRules(): List<TrackingRule>
     
+    @Query("SELECT * FROM tracking_rules WHERE is_active = 1 ORDER BY priority DESC")
+    fun getActiveRulesFlow(): Flow<List<TrackingRule>>
+    
+    @Query("SELECT * FROM tracking_rules WHERE is_active = 1 ORDER BY priority DESC")
+    suspend fun getActiveRulesList(): List<TrackingRule>
+    
     @Query("SELECT * FROM tracking_rules WHERE id = :ruleId")
     suspend fun getRuleById(ruleId: String): TrackingRule?
     
     @Query("SELECT * FROM tracking_rules WHERE source_packages LIKE '%' || :packageName || '%' AND is_active = 1 ORDER BY priority DESC")
     suspend fun getRulesForPackage(packageName: String): List<TrackingRule>
+    
+    @Query("SELECT * FROM tracking_rules WHERE source_packages LIKE '%' || :packageName || '%' AND is_active = 1 ORDER BY priority DESC")
+    suspend fun getActiveRulesForPackage(packageName: String): List<TrackingRule>
     
     @Query("SELECT * FROM tracking_rules WHERE destination_folder_id = :folderId")
     fun getRulesByFolder(folderId: String): Flow<List<TrackingRule>>
@@ -40,6 +49,9 @@ interface TrackingRuleDao {
     @Query("UPDATE tracking_rules SET is_active = :isActive WHERE id = :ruleId")
     suspend fun updateRuleActive(ruleId: String, isActive: Boolean)
     
+    @Query("UPDATE tracking_rules SET is_active = :enabled WHERE id = :ruleId")
+    suspend fun updateRuleEnabled(ruleId: String, enabled: Boolean)
+    
     @Query("UPDATE tracking_rules SET last_triggered_at = :timestamp, notes_captured_count = notes_captured_count + 1, total_matches_count = total_matches_count + 1 WHERE id = :ruleId")
     suspend fun updateRuleTriggered(ruleId: String, timestamp: Long)
     
@@ -54,4 +66,7 @@ interface TrackingRuleDao {
     
     @Query("DELETE FROM tracking_rules WHERE id = :ruleId")
     suspend fun deleteRuleById(ruleId: String)
+    
+    @Query("DELETE FROM tracking_rules WHERE source_packages LIKE '%' || :packageName || '%'")
+    suspend fun deleteRulesByPackage(packageName: String)
 }

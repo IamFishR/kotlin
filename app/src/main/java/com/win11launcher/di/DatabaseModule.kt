@@ -3,6 +3,8 @@ package com.win11launcher.di
 import android.content.Context
 import androidx.room.Room
 import com.win11launcher.data.dao.AppSettingDao
+import com.win11launcher.data.dao.NoteDao
+import com.win11launcher.data.dao.TrackingRuleDao
 import com.win11launcher.data.dao.UserProfileDao
 import com.win11launcher.data.database.NotesDatabase
 import com.win11launcher.utils.ProfileImageManager
@@ -31,6 +33,16 @@ object DatabaseModule {
     @Provides
     fun provideUserProfileDao(database: NotesDatabase): UserProfileDao {
         return database.userProfileDao()
+    }
+    
+    @Provides
+    fun provideNoteDao(database: NotesDatabase): NoteDao {
+        return database.noteDao()
+    }
+    
+    @Provides
+    fun provideTrackingRuleDao(database: NotesDatabase): TrackingRuleDao {
+        return database.trackingRuleDao()
     }
     
     @Provides

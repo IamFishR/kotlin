@@ -36,6 +36,7 @@ fun RuleManagementScreen(
     onRuleDetails: (String) -> Unit,
     onViewNotes: () -> Unit = {},
     onSmartSuggestions: () -> Unit = {},
+    onSmartNotifications: () -> Unit = {},
     suggestionsCount: Int = 0
 ) {
     val activeRules = rules.filter { it.isActive }
@@ -49,91 +50,17 @@ fun RuleManagementScreen(
                 .fillMaxSize()
                 .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 80.dp) // Extra bottom padding for taskbar
         ) {
-        // Header with stats
+        // Header with just the stats
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = "Tracking Rules",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "${activeRules.size} active • ${inactiveRules.size} inactive",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box {
-                    OutlinedButton(
-                        onClick = onSmartSuggestions,
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Lightbulb,
-                            contentDescription = "Smart suggestions",
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Smart")
-                    }
-                    
-                    // Badge for suggestion count
-                    if (suggestionsCount > 0) {
-                        Badge(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .offset(x = 8.dp, y = (-8).dp),
-                            containerColor = MaterialTheme.colorScheme.error
-                        ) {
-                            Text(
-                                text = suggestionsCount.toString(),
-                                color = MaterialTheme.colorScheme.onError,
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
-                }
-                
-                OutlinedButton(
-                    onClick = onViewNotes
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Visibility,
-                        contentDescription = "View notes",
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Notes")
-                }
-                
-                FloatingActionButton(
-                    onClick = onCreateNewRule,
-                    modifier = Modifier.size(56.dp),
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    elevation = FloatingActionButtonDefaults.elevation(
-                        defaultElevation = 6.dp,
-                        pressedElevation = 12.dp
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add new rule",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
+            Text(
+                text = "${activeRules.size} active • ${inactiveRules.size} inactive",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
         
         Spacer(modifier = Modifier.height(24.dp))
@@ -166,6 +93,81 @@ fun RuleManagementScreen(
                 color = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier.weight(1f)
             )
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        // Action buttons
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    OutlinedButton(
+                        onClick = onSmartSuggestions,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Lightbulb,
+                            contentDescription = "Smart suggestions",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Smart Suggestions")
+                    }
+                    
+                    // Badge for suggestion count
+                    if (suggestionsCount > 0) {
+                        Badge(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = 8.dp, y = (-8).dp),
+                            containerColor = MaterialTheme.colorScheme.error
+                        ) {
+                            Text(
+                                text = suggestionsCount.toString(),
+                                color = MaterialTheme.colorScheme.onError,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    }
+                }
+                
+                OutlinedButton(
+                    onClick = onViewNotes,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Visibility,
+                        contentDescription = "View notes",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("View Notes")
+                }
+            }
+            
+            OutlinedButton(
+                onClick = onSmartNotifications,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.secondary
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Notifications,
+                    contentDescription = "Smart notifications",
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Smart Notifications")
+            }
         }
         
         Spacer(modifier = Modifier.height(24.dp))
