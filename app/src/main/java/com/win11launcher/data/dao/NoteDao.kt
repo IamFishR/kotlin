@@ -52,6 +52,9 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE created_at >= :sinceTime ORDER BY created_at DESC")
     suspend fun findAllRecentNotes(sinceTime: Long): List<Note>
 
+    @Query("SELECT * FROM notes WHERE folder_id IS NULL AND is_archived = 0 ORDER BY created_at DESC")
+    fun getUnsavedNotifications(): Flow<List<Note>>
+
     
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)

@@ -130,7 +130,8 @@ fun SmartNotificationScreen(
                     },
                     onRemoveDuplicatesForApp = { packageName ->
                         viewModel.removeDuplicatesForApp(packageName)
-                    }
+                    },
+                    onDeleteNotification = viewModel::deleteNotification
                 )
             }
         }
@@ -158,7 +159,8 @@ fun AppNotificationGroup(
     appGroup: AppNotificationGroup,
     onNotificationClick: (Note) -> Unit,
     onCreateRule: (String, String) -> Unit,
-    onRemoveDuplicatesForApp: (String) -> Unit
+    onRemoveDuplicatesForApp: (String) -> Unit,
+    onDeleteNotification: (Note) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     
@@ -258,7 +260,8 @@ fun AppNotificationGroup(
                     appGroup.notes.take(10).forEach { note ->
                         NotificationItem(
                             note = note,
-                            onClick = { onNotificationClick(note) }
+                            onClick = { onNotificationClick(note) },
+                            onDelete = { onDeleteNotification(note) }
                         )
                     }
                     
@@ -279,7 +282,8 @@ fun AppNotificationGroup(
 @Composable
 fun NotificationItem(
     note: Note,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -327,6 +331,56 @@ fun NotificationItem(
                     contentDescription = "Has rule",
                     tint = Win11Colors.SystemAccent,
                     modifier = Modifier.size(16.dp)
+                )
+            }
+
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = Win11Colors.TextSecondary
+                )
+            }
+
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = Win11Colors.TextSecondary
+                )
+            }
+
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = Win11Colors.TextSecondary
+                )
+            }
+
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = Win11Colors.TextSecondary
+                )
+            }
+
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = Win11Colors.TextSecondary
+                )
+            }
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Delete notification",
+                    tint = Win11Colors.TextSecondary
                 )
             }
         }

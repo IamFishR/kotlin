@@ -46,7 +46,7 @@ class SmartNotificationViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             
-            noteRepository.getAllNotes().collect { notes ->
+            noteRepository.getUnsavedNotifications().collect { notes ->
                 _allNotes.value = notes
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,

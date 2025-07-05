@@ -11,6 +11,8 @@ class NoteRepository @Inject constructor(
     private val noteDao: NoteDao
 ) {
     fun getAllNotes(): Flow<List<Note>> = noteDao.getAllNotes()
+
+    fun getUnsavedNotifications(): Flow<List<Note>> = noteDao.getUnsavedNotifications()
     
     fun getNotesByFolder(folderId: String): Flow<List<Note>> = noteDao.getNotesByFolder(folderId)
     
