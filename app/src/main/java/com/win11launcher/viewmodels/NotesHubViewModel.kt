@@ -188,6 +188,28 @@ class NotesHubViewModel(application: Application) : AndroidViewModel(application
         _uiState.value = _uiState.value.copy(currentScreen = NotesHubScreen.APP_SELECTION)
     }
     
+    fun startRuleCreationFromNotification(notification: Note) {
+        // Extract keywords from notification title and content
+        val keywords = extractKeywordsFromNotification(notification)
+        
+        _ruleCreationState.value = RuleCreationState(
+            selectedApps = setOf(notification.sourcePackage),
+            filterType = FilterType.KEYWORD_INCLUDE,
+            keywords = keywords
+        )
+        _uiState.value = _uiState.value.copy(currentScreen = NotesHubScreen.CONTENT_FILTERING)
+    }
+    
+    private fun extractKeywordsFromNotification(notification: Note): List<String> {
+        val text = "${notification.title} ${notification.content}".lowercase()
+        val commonWords = setOf("the", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by", "from", "up", "about", "into", "through", "during", "before", "after", "above", "below", "between", "among", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "having", "do", "does", "did", "doing", "a", "an", "will", "would", "could", "should", "may", "might", "must", "can", "your", "you", "we", "they", "them", "their", "this", "that", "these", "those")
+        
+        return text.split("\\s+".toRegex())
+            .filter { it.length > 2 && !commonWords.contains(it) && it.matches("[a-z]+".toRegex()) }
+            .distinct()
+            .take(5)
+    }
+    
     fun updateSelectedApps(packageName: String, isSelected: Boolean) {
         val currentSelection = _ruleCreationState.value.selectedApps.toMutableSet()
         if (isSelected) {
@@ -446,6 +468,7 @@ enum class NotesHubScreen {
     RULE_MANAGEMENT,
     SMART_SUGGESTIONS,
     SMART_NOTIFICATIONS,
+    SIMPLE_NOTIFICATIONS,
     APP_SELECTION,
     CONTENT_FILTERING,
     DESTINATION,

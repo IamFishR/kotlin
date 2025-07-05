@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Rule
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -44,6 +45,7 @@ fun NotesHubScreen(
                         Screen.RULE_MANAGEMENT -> "Notes Hub"
                         Screen.SMART_SUGGESTIONS -> "Smart Suggestions"
                         Screen.SMART_NOTIFICATIONS -> "Smart Notifications"
+                        Screen.SIMPLE_NOTIFICATIONS -> "All Notifications"
                         Screen.APP_SELECTION -> "Create Rule - Step 1"
                         Screen.CONTENT_FILTERING -> "Create Rule - Step 2"
                         Screen.DESTINATION -> "Create Rule - Step 3"
@@ -60,6 +62,7 @@ fun NotesHubScreen(
                             Screen.RULE_MANAGEMENT -> onNavigateBack()
                             Screen.SMART_SUGGESTIONS -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
                             Screen.SMART_NOTIFICATIONS -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
+                            Screen.SIMPLE_NOTIFICATIONS -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
                             Screen.NOTES_VIEW -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
                             Screen.NOTE_DETAIL -> viewModel.navigateToScreen(Screen.NOTES_VIEW)
                             else -> viewModel.navigateToPreviousCreationStep()
@@ -144,7 +147,7 @@ fun NotesHubScreen(
                     },
                     onViewNotes = viewModel::navigateToNotesView,
                     onSmartSuggestions = { viewModel.navigateToScreen(Screen.SMART_SUGGESTIONS) },
-                    onSmartNotifications = { viewModel.navigateToScreen(Screen.SMART_NOTIFICATIONS) },
+                    onSmartNotifications = { viewModel.navigateToScreen(Screen.SIMPLE_NOTIFICATIONS) },
                     suggestionsCount = smartSuggestions.size
                 )
             }
@@ -164,6 +167,15 @@ fun NotesHubScreen(
             Screen.SMART_NOTIFICATIONS -> {
                 SmartNotificationScreen(
                     onNavigateBack = { viewModel.navigateToScreen(Screen.RULE_MANAGEMENT) }
+                )
+            }
+            
+            Screen.SIMPLE_NOTIFICATIONS -> {
+                SimpleNotificationsScreen(
+                    onNavigateBack = { viewModel.navigateToScreen(Screen.RULE_MANAGEMENT) },
+                    onTrackNotification = { notification ->
+                        viewModel.startRuleCreationFromNotification(notification)
+                    }
                 )
             }
             
@@ -337,7 +349,7 @@ private fun WindowsMenuBar(
             text = "View",
             menuItems = listOf(
                 MenuBarDropdownItem("Notes", Icons.Default.Visibility, "notes"),
-                MenuBarDropdownItem("Rules", Icons.Default.Rule, "rules"),
+                MenuBarDropdownItem("Rules", Icons.AutoMirrored.Filled.Rule, "rules"),
                 MenuBarDropdownItem("Suggestions", Icons.Default.Lightbulb, "suggestions"),
                 MenuBarDropdownItem("Smart Notifications", Icons.Default.Notifications, "notifications")
             ),
