@@ -35,7 +35,6 @@ fun RuleManagementScreen(
     onCreateNewRule: () -> Unit,
     onRuleDetails: (String) -> Unit,
     onViewNotes: () -> Unit = {},
-    onAllNotifications: () -> Unit = {},
 ) {
     val activeRules = rules.filter { it.isActive }
     val inactiveRules = rules.filter { !it.isActive }
@@ -96,37 +95,17 @@ fun RuleManagementScreen(
         Spacer(modifier = Modifier.height(24.dp))
         
         // Action buttons
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        OutlinedButton(
+            onClick = onViewNotes,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            OutlinedButton(
-                onClick = onViewNotes,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Visibility,
-                    contentDescription = "View notes",
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("View Notes")
-            }
-            
-            OutlinedButton(
-                onClick = onAllNotifications,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.secondary
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Notifications,
-                    contentDescription = "All notifications",
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("All Notifications")
-            }
+            Icon(
+                imageVector = Icons.Default.Visibility,
+                contentDescription = "View notes",
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("View Notes")
         }
         
         Spacer(modifier = Modifier.height(24.dp))

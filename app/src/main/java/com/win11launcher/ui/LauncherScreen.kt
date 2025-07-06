@@ -96,11 +96,6 @@ fun LauncherScreen() {
                         showStartMenu = false
                         showNotesHub = true
                     },
-                    onAllNotificationsClick = {
-                        showStartMenu = false
-                        showNotesHub = true
-                        // TODO: Navigate to notifications screen within Notes Hub
-                    }
                 )
             }
         }

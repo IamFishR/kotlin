@@ -42,7 +42,6 @@ fun NotesHubScreen(
                 Text(
                     text = when (uiState.currentScreen) {
                         Screen.RULE_MANAGEMENT -> "Notes Hub"
-                        Screen.SMART_NOTIFICATIONS -> "All Notifications"
                         Screen.APP_SELECTION -> "Create Rule - Step 1"
                         Screen.CONTENT_FILTERING -> "Create Rule - Step 2"
                         Screen.DESTINATION -> "Create Rule - Step 3"
@@ -57,7 +56,6 @@ fun NotesHubScreen(
                     onClick = {
                         when (uiState.currentScreen) {
                             Screen.RULE_MANAGEMENT -> onNavigateBack()
-                            Screen.SMART_NOTIFICATIONS -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
                             Screen.NOTES_VIEW -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
                             Screen.NOTE_DETAIL -> viewModel.navigateToScreen(Screen.NOTES_VIEW)
                             else -> viewModel.navigateToPreviousCreationStep()
@@ -111,7 +109,6 @@ fun NotesHubScreen(
                 when (action) {
                     "notes" -> viewModel.navigateToNotesView()
                     "rules" -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
-                    "notifications" -> viewModel.navigateToScreen(Screen.SMART_NOTIFICATIONS)
                 }
             },
             onToolsMenuAction = { action ->
@@ -139,14 +136,6 @@ fun NotesHubScreen(
                         // TODO: Navigate to rule details
                     },
                     onViewNotes = viewModel::navigateToNotesView,
-                    onAllNotifications = { viewModel.navigateToScreen(Screen.SMART_NOTIFICATIONS) },
-                )
-            }
-            
-            
-            Screen.SMART_NOTIFICATIONS -> {
-                AllNotificationsScreen(
-                    onBackPressed = { viewModel.navigateToScreen(Screen.RULE_MANAGEMENT) }
                 )
             }
             
@@ -320,7 +309,6 @@ private fun WindowsMenuBar(
             menuItems = listOf(
                 MenuBarDropdownItem("Notes", Icons.Default.Visibility, "notes"),
                 MenuBarDropdownItem("Rules", Icons.AutoMirrored.Filled.Rule, "rules"),
-                MenuBarDropdownItem("All Notifications", Icons.Default.Notifications, "notifications")
             ),
             onMenuItemClick = onViewMenuAction
         )
