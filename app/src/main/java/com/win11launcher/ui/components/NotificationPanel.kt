@@ -538,6 +538,33 @@ private fun NotificationsSection(
                                         // Ignore if notification doesn't exist in DB
                                     }
                                 }
+                            },
+                            onMarkInterest = {
+                                // Mark user interest in database
+                                coroutineScope.launch {
+                                    try {
+                                        notificationRepository.markUserInteraction(
+                                            id = notification.id,
+                                            showedInterest = true,
+                                            interactionType = "interest",
+                                            interactionAt = System.currentTimeMillis(),
+                                            rating = null,
+                                            notes = null
+                                        )
+                                    } catch (e: Exception) {
+                                        // Ignore if notification doesn't exist in DB
+                                    }
+                                }
+                            },
+                            onDelete = {
+                                // Delete notification from database
+                                coroutineScope.launch {
+                                    try {
+                                        notificationRepository.softDeleteNotification(notification.id)
+                                    } catch (e: Exception) {
+                                        // Ignore if notification doesn't exist in DB
+                                    }
+                                }
                             }
                         )
                     }
@@ -551,8 +578,12 @@ private fun NotificationsSection(
 private fun RealNotificationCard(
     notification: AppNotification,
     onDismiss: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onMarkInterest: () -> Unit,
+    onDelete: () -> Unit
 ) {
+    var showOptionsMenu by remember { mutableStateOf(false) }
+    
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -601,16 +632,46 @@ private fun RealNotificationCard(
                 )
             }
             
-            if (notification.isClearable) {
+            // 3-dot menu
+            Box {
                 IconButton(
-                    onClick = onDismiss,
+                    onClick = { showOptionsMenu = true },
                     modifier = Modifier.size(24.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Dismiss",
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "More options",
                         tint = Color.Gray,
                         modifier = Modifier.size(16.dp)
+                    )
+                }
+                
+                DropdownMenu(
+                    expanded = showOptionsMenu,
+                    onDismissRequest = { showOptionsMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Mark as Interested") },
+                        onClick = {
+                            showOptionsMenu = false
+                            onMarkInterest()
+                        }
+                    )
+                    if (notification.isClearable) {
+                        DropdownMenuItem(
+                            text = { Text("Dismiss") },
+                            onClick = {
+                                showOptionsMenu = false
+                                onDismiss()
+                            }
+                        )
+                    }
+                    DropdownMenuItem(
+                        text = { Text("Delete") },
+                        onClick = {
+                            showOptionsMenu = false
+                            onDelete()
+                        }
                     )
                 }
             }

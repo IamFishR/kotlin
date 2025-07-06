@@ -33,7 +33,10 @@ class AllNotificationsViewModel @Inject constructor(
             "AI_PROCESSED" -> notifications.filter { it.isAiProcessed }
             "NOTES_CREATED" -> notifications.filter { it.notesCreated }
             "USER_INTEREST" -> notifications.filter { it.userShowedInterest }
-            else -> notifications
+            else -> notifications.filter { 
+                // Only show AI-processed notifications if user showed interest
+                !it.isAiProcessed || it.userShowedInterest
+            }
         }
     }.stateIn(
         scope = viewModelScope,

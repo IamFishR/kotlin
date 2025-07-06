@@ -26,3 +26,7 @@
  - check for deprecated APIs before using them
  - Build system uses Kotlin 2.1.0, Android Gradle Plugin 8.11.0
  - Target SDK 34, Compile SDK 36, Min SDK 26
+
+# Regarding Explainations
+ - I am new to Android development, Kotlin, and Jetpack Compose.
+ - So please provide correct names in explaination for the features i am trying to implement.

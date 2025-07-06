@@ -180,6 +180,7 @@ fun AllNotificationsScreen(
                             notification = notification,
                             onMarkInterest = { viewModel.markUserInterest(notification.id) },
                             onRateNotification = { rating -> viewModel.rateNotification(notification.id, rating) },
+                            onDelete = { viewModel.deleteNotification(notification.id) },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -323,6 +324,7 @@ private fun NotificationItem(
     notification: NotificationEntity,
     onMarkInterest: () -> Unit,
     onRateNotification: (Int) -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val timeFormatter = remember { SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()) }
@@ -377,11 +379,50 @@ private fun NotificationItem(
                 Column(
                     horizontalAlignment = Alignment.End
                 ) {
-                    Text(
-                        text = timeFormatter.format(Date(notification.timestamp)),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = timeFormatter.format(Date(notification.timestamp)),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        
+                        // 3-dot menu
+                        var showOptionsMenu by remember { mutableStateOf(false) }
+                        Box {
+                            IconButton(
+                                onClick = { showOptionsMenu = true }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = "More options",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            
+                            DropdownMenu(
+                                expanded = showOptionsMenu,
+                                onDismissRequest = { showOptionsMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Mark as Interested") },
+                                    onClick = {
+                                        showOptionsMenu = false
+                                        onMarkInterest()
+                                    },
+                                    enabled = !notification.userShowedInterest
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Delete") },
+                                    onClick = {
+                                        showOptionsMenu = false
+                                        onDelete()
+                                    }
+                                )
+                            }
+                        }
+                    }
                     
                     Spacer(modifier = Modifier.height(4.dp))
                     
