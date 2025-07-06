@@ -25,6 +25,8 @@ import com.win11launcher.services.AIService
 import com.win11launcher.ui.theme.Win11Colors // Import Win11Colors
 import com.win11launcher.viewmodels.ChatbotViewModel
 
+private val TaskbarHeight = 56.dp
+
 @Composable
 fun ChatbotScreen() {
     val context = LocalContext.current
@@ -44,7 +46,8 @@ fun ChatbotScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Win11Colors.SystemBackground) // Use Win11Colors
-            .windowInsetsPadding(WindowInsets.ime)
+            .windowInsetsPadding(WindowInsets.ime) // Handles keyboard
+            .padding(bottom = TaskbarHeight) // Handles persistent taskbar
     ) {
         LazyColumn(
             modifier = Modifier.weight(1f),
