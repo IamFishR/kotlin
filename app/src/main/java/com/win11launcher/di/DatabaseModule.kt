@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.win11launcher.data.dao.AppSettingDao
 import com.win11launcher.data.dao.NoteDao
+import com.win11launcher.data.dao.NotificationDao
 import com.win11launcher.data.dao.TrackingRuleDao
 import com.win11launcher.data.dao.UserProfileDao
 import com.win11launcher.data.database.NotesDatabase
@@ -44,6 +45,11 @@ object DatabaseModule {
     @Provides
     fun provideTrackingRuleDao(database: NotesDatabase): TrackingRuleDao {
         return database.trackingRuleDao()
+    }
+    
+    @Provides
+    fun provideNotificationDao(database: NotesDatabase): NotificationDao {
+        return database.notificationDao()
     }
     
     @Provides

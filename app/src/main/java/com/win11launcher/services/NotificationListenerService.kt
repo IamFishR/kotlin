@@ -15,13 +15,23 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.win11launcher.models.AppNotification
+import com.win11launcher.data.entities.NotificationEntity
+import com.win11launcher.data.repositories.NotificationRepository
+import com.win11launcher.data.database.NotesDatabase
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.UUID
+import com.google.gson.Gson
 
+@AndroidEntryPoint
 class Win11NotificationListenerService : NotificationListenerService() {
     
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private lateinit var ruleEngine: RuleEngine
+    private lateinit var notificationRepository: NotificationRepository
+    private val gson = Gson()
     
     companion object {
         private const val TAG = "NotificationListener"
@@ -54,8 +64,11 @@ class Win11NotificationListenerService : NotificationListenerService() {
         serviceInstance = this
         ruleEngine = RuleEngine(this)
         
+        // Initialize notification repository
+        val database = NotesDatabase.getDatabase(this)
+        notificationRepository = NotificationRepository(database.notificationDao())
         
-        Log.d(TAG, "NotificationListenerService created with smart suggestion service")
+        Log.d(TAG, "NotificationListenerService created with notification repository")
     }
     
     override fun onDestroy() {
@@ -79,6 +92,18 @@ class Win11NotificationListenerService : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         super.onNotificationPosted(sbn)
         Log.d(TAG, "Notification posted: ${sbn?.packageName}")
+        
+        // Store notification in database before processing
+        sbn?.let { statusBarNotification ->
+            coroutineScope.launch {
+                try {
+                    storeNotificationInDatabase(statusBarNotification)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error storing notification in database", e)
+                }
+            }
+        }
+        
         updateNotificationsList()
     }
     
@@ -125,7 +150,11 @@ class Win11NotificationListenerService : NotificationListenerService() {
                     coroutineScope.launch {
                         try {
                             // Process through rule engine
-                            ruleEngine.processNotification(appNotification)
+                            val ruleResult = ruleEngine.processNotification(appNotification)
+                            
+                            // Mark AI processed and notes created in database
+                            updateNotificationProcessingStatus(appNotification.id, ruleResult)
+                            
                         } catch (e: Exception) {
                             Log.e(TAG, "Error processing notification through rule engine", e)
                         }
@@ -206,6 +235,168 @@ class Win11NotificationListenerService : NotificationListenerService() {
             diff < 86400_000 -> "${diff / 3600_000}h ago"
             diff < 604800_000 -> "${diff / 86400_000}d ago"
             else -> timeFormat.format(Date(timestamp))
+        }
+    }
+    
+    private suspend fun storeNotificationInDatabase(sbn: StatusBarNotification) {
+        val notification = sbn.notification ?: return
+        val packageName = sbn.packageName
+        
+        // Check for duplicates first
+        val notificationId = sbn.id.toString()
+        val notificationKey = sbn.key
+        
+        // Skip if already exists
+        if (notificationRepository.isDuplicateByNotificationId(notificationId) ||
+            notificationRepository.isDuplicateByNotificationKey(notificationKey)) {
+            Log.d(TAG, "Skipping duplicate notification: $packageName")
+            return
+        }
+        
+        // Skip minimal system notifications that provide no value
+        if (shouldSkipNotificationForDatabase(packageName, notification)) {
+            Log.d(TAG, "Skipping non-valuable notification: $packageName")
+            return
+        }
+        
+        try {
+            val appName = getAppName(packageName)
+            val title = getNotificationTitle(notification)
+            val content = getNotificationContent(notification)
+            val subText = getNotificationSubText(notification)
+            val bigText = getNotificationBigText(notification)
+            val summaryText = getNotificationSummaryText(notification)
+            val infoText = getNotificationInfoText(notification)
+            
+            val notificationEntity = NotificationEntity(
+                id = UUID.randomUUID().toString(),
+                notificationId = notificationId,
+                notificationKey = notificationKey,
+                sourcePackage = packageName,
+                sourceAppName = appName,
+                title = title,
+                content = content,
+                subText = subText,
+                bigText = bigText,
+                summaryText = summaryText,
+                infoText = infoText,
+                timestamp = sbn.postTime,
+                whenTime = notification.`when`,
+                category = notification.category,
+                groupKey = sbn.groupKey,
+                sortKey = notification.sortKey,
+                channelId = notification.channelId,
+                priority = notification.priority,
+                visibility = notification.visibility,
+                isOngoing = notification.flags and Notification.FLAG_ONGOING_EVENT != 0,
+                isClearable = sbn.isClearable,
+                isDismissible = !sbn.isOngoing,
+                isGroupSummary = sbn.isGroup,
+                isLocalOnly = notification.flags and Notification.FLAG_LOCAL_ONLY != 0,
+                isAutoCancelable = notification.flags and Notification.FLAG_AUTO_CANCEL != 0,
+                largeIconPresent = notification.largeIcon != null,
+                smallIconResource = notification.smallIcon?.toString(),
+                color = if (notification.color != 0) notification.color else null,
+                number = if (notification.number != 0) notification.number else null,
+                progressMax = notification.extras?.getInt(Notification.EXTRA_PROGRESS_MAX)?.takeIf { it > 0 },
+                progressCurrent = notification.extras?.getInt(Notification.EXTRA_PROGRESS)?.takeIf { it >= 0 },
+                progressIndeterminate = notification.extras?.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE),
+                actionCount = notification.actions?.size ?: 0,
+                actionTitles = notification.actions?.map { it.title.toString() }?.let { actions ->
+                    if (actions.isNotEmpty()) gson.toJson(actions) else null
+                },
+                extrasBundle = try {
+                    notification.extras?.let { extras ->
+                        val extrasMap = mutableMapOf<String, String>()
+                        extras.keySet().forEach { key ->
+                            extras.get(key)?.let { value ->
+                                extrasMap[key] = value.toString()
+                            }
+                        }
+                        if (extrasMap.isNotEmpty()) gson.toJson(extrasMap) else null
+                    }
+                } catch (e: Exception) { null },
+                remoteInputAvailable = notification.actions?.any { action ->
+                    action.remoteInputs?.isNotEmpty() == true
+                } ?: false,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis()
+            )
+            
+            val insertResult = notificationRepository.insertNotification(notificationEntity)
+            if (insertResult > 0) {
+                Log.d(TAG, "Stored notification in database: $packageName - $title")
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating notification entity", e)
+        }
+    }
+    
+    private fun shouldSkipNotificationForDatabase(packageName: String, notification: Notification): Boolean {
+        // Skip our own notifications
+        if (packageName == this.packageName) return true
+        
+        // Get notification content
+        val title = getNotificationTitle(notification)
+        val content = getNotificationContent(notification)
+        
+        // Skip completely empty notifications
+        if (title.isEmpty() && content.isEmpty()) return true
+        
+        // Skip very short, meaningless notifications
+        if (title.length < 2 && content.length < 2) return true
+        
+        // Skip notifications that are just spaces or dots
+        if (title.trim().isEmpty() && content.trim().isEmpty()) return true
+        if (title.trim().matches(Regex("^[.\\s]*$")) && content.trim().matches(Regex("^[.\\s]*$"))) return true
+        
+        return false
+    }
+    
+    private fun getNotificationSubText(notification: Notification): String? {
+        return notification.extras?.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.takeIf { it.isNotEmpty() }
+    }
+    
+    private fun getNotificationBigText(notification: Notification): String? {
+        return notification.extras?.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()?.takeIf { it.isNotEmpty() }
+    }
+    
+    private fun getNotificationSummaryText(notification: Notification): String? {
+        return notification.extras?.getCharSequence(Notification.EXTRA_SUMMARY_TEXT)?.toString()?.takeIf { it.isNotEmpty() }
+    }
+    
+    private fun getNotificationInfoText(notification: Notification): String? {
+        return notification.extras?.getCharSequence(Notification.EXTRA_INFO_TEXT)?.toString()?.takeIf { it.isNotEmpty() }
+    }
+    
+    private suspend fun updateNotificationProcessingStatus(notificationKey: String, ruleResult: Any?) {
+        try {
+            val notificationEntity = notificationRepository.getNotificationByKey(notificationKey)
+            if (notificationEntity != null) {
+                // Mark as AI processed
+                notificationRepository.markAsAiProcessed(
+                    notificationEntity.id,
+                    true,
+                    System.currentTimeMillis(),
+                    ruleResult?.toString()
+                )
+                
+                // Check if notes were created by examining the rule result
+                val notesCreated = ruleResult != null
+                if (notesCreated) {
+                    notificationRepository.markNotesCreated(
+                        notificationEntity.id,
+                        true,
+                        System.currentTimeMillis(),
+                        null // Will be updated when actual notes are created
+                    )
+                }
+                
+                Log.d(TAG, "Updated processing status for notification: $notificationKey")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating notification processing status", e)
         }
     }
     

@@ -17,6 +17,7 @@ import com.win11launcher.data.entities.PermissionState
 import com.win11launcher.data.entities.UserProfile
 import com.win11launcher.data.entities.UserCustomization
 import com.win11launcher.data.entities.UserFile
+import com.win11launcher.data.entities.NotificationEntity
 import com.win11launcher.data.dao.NoteDao
 import com.win11launcher.data.dao.FolderDao
 import com.win11launcher.data.dao.TrackingRuleDao
@@ -25,11 +26,12 @@ import com.win11launcher.data.dao.FinancialPatternDao
 import com.win11launcher.data.dao.ResearchPatternDao
 import com.win11launcher.data.dao.AppSettingDao
 import com.win11launcher.data.dao.UserProfileDao
+import com.win11launcher.data.dao.NotificationDao
 import com.win11launcher.data.converters.Converters
 
 @Database(
-    entities = [Note::class, Folder::class, TrackingRule::class, RuleActivity::class, FinancialPattern::class, ResearchPattern::class, AppSetting::class, PermissionState::class, UserProfile::class, UserCustomization::class, UserFile::class],
-    version = 8,
+    entities = [Note::class, Folder::class, TrackingRule::class, RuleActivity::class, FinancialPattern::class, ResearchPattern::class, AppSetting::class, PermissionState::class, UserProfile::class, UserCustomization::class, UserFile::class, NotificationEntity::class],
+    version = 9,
     exportSchema = true
 )
 @androidx.room.TypeConverters(Converters::class)
@@ -43,6 +45,7 @@ abstract class NotesDatabase : RoomDatabase() {
     abstract fun researchPatternDao(): ResearchPatternDao
     abstract fun appSettingDao(): AppSettingDao
     abstract fun userProfileDao(): UserProfileDao
+    abstract fun notificationDao(): NotificationDao
     
     companion object {
         @Volatile
@@ -56,7 +59,7 @@ abstract class NotesDatabase : RoomDatabase() {
                     "notes_database"
                 )
                 .addCallback(DatabaseCallback())
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
                 .build()
                 INSTANCE = instance
                 instance
@@ -351,6 +354,86 @@ abstract class NotesDatabase : RoomDatabase() {
                 // Drop smart suggestions related tables as they're no longer needed
                 database.execSQL("DROP TABLE IF EXISTS smart_suggestions")
                 database.execSQL("DROP TABLE IF EXISTS extracted_notification_data")
+            }
+        }
+        
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Create comprehensive notifications table
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS all_notifications (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        notification_id TEXT NOT NULL,
+                        notification_key TEXT NOT NULL,
+                        source_package TEXT NOT NULL,
+                        source_app_name TEXT NOT NULL,
+                        title TEXT NOT NULL,
+                        content TEXT NOT NULL,
+                        sub_text TEXT,
+                        big_text TEXT,
+                        summary_text TEXT,
+                        info_text TEXT,
+                        timestamp INTEGER NOT NULL,
+                        when_time INTEGER,
+                        category TEXT,
+                        group_key TEXT,
+                        sort_key TEXT,
+                        channel_id TEXT,
+                        priority INTEGER NOT NULL DEFAULT 0,
+                        visibility INTEGER NOT NULL DEFAULT 0,
+                        is_ongoing INTEGER NOT NULL DEFAULT 0,
+                        is_clearable INTEGER NOT NULL DEFAULT 1,
+                        is_dismissible INTEGER NOT NULL DEFAULT 1,
+                        is_group_summary INTEGER NOT NULL DEFAULT 0,
+                        is_local_only INTEGER NOT NULL DEFAULT 0,
+                        is_auto_cancelable INTEGER NOT NULL DEFAULT 1,
+                        large_icon_present INTEGER NOT NULL DEFAULT 0,
+                        small_icon_resource TEXT,
+                        color INTEGER,
+                        number INTEGER,
+                        progress_max INTEGER,
+                        progress_current INTEGER,
+                        progress_indeterminate INTEGER,
+                        action_count INTEGER NOT NULL DEFAULT 0,
+                        action_titles TEXT,
+                        extras_bundle TEXT,
+                        remote_input_available INTEGER NOT NULL DEFAULT 0,
+                        is_ai_processed INTEGER NOT NULL DEFAULT 0,
+                        ai_processed_at INTEGER,
+                        ai_processing_result TEXT,
+                        notes_created INTEGER NOT NULL DEFAULT 0,
+                        notes_created_at INTEGER,
+                        note_ids TEXT,
+                        user_showed_interest INTEGER NOT NULL DEFAULT 0,
+                        user_interaction_type TEXT,
+                        user_interaction_at INTEGER,
+                        user_rating INTEGER,
+                        user_notes TEXT,
+                        matched_rules TEXT,
+                        rule_processing_result TEXT,
+                        was_auto_processed INTEGER NOT NULL DEFAULT 0,
+                        auto_category TEXT,
+                        auto_tags TEXT,
+                        importance_score REAL,
+                        sentiment_score REAL,
+                        urgency_score REAL,
+                        created_at INTEGER NOT NULL,
+                        updated_at INTEGER NOT NULL,
+                        deleted_at INTEGER,
+                        is_archived INTEGER NOT NULL DEFAULT 0,
+                        archived_at INTEGER
+                    )
+                """)
+                
+                // Create indices for notifications table
+                database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_all_notifications_notification_id ON all_notifications (notification_id)")
+                database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_all_notifications_notification_key ON all_notifications (notification_key)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_source_package ON all_notifications (source_package)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_timestamp ON all_notifications (timestamp)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_is_ai_processed ON all_notifications (is_ai_processed)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_notes_created ON all_notifications (notes_created)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_user_showed_interest ON all_notifications (user_showed_interest)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_source_package_title_content ON all_notifications (source_package, title, content)")
             }
         }
         
