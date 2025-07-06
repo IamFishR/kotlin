@@ -60,86 +60,100 @@ fun LauncherScreen() {
     }
     
     val systemStatus by systemStatusManager.systemStatus
-    
+    val taskbarHeight = 56.dp // Defined taskbar height
+
     WallpaperBackground(
         wallpaper = wallpaperManager.getWallpaper(),
         modifier = Modifier.fillMaxSize()
     ) {
-        when {
-            showSettings -> {
-                SettingsScreen(
-                    systemStatusManager = systemStatusManager,
-                    onNavigateBack = { showSettings = false }
-                )
-            }
-            showNotesHub -> {
-                NotesHubScreen(
-                    onNavigateBack = { showNotesHub = false }
-                )
-            }
-            showAllApps -> {
-                AllAppsScreen(
-                    appRepository = appRepository,
-                    onBackClick = { 
-                        showAllApps = false
-                        showStartMenu = true
-                    }
-                )
-            }
-            showStartMenu -> {
-                StartMenu(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(bottom = 56.dp)
-                        .width(600.dp)
-                        .height(680.dp),
-                    onDismiss = { showStartMenu = false },
-                    onNotesHubClick = {
-                        showStartMenu = false
-                        showNotesHub = true
-                    },
-                )
-            }
-        }
-        
-        // Settings icon in top left corner
-        if (!showSettings && !showNotesHub && !showAllApps) {
-            IconButton(
-                onClick = { showSettings = true },
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(16.dp)
-                    .size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-
-        if (showChatbot) {
-            ChatbotScreen()
-        }
-        
-        // Notification panel
-        NotificationPanel(
-            showPanel = showNotificationPanel,
-            systemStatus = systemStatus,
-            systemStatusManager = systemStatusManager,
-            onDismiss = { showNotificationPanel = false }
-        )
-        
-        // Command prompt
-        CommandPrompt(
-            isVisible = showCommandPrompt,
-            onDismiss = { showCommandPrompt = false }
-        )
-        
-        Taskbar(
+        // Main content area, above the taskbar
+        Box(
             modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = taskbarHeight) // Content area is above taskbar
+        ) {
+            when {
+                showSettings -> {
+                    SettingsScreen(
+                        modifier = Modifier.fillMaxSize(), // Fill this content Box
+                        systemStatusManager = systemStatusManager,
+                        onNavigateBack = { showSettings = false }
+                    )
+                }
+                showNotesHub -> {
+                    NotesHubScreen(
+                        modifier = Modifier.fillMaxSize(), // Fill this content Box
+                        onNavigateBack = { showNotesHub = false }
+                    )
+                }
+                showAllApps -> {
+                    AllAppsScreen(
+                        modifier = Modifier.fillMaxSize(), // Fill this content Box
+                        appRepository = appRepository,
+                        onBackClick = {
+                            showAllApps = false
+                            showStartMenu = true
+                        }
+                    )
+                }
+                showStartMenu -> {
+                    StartMenu(
+                        modifier = Modifier // No longer needs padding(bottom = 56.dp)
+                            .align(Alignment.BottomStart) // Aligns to bottom of this Box
+                            .width(600.dp)
+                            .height(680.dp),
+                        onDismiss = { showStartMenu = false },
+                        onNotesHubClick = {
+                            showStartMenu = false
+                            showNotesHub = true
+                        },
+                    )
+                }
+            }
+
+            // Settings icon in top left corner of the main content area
+            if (!showSettings && !showNotesHub && !showAllApps) {
+                IconButton(
+                    onClick = { showSettings = true },
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(16.dp)
+                        .size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+
+            if (showChatbot) {
+                ChatbotScreen(modifier = Modifier.fillMaxSize()) // Fill this content Box
+            }
+
+            // Notification panel - typically an overlay, might need alignment if within this box
+            // Or could be outside this main content box if it's meant to overlay taskbar too
+            // For now, keeping it inside, assuming it aligns within the padded Box.
+            NotificationPanel(
+                modifier = Modifier.align(Alignment.TopEnd), // Example alignment
+                showPanel = showNotificationPanel,
+                systemStatus = systemStatus,
+                systemStatusManager = systemStatusManager,
+                onDismiss = { showNotificationPanel = false }
+            )
+
+            // Command prompt - also an overlay
+            CommandPrompt(
+                modifier = Modifier.fillMaxSize(), // Fill this content Box if shown here
+                isVisible = showCommandPrompt,
+                onDismiss = { showCommandPrompt = false }
+            )
+        } // End of main content Box
+
+        Taskbar(
+            modifier = Modifier // Taskbar is outside the main content Box, aligned to WallpaperBackground bottom
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(56.dp),
