@@ -43,8 +43,6 @@ fun DestinationScreen(
     onFolderIconSelected: (String) -> Unit,
     autoTags: List<String>,
     onAutoTagsChanged: (List<String>) -> Unit,
-    enableAutoNaming: Boolean,
-    onAutoNamingChanged: (Boolean) -> Unit,
     onCreateFolder: () -> Unit,
     onFinish: () -> Unit,
     onBack: () -> Unit
@@ -237,37 +235,6 @@ fun DestinationScreen(
         
         Spacer(modifier = Modifier.height(12.dp))
         
-        // Auto-naming option
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    checked = enableAutoNaming,
-                    onCheckedChange = onAutoNamingChanged
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Auto-name notes",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = "Automatically generate note titles based on content",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
         
         // Auto-tags
         Text(

@@ -22,20 +22,11 @@ interface NotificationDao {
     @Update
     suspend fun updateNotification(notification: NotificationEntity)
     
-    @Query("UPDATE all_notifications SET is_ai_processed = :isProcessed, ai_processed_at = :processedAt, ai_processing_result = :result, updated_at = :updatedAt WHERE id = :id")
-    suspend fun markAsAiProcessed(id: String, isProcessed: Boolean, processedAt: Long, result: String?, updatedAt: Long = System.currentTimeMillis())
     
     @Query("UPDATE all_notifications SET notes_created = :notesCreated, notes_created_at = :createdAt, note_ids = :noteIds, updated_at = :updatedAt WHERE id = :id")
     suspend fun markNotesCreated(id: String, notesCreated: Boolean, createdAt: Long, noteIds: String?, updatedAt: Long = System.currentTimeMillis())
     
-    @Query("UPDATE all_notifications SET user_showed_interest = :showedInterest, user_interaction_type = :interactionType, user_interaction_at = :interactionAt, user_rating = :rating, user_notes = :notes, updated_at = :updatedAt WHERE id = :id")
-    suspend fun markUserInteraction(id: String, showedInterest: Boolean, interactionType: String?, interactionAt: Long, rating: Int?, notes: String?, updatedAt: Long = System.currentTimeMillis())
-    
-    @Query("UPDATE all_notifications SET importance_score = :importance, sentiment_score = :sentiment, urgency_score = :urgency, auto_category = :category, auto_tags = :tags, updated_at = :updatedAt WHERE id = :id")
-    suspend fun updateAiAnalysis(id: String, importance: Float?, sentiment: Float?, urgency: Float?, category: String?, tags: String?, updatedAt: Long = System.currentTimeMillis())
-    
-    @Query("UPDATE all_notifications SET is_archived = :isArchived, archived_at = :archivedAt, updated_at = :updatedAt WHERE id = :id")
-    suspend fun archiveNotification(id: String, isArchived: Boolean, archivedAt: Long?, updatedAt: Long = System.currentTimeMillis())
+    // Removed AI-related user interaction methods
     
     // Query operations
     @Query("SELECT * FROM all_notifications WHERE deleted_at IS NULL ORDER BY timestamp DESC")
@@ -69,42 +60,31 @@ interface NotificationDao {
     @Query("SELECT COUNT(*) FROM all_notifications WHERE deleted_at IS NULL")
     suspend fun getTotalNotificationsCount(): Int
     
-    @Query("SELECT COUNT(*) FROM all_notifications WHERE is_ai_processed = 1 AND deleted_at IS NULL")
-    suspend fun getAiProcessedCount(): Int
     
     @Query("SELECT COUNT(*) FROM all_notifications WHERE notes_created = 1 AND deleted_at IS NULL")
     suspend fun getNotesCreatedCount(): Int
     
-    @Query("SELECT COUNT(*) FROM all_notifications WHERE user_showed_interest = 1 AND deleted_at IS NULL")
-    suspend fun getUserInterestCount(): Int
+    // Removed getUserInterestCount as it's related to AI functionality
     
     @Query("SELECT source_package, COUNT(*) as count FROM all_notifications WHERE deleted_at IS NULL GROUP BY source_package ORDER BY count DESC")
     suspend fun getNotificationCountsByPackage(): List<PackageCount>
     
-    @Query("SELECT auto_category, COUNT(*) as count FROM all_notifications WHERE auto_category IS NOT NULL AND deleted_at IS NULL GROUP BY auto_category ORDER BY count DESC")
-    suspend fun getNotificationCountsByCategory(): List<CategoryCount>
+    // Removed auto_category query as AI functionality is removed
     
-    @Query("SELECT AVG(importance_score) FROM all_notifications WHERE importance_score IS NOT NULL AND deleted_at IS NULL")
-    suspend fun getAverageImportanceScore(): Float?
     
-    @Query("SELECT AVG(user_rating) FROM all_notifications WHERE user_rating IS NOT NULL AND deleted_at IS NULL")
-    suspend fun getAverageUserRating(): Float?
+    // Removed getAverageUserRating as it's related to AI functionality
     
     // Search queries
     @Query("SELECT * FROM all_notifications WHERE deleted_at IS NULL AND (title LIKE '%' || :searchQuery || '%' OR content LIKE '%' || :searchQuery || '%' OR source_app_name LIKE '%' || :searchQuery || '%') ORDER BY timestamp DESC")
     fun searchNotifications(searchQuery: String): Flow<List<NotificationEntity>>
     
-    @Query("SELECT * FROM all_notifications WHERE deleted_at IS NULL AND is_ai_processed = :isProcessed ORDER BY timestamp DESC")
-    fun getNotificationsByAiProcessed(isProcessed: Boolean): Flow<List<NotificationEntity>>
     
     @Query("SELECT * FROM all_notifications WHERE deleted_at IS NULL AND notes_created = :notesCreated ORDER BY timestamp DESC")
     fun getNotificationsByNotesCreated(notesCreated: Boolean): Flow<List<NotificationEntity>>
     
-    @Query("SELECT * FROM all_notifications WHERE deleted_at IS NULL AND user_showed_interest = :showedInterest ORDER BY timestamp DESC")
-    fun getNotificationsByUserInterest(showedInterest: Boolean): Flow<List<NotificationEntity>>
+    // Removed getNotificationsByUserInterest as it's related to AI functionality
     
-    @Query("SELECT * FROM all_notifications WHERE deleted_at IS NULL AND auto_category = :category ORDER BY timestamp DESC")
-    fun getNotificationsByCategory(category: String): Flow<List<NotificationEntity>>
+    // Removed auto_category query as AI functionality is removed
     
     @Query("SELECT * FROM all_notifications WHERE deleted_at IS NULL AND timestamp BETWEEN :startTime AND :endTime ORDER BY timestamp DESC")
     fun getNotificationsByTimeRange(startTime: Long, endTime: Long): Flow<List<NotificationEntity>>
@@ -136,7 +116,4 @@ data class PackageCount(
     val count: Int
 )
 
-data class CategoryCount(
-    val auto_category: String,
-    val count: Int
-)
+// Removed CategoryCount as AI functionality is removed

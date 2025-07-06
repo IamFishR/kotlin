@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 9,
-    "identityHash": "480cdfe04002f39a0b886a5490826c4e",
+    "identityHash": "5e737605285cf4fbf8e70fa59d863f4f",
     "entities": [
       {
         "tableName": "notes",
@@ -1349,7 +1349,7 @@
       },
       {
         "tableName": "all_notifications",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `notification_id` TEXT NOT NULL, `notification_key` TEXT NOT NULL, `source_package` TEXT NOT NULL, `source_app_name` TEXT NOT NULL, `title` TEXT NOT NULL, `content` TEXT NOT NULL, `sub_text` TEXT, `big_text` TEXT, `summary_text` TEXT, `info_text` TEXT, `timestamp` INTEGER NOT NULL, `when_time` INTEGER, `category` TEXT, `group_key` TEXT, `sort_key` TEXT, `channel_id` TEXT, `priority` INTEGER NOT NULL, `visibility` INTEGER NOT NULL, `is_ongoing` INTEGER NOT NULL, `is_clearable` INTEGER NOT NULL, `is_dismissible` INTEGER NOT NULL, `is_group_summary` INTEGER NOT NULL, `is_local_only` INTEGER NOT NULL, `is_auto_cancelable` INTEGER NOT NULL, `large_icon_present` INTEGER NOT NULL, `small_icon_resource` TEXT, `color` INTEGER, `number` INTEGER, `progress_max` INTEGER, `progress_current` INTEGER, `progress_indeterminate` INTEGER, `action_count` INTEGER NOT NULL, `action_titles` TEXT, `extras_bundle` TEXT, `remote_input_available` INTEGER NOT NULL, `is_ai_processed` INTEGER NOT NULL, `ai_processed_at` INTEGER, `ai_processing_result` TEXT, `notes_created` INTEGER NOT NULL, `notes_created_at` INTEGER, `note_ids` TEXT, `user_showed_interest` INTEGER NOT NULL, `user_interaction_type` TEXT, `user_interaction_at` INTEGER, `user_rating` INTEGER, `user_notes` TEXT, `matched_rules` TEXT, `rule_processing_result` TEXT, `was_auto_processed` INTEGER NOT NULL, `auto_category` TEXT, `auto_tags` TEXT, `importance_score` REAL, `sentiment_score` REAL, `urgency_score` REAL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `deleted_at` INTEGER, `is_archived` INTEGER NOT NULL, `archived_at` INTEGER, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `notification_id` TEXT NOT NULL, `notification_key` TEXT NOT NULL, `source_package` TEXT NOT NULL, `source_app_name` TEXT NOT NULL, `title` TEXT NOT NULL, `content` TEXT NOT NULL, `sub_text` TEXT, `big_text` TEXT, `summary_text` TEXT, `info_text` TEXT, `timestamp` INTEGER NOT NULL, `when_time` INTEGER, `category` TEXT, `group_key` TEXT, `sort_key` TEXT, `channel_id` TEXT, `priority` INTEGER NOT NULL, `visibility` INTEGER NOT NULL, `is_ongoing` INTEGER NOT NULL, `is_clearable` INTEGER NOT NULL, `is_dismissible` INTEGER NOT NULL, `is_group_summary` INTEGER NOT NULL, `is_local_only` INTEGER NOT NULL, `is_auto_cancelable` INTEGER NOT NULL, `large_icon_present` INTEGER NOT NULL, `small_icon_resource` TEXT, `color` INTEGER, `number` INTEGER, `progress_max` INTEGER, `progress_current` INTEGER, `progress_indeterminate` INTEGER, `action_count` INTEGER NOT NULL, `action_titles` TEXT, `extras_bundle` TEXT, `remote_input_available` INTEGER NOT NULL, `notes_created` INTEGER NOT NULL, `notes_created_at` INTEGER, `note_ids` TEXT, `matched_rules` TEXT, `rule_processing_result` TEXT, `was_auto_processed` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `deleted_at` INTEGER, `is_archived` INTEGER NOT NULL, `archived_at` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -1568,24 +1568,6 @@
             "notNull": true
           },
           {
-            "fieldPath": "isAiProcessed",
-            "columnName": "is_ai_processed",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "aiProcessedAt",
-            "columnName": "ai_processed_at",
-            "affinity": "INTEGER",
-            "notNull": false
-          },
-          {
-            "fieldPath": "aiProcessingResult",
-            "columnName": "ai_processing_result",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
             "fieldPath": "notesCreated",
             "columnName": "notes_created",
             "affinity": "INTEGER",
@@ -1600,36 +1582,6 @@
           {
             "fieldPath": "noteIds",
             "columnName": "note_ids",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
-            "fieldPath": "userShowedInterest",
-            "columnName": "user_showed_interest",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "userInteractionType",
-            "columnName": "user_interaction_type",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
-            "fieldPath": "userInteractionAt",
-            "columnName": "user_interaction_at",
-            "affinity": "INTEGER",
-            "notNull": false
-          },
-          {
-            "fieldPath": "userRating",
-            "columnName": "user_rating",
-            "affinity": "INTEGER",
-            "notNull": false
-          },
-          {
-            "fieldPath": "userNotes",
-            "columnName": "user_notes",
             "affinity": "TEXT",
             "notNull": false
           },
@@ -1650,36 +1602,6 @@
             "columnName": "was_auto_processed",
             "affinity": "INTEGER",
             "notNull": true
-          },
-          {
-            "fieldPath": "autoCategory",
-            "columnName": "auto_category",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
-            "fieldPath": "autoTags",
-            "columnName": "auto_tags",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
-            "fieldPath": "importanceScore",
-            "columnName": "importance_score",
-            "affinity": "REAL",
-            "notNull": false
-          },
-          {
-            "fieldPath": "sentimentScore",
-            "columnName": "sentiment_score",
-            "affinity": "REAL",
-            "notNull": false
-          },
-          {
-            "fieldPath": "urgencyScore",
-            "columnName": "urgency_score",
-            "affinity": "REAL",
-            "notNull": false
           },
           {
             "fieldPath": "createdAt",
@@ -1747,15 +1669,6 @@
             "createSql": "CREATE INDEX IF NOT EXISTS `index_all_notifications_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
           },
           {
-            "name": "index_all_notifications_is_ai_processed",
-            "unique": false,
-            "columnNames": [
-              "is_ai_processed"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_all_notifications_is_ai_processed` ON `${TABLE_NAME}` (`is_ai_processed`)"
-          },
-          {
             "name": "index_all_notifications_notes_created",
             "unique": false,
             "columnNames": [
@@ -1763,15 +1676,6 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_all_notifications_notes_created` ON `${TABLE_NAME}` (`notes_created`)"
-          },
-          {
-            "name": "index_all_notifications_user_showed_interest",
-            "unique": false,
-            "columnNames": [
-              "user_showed_interest"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_all_notifications_user_showed_interest` ON `${TABLE_NAME}` (`user_showed_interest`)"
           },
           {
             "name": "index_all_notifications_notification_key",
@@ -1800,7 +1704,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '480cdfe04002f39a0b886a5490826c4e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5e737605285cf4fbf8e70fa59d863f4f')"
     ]
   }
 }

@@ -152,8 +152,10 @@ class Win11NotificationListenerService : NotificationListenerService() {
                             // Process through rule engine
                             val ruleResult = ruleEngine.processNotification(appNotification)
                             
-                            // Mark AI processed and notes created in database
-                            updateNotificationProcessingStatus(appNotification.id, ruleResult)
+                            // Mark notes created in database if rule created notes
+                            if (ruleResult != null) {
+                                updateNotificationNotesStatus(appNotification.id, true)
+                            }
                             
                         } catch (e: Exception) {
                             Log.e(TAG, "Error processing notification through rule engine", e)
@@ -370,33 +372,21 @@ class Win11NotificationListenerService : NotificationListenerService() {
         return notification.extras?.getCharSequence(Notification.EXTRA_INFO_TEXT)?.toString()?.takeIf { it.isNotEmpty() }
     }
     
-    private suspend fun updateNotificationProcessingStatus(notificationKey: String, ruleResult: Any?) {
+    private suspend fun updateNotificationNotesStatus(notificationKey: String, notesCreated: Boolean) {
         try {
             val notificationEntity = notificationRepository.getNotificationByKey(notificationKey)
-            if (notificationEntity != null) {
-                // Mark as AI processed
-                notificationRepository.markAsAiProcessed(
+            if (notificationEntity != null && notesCreated) {
+                notificationRepository.markNotesCreated(
                     notificationEntity.id,
                     true,
                     System.currentTimeMillis(),
-                    ruleResult?.toString()
+                    null // Will be updated when actual notes are created
                 )
                 
-                // Check if notes were created by examining the rule result
-                val notesCreated = ruleResult != null
-                if (notesCreated) {
-                    notificationRepository.markNotesCreated(
-                        notificationEntity.id,
-                        true,
-                        System.currentTimeMillis(),
-                        null // Will be updated when actual notes are created
-                    )
-                }
-                
-                Log.d(TAG, "Updated processing status for notification: $notificationKey")
+                Log.d(TAG, "Updated notes status for notification: $notificationKey")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error updating notification processing status", e)
+            Log.e(TAG, "Error updating notification notes status", e)
         }
     }
     

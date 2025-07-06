@@ -29,15 +29,8 @@ class AllNotificationsViewModel @Inject constructor(
         allNotifications,
         _selectedFilter
     ) { notifications, filter ->
-        when (filter) {
-            "AI_PROCESSED" -> notifications.filter { it.isAiProcessed }
-            "NOTES_CREATED" -> notifications.filter { it.notesCreated }
-            "USER_INTEREST" -> notifications.filter { it.userShowedInterest }
-            else -> notifications.filter { 
-                // Only show AI-processed notifications if user showed interest
-                !it.isAiProcessed || it.userShowedInterest
-            }
-        }
+        // Show all notifications regardless of filter
+        notifications
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -46,15 +39,12 @@ class AllNotificationsViewModel @Inject constructor(
     
     private val stats = allNotifications.map { notifications ->
         NotificationStats(
-            total = notifications.size,
-            aiProcessed = notifications.count { it.isAiProcessed },
-            notesCreated = notifications.count { it.notesCreated },
-            userInterest = notifications.count { it.userShowedInterest }
+            total = notifications.size
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = NotificationStats(0, 0, 0, 0)
+        initialValue = NotificationStats(0)
     )
     
     val uiState = combine(
@@ -96,54 +86,6 @@ class AllNotificationsViewModel @Inject constructor(
         }
     }
     
-    fun markUserInterest(notificationId: String) {
-        viewModelScope.launch {
-            try {
-                notificationRepository.markUserInteraction(
-                    id = notificationId,
-                    showedInterest = true,
-                    interactionType = "starred",
-                    interactionAt = System.currentTimeMillis(),
-                    rating = null,
-                    notes = null
-                )
-            } catch (e: Exception) {
-                _error.value = "Failed to mark interest: ${e.message}"
-            }
-        }
-    }
-    
-    fun rateNotification(notificationId: String, rating: Int) {
-        viewModelScope.launch {
-            try {
-                notificationRepository.markUserInteraction(
-                    id = notificationId,
-                    showedInterest = true,
-                    interactionType = "rated",
-                    interactionAt = System.currentTimeMillis(),
-                    rating = rating,
-                    notes = null
-                )
-            } catch (e: Exception) {
-                _error.value = "Failed to rate notification: ${e.message}"
-            }
-        }
-    }
-    
-    fun archiveNotification(notificationId: String) {
-        viewModelScope.launch {
-            try {
-                notificationRepository.archiveNotification(
-                    id = notificationId,
-                    isArchived = true,
-                    archivedAt = System.currentTimeMillis()
-                )
-            } catch (e: Exception) {
-                _error.value = "Failed to archive notification: ${e.message}"
-            }
-        }
-    }
-    
     fun deleteNotification(notificationId: String) {
         viewModelScope.launch {
             try {
@@ -159,13 +101,10 @@ class AllNotificationsViewModel @Inject constructor(
         val selectedFilter: String = "ALL",
         val isLoading: Boolean = false,
         val error: String? = null,
-        val stats: NotificationStats = NotificationStats(0, 0, 0, 0)
+        val stats: NotificationStats = NotificationStats(0)
     )
     
     data class NotificationStats(
-        val total: Int,
-        val aiProcessed: Int,
-        val notesCreated: Int,
-        val userInterest: Int
+        val total: Int
     )
 }

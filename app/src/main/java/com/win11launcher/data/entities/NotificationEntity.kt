@@ -11,9 +11,7 @@ import androidx.room.Index
         Index(value = ["notification_id"], unique = true), // Prevent duplicates
         Index(value = ["source_package"]),
         Index(value = ["timestamp"]),
-        Index(value = ["is_ai_processed"]),
         Index(value = ["notes_created"]),
-        Index(value = ["user_showed_interest"]),
         Index(value = ["notification_key"], unique = true), // Secondary duplicate prevention
         Index(value = ["source_package", "title", "content"]) // Content-based duplicate check
     ]
@@ -133,14 +131,6 @@ data class NotificationEntity(
     val remoteInputAvailable: Boolean = false,
     
     // Tracking and Analytics columns
-    @ColumnInfo(name = "is_ai_processed")
-    val isAiProcessed: Boolean = false,
-    
-    @ColumnInfo(name = "ai_processed_at")
-    val aiProcessedAt: Long? = null,
-    
-    @ColumnInfo(name = "ai_processing_result")
-    val aiProcessingResult: String? = null, // JSON of AI analysis result
     
     @ColumnInfo(name = "notes_created")
     val notesCreated: Boolean = false,
@@ -151,20 +141,7 @@ data class NotificationEntity(
     @ColumnInfo(name = "note_ids")
     val noteIds: String? = null, // JSON array of created note IDs
     
-    @ColumnInfo(name = "user_showed_interest")
-    val userShowedInterest: Boolean = false,
-    
-    @ColumnInfo(name = "user_interaction_type")
-    val userInteractionType: String? = null, // "clicked", "saved", "starred", "ignored", "dismissed"
-    
-    @ColumnInfo(name = "user_interaction_at")
-    val userInteractionAt: Long? = null,
-    
-    @ColumnInfo(name = "user_rating")
-    val userRating: Int? = null, // 1-5 scale for notification usefulness
-    
-    @ColumnInfo(name = "user_notes")
-    val userNotes: String? = null, // User's personal notes about this notification
+    // Removed AI-related user interaction fields
     
     // Rule processing
     @ColumnInfo(name = "matched_rules")
@@ -176,21 +153,7 @@ data class NotificationEntity(
     @ColumnInfo(name = "was_auto_processed")
     val wasAutoProcessed: Boolean = false,
     
-    // Classification and categorization
-    @ColumnInfo(name = "auto_category")
-    val autoCategory: String? = null, // AI-determined category
-    
-    @ColumnInfo(name = "auto_tags")
-    val autoTags: String? = null, // JSON array of auto-generated tags
-    
-    @ColumnInfo(name = "importance_score")
-    val importanceScore: Float? = null, // AI-calculated importance (0.0-1.0)
-    
-    @ColumnInfo(name = "sentiment_score")
-    val sentimentScore: Float? = null, // AI-calculated sentiment (-1.0 to 1.0)
-    
-    @ColumnInfo(name = "urgency_score")
-    val urgencyScore: Float? = null, // AI-calculated urgency (0.0-1.0)
+    // Classification and categorization (removed AI fields)
     
     // System fields
     @ColumnInfo(name = "created_at")

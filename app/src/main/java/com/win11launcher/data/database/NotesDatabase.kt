@@ -398,25 +398,12 @@ abstract class NotesDatabase : RoomDatabase() {
                         action_titles TEXT,
                         extras_bundle TEXT,
                         remote_input_available INTEGER NOT NULL DEFAULT 0,
-                        is_ai_processed INTEGER NOT NULL DEFAULT 0,
-                        ai_processed_at INTEGER,
-                        ai_processing_result TEXT,
                         notes_created INTEGER NOT NULL DEFAULT 0,
                         notes_created_at INTEGER,
                         note_ids TEXT,
-                        user_showed_interest INTEGER NOT NULL DEFAULT 0,
-                        user_interaction_type TEXT,
-                        user_interaction_at INTEGER,
-                        user_rating INTEGER,
-                        user_notes TEXT,
                         matched_rules TEXT,
                         rule_processing_result TEXT,
                         was_auto_processed INTEGER NOT NULL DEFAULT 0,
-                        auto_category TEXT,
-                        auto_tags TEXT,
-                        importance_score REAL,
-                        sentiment_score REAL,
-                        urgency_score REAL,
                         created_at INTEGER NOT NULL,
                         updated_at INTEGER NOT NULL,
                         deleted_at INTEGER,
@@ -430,9 +417,7 @@ abstract class NotesDatabase : RoomDatabase() {
                 database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_all_notifications_notification_key ON all_notifications (notification_key)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_source_package ON all_notifications (source_package)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_timestamp ON all_notifications (timestamp)")
-                database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_is_ai_processed ON all_notifications (is_ai_processed)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_notes_created ON all_notifications (notes_created)")
-                database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_user_showed_interest ON all_notifications (user_showed_interest)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_source_package_title_content ON all_notifications (source_package, title, content)")
             }
         }

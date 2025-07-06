@@ -178,8 +178,6 @@ fun AllNotificationsScreen(
                     ) { notification ->
                         NotificationItem(
                             notification = notification,
-                            onMarkInterest = { viewModel.markUserInterest(notification.id) },
-                            onRateNotification = { rating -> viewModel.rateNotification(notification.id, rating) },
                             onDelete = { viewModel.deleteNotification(notification.id) },
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -220,24 +218,6 @@ private fun FiltersSection(
                     onClick = { onFilterSelected("ALL") },
                     label = { Text("All") }
                 )
-                
-                FilterChip(
-                    selected = selectedFilter == "AI_PROCESSED",
-                    onClick = { onFilterSelected("AI_PROCESSED") },
-                    label = { Text("AI Processed") }
-                )
-                
-                FilterChip(
-                    selected = selectedFilter == "NOTES_CREATED",
-                    onClick = { onFilterSelected("NOTES_CREATED") },
-                    label = { Text("Notes Created") }
-                )
-                
-                FilterChip(
-                    selected = selectedFilter == "USER_INTEREST",
-                    onClick = { onFilterSelected("USER_INTEREST") },
-                    label = { Text("User Interest") }
-                )
             }
         }
     }
@@ -262,24 +242,6 @@ private fun StatsSection(
                 label = "Total",
                 value = stats.total.toString(),
                 icon = Icons.Default.Notifications
-            )
-            
-            StatItem(
-                label = "AI Processed",
-                value = stats.aiProcessed.toString(),
-                icon = Icons.Default.Psychology
-            )
-            
-            StatItem(
-                label = "Notes Created",
-                value = stats.notesCreated.toString(),
-                icon = Icons.Default.Note
-            )
-            
-            StatItem(
-                label = "User Interest",
-                value = stats.userInterest.toString(),
-                icon = Icons.Default.Star
             )
         }
     }
@@ -322,8 +284,6 @@ private fun StatItem(
 @Composable
 private fun NotificationItem(
     notification: NotificationEntity,
-    onMarkInterest: () -> Unit,
-    onRateNotification: (Int) -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -406,14 +366,6 @@ private fun NotificationItem(
                                 onDismissRequest = { showOptionsMenu = false }
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("Mark as Interested") },
-                                    onClick = {
-                                        showOptionsMenu = false
-                                        onMarkInterest()
-                                    },
-                                    enabled = !notification.userShowedInterest
-                                )
-                                DropdownMenuItem(
                                     text = { Text("Delete") },
                                     onClick = {
                                         showOptionsMenu = false
@@ -430,32 +382,7 @@ private fun NotificationItem(
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        if (notification.isAiProcessed) {
-                            Icon(
-                                imageVector = Icons.Default.Psychology,
-                                contentDescription = "AI Processed",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                        
-                        if (notification.notesCreated) {
-                            Icon(
-                                imageVector = Icons.Default.Note,
-                                contentDescription = "Notes Created",
-                                tint = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                        
-                        if (notification.userShowedInterest) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = "User Interest",
-                                tint = MaterialTheme.colorScheme.tertiary,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
+                        // Future status indicators can be added here
                     }
                 }
             }
@@ -479,45 +406,6 @@ private fun NotificationItem(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                }
-                
-                // Actions
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedButton(
-                        onClick = onMarkInterest,
-                        enabled = !notification.userShowedInterest
-                    ) {
-                        Icon(
-                            imageVector = if (notification.userShowedInterest) Icons.Default.StarRate else Icons.Default.StarBorder,
-                            contentDescription = "Mark Interest",
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(if (notification.userShowedInterest) "Interested" else "Mark Interest")
-                    }
-                    
-                    // Rating
-                    if (notification.userRating != null) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Rating: ${notification.userRating}",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = "Rating",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
                 }
             }
         }

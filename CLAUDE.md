@@ -30,3 +30,5 @@
 # Regarding Explainations
  - I am new to Android development, Kotlin, and Jetpack Compose.
  - So please provide correct names in explaination for the features i am trying to implement.
+
+- always create multiple subagents to work faster and more efficiently, while maintaining a single main agent for overall coordination. make sure to have accuracy and performance in mind when creating these subagents.

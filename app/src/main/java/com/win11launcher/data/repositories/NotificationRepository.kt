@@ -2,7 +2,7 @@ package com.win11launcher.data.repositories
 
 import com.win11launcher.data.dao.NotificationDao
 import com.win11launcher.data.dao.PackageCount
-import com.win11launcher.data.dao.CategoryCount
+// Removed CategoryCount import as AI functionality is removed
 import com.win11launcher.data.entities.NotificationEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -28,25 +28,12 @@ class NotificationRepository @Inject constructor(
         notificationDao.updateNotification(notification)
     }
     
-    suspend fun markAsAiProcessed(id: String, isProcessed: Boolean, processedAt: Long, result: String?) {
-        notificationDao.markAsAiProcessed(id, isProcessed, processedAt, result)
-    }
     
     suspend fun markNotesCreated(id: String, notesCreated: Boolean, createdAt: Long, noteIds: String?) {
         notificationDao.markNotesCreated(id, notesCreated, createdAt, noteIds)
     }
     
-    suspend fun markUserInteraction(id: String, showedInterest: Boolean, interactionType: String?, interactionAt: Long, rating: Int?, notes: String?) {
-        notificationDao.markUserInteraction(id, showedInterest, interactionType, interactionAt, rating, notes)
-    }
-    
-    suspend fun updateAiAnalysis(id: String, importance: Float?, sentiment: Float?, urgency: Float?, category: String?, tags: String?) {
-        notificationDao.updateAiAnalysis(id, importance, sentiment, urgency, category, tags)
-    }
-    
-    suspend fun archiveNotification(id: String, isArchived: Boolean, archivedAt: Long?) {
-        notificationDao.archiveNotification(id, isArchived, archivedAt)
-    }
+    // Removed AI-related user interaction methods
     
     // Query operations
     fun getAllNotifications(): Flow<List<NotificationEntity>> {
@@ -99,54 +86,35 @@ class NotificationRepository @Inject constructor(
         return notificationDao.getTotalNotificationsCount()
     }
     
-    suspend fun getAiProcessedCount(): Int {
-        return notificationDao.getAiProcessedCount()
-    }
     
     suspend fun getNotesCreatedCount(): Int {
         return notificationDao.getNotesCreatedCount()
     }
     
-    suspend fun getUserInterestCount(): Int {
-        return notificationDao.getUserInterestCount()
-    }
+    // Removed getUserInterestCount as it's related to AI functionality
     
     suspend fun getNotificationCountsByPackage(): List<PackageCount> {
         return notificationDao.getNotificationCountsByPackage()
     }
     
-    suspend fun getNotificationCountsByCategory(): List<CategoryCount> {
-        return notificationDao.getNotificationCountsByCategory()
-    }
+    // Removed getNotificationCountsByCategory as AI functionality is removed
     
-    suspend fun getAverageImportanceScore(): Float? {
-        return notificationDao.getAverageImportanceScore()
-    }
     
-    suspend fun getAverageUserRating(): Float? {
-        return notificationDao.getAverageUserRating()
-    }
+    // Removed getAverageUserRating as it's related to AI functionality
     
     // Search operations
     fun searchNotifications(searchQuery: String): Flow<List<NotificationEntity>> {
         return notificationDao.searchNotifications(searchQuery)
     }
     
-    fun getNotificationsByAiProcessed(isProcessed: Boolean): Flow<List<NotificationEntity>> {
-        return notificationDao.getNotificationsByAiProcessed(isProcessed)
-    }
     
     fun getNotificationsByNotesCreated(notesCreated: Boolean): Flow<List<NotificationEntity>> {
         return notificationDao.getNotificationsByNotesCreated(notesCreated)
     }
     
-    fun getNotificationsByUserInterest(showedInterest: Boolean): Flow<List<NotificationEntity>> {
-        return notificationDao.getNotificationsByUserInterest(showedInterest)
-    }
+    // Removed getNotificationsByUserInterest as it's related to AI functionality
     
-    fun getNotificationsByCategory(category: String): Flow<List<NotificationEntity>> {
-        return notificationDao.getNotificationsByCategory(category)
-    }
+    // Removed getNotificationsByCategory as AI functionality is removed
     
     fun getNotificationsByTimeRange(startTime: Long, endTime: Long): Flow<List<NotificationEntity>> {
         return notificationDao.getNotificationsByTimeRange(startTime, endTime)
@@ -174,12 +142,8 @@ class NotificationRepository @Inject constructor(
         return notificationDao.getAllNotifications().map { notificationList ->
             NotificationAnalytics(
                 total = notificationList.size,
-                aiProcessed = notificationList.count { it.isAiProcessed },
                 notesCreated = notificationList.count { it.notesCreated },
-                userInterest = notificationList.count { it.userShowedInterest },
-                archived = notificationList.count { it.isArchived },
-                averageImportance = notificationList.mapNotNull { it.importanceScore }.average().takeIf { !it.isNaN() }?.toFloat(),
-                averageUserRating = notificationList.mapNotNull { it.userRating?.toDouble() }.average().takeIf { !it.isNaN() }?.toFloat()
+                archived = notificationList.count { it.isArchived }
             )
         }
     }
@@ -187,10 +151,6 @@ class NotificationRepository @Inject constructor(
 
 data class NotificationAnalytics(
     val total: Int,
-    val aiProcessed: Int,
     val notesCreated: Int,
-    val userInterest: Int,
-    val archived: Int,
-    val averageImportance: Float?,
-    val averageUserRating: Float?
+    val archived: Int
 )

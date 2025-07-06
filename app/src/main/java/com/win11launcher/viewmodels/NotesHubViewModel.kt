@@ -181,9 +181,6 @@ class NotesHubViewModel(application: Application) : AndroidViewModel(application
         _ruleCreationState.value = _ruleCreationState.value.copy(autoTags = tags)
     }
     
-    fun updateAutoNaming(enabled: Boolean) {
-        _ruleCreationState.value = _ruleCreationState.value.copy(enableAutoNaming = enabled)
-    }
     
     fun createFolder() {
         viewModelScope.launch {
@@ -378,8 +375,7 @@ data class RuleCreationState(
     val newFolderDescription: String = "",
     val selectedFolderColor: String = "#2196F3",
     val selectedFolderIcon: String = "folder",
-    val autoTags: List<String> = emptyList(),
-    val enableAutoNaming: Boolean = false
+    val autoTags: List<String> = emptyList()
 )
 
 data class NotesViewState(

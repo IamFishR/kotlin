@@ -85,13 +85,15 @@ fun NotificationPanel(
     
     // Combine both sources, prioritizing database for consistency with AllNotificationsScreen
     val combinedNotifications = remember(databaseNotifications, realTimeNotifications) {
-        // Convert database notifications to AppNotification format
-        val dbAsAppNotifications = databaseNotifications
+        // Show all database notifications
+        val allDbNotifications = databaseNotifications
             .take(30) // Limit to most recent 30 for performance
-            .map { it.toAppNotification() }
+        
+        // Convert all database notifications to AppNotification format
+        val dbAsAppNotifications = allDbNotifications.map { it.toAppNotification() }
         
         // Create a set of database notification IDs for deduplication
-        val dbNotificationIds = databaseNotifications.map { it.id }.toSet()
+        val dbNotificationIds = allDbNotifications.map { it.id }.toSet()
         
         // Add real-time notifications that aren't already in database
         val additionalRealTimeNotifications = realTimeNotifications
@@ -523,38 +525,6 @@ private fun NotificationsSection(
                             },
                             onClick = { 
                                 notificationManager.handleNotificationClick(notification)
-                                // Mark user interaction in database
-                                coroutineScope.launch {
-                                    try {
-                                        notificationRepository.markUserInteraction(
-                                            id = notification.id,
-                                            showedInterest = true,
-                                            interactionType = "click",
-                                            interactionAt = System.currentTimeMillis(),
-                                            rating = null,
-                                            notes = null
-                                        )
-                                    } catch (e: Exception) {
-                                        // Ignore if notification doesn't exist in DB
-                                    }
-                                }
-                            },
-                            onMarkInterest = {
-                                // Mark user interest in database
-                                coroutineScope.launch {
-                                    try {
-                                        notificationRepository.markUserInteraction(
-                                            id = notification.id,
-                                            showedInterest = true,
-                                            interactionType = "interest",
-                                            interactionAt = System.currentTimeMillis(),
-                                            rating = null,
-                                            notes = null
-                                        )
-                                    } catch (e: Exception) {
-                                        // Ignore if notification doesn't exist in DB
-                                    }
-                                }
                             },
                             onDelete = {
                                 // Delete notification from database
@@ -579,7 +549,6 @@ private fun RealNotificationCard(
     notification: AppNotification,
     onDismiss: () -> Unit,
     onClick: () -> Unit,
-    onMarkInterest: () -> Unit,
     onDelete: () -> Unit
 ) {
     var showOptionsMenu by remember { mutableStateOf(false) }
@@ -650,13 +619,6 @@ private fun RealNotificationCard(
                     expanded = showOptionsMenu,
                     onDismissRequest = { showOptionsMenu = false }
                 ) {
-                    DropdownMenuItem(
-                        text = { Text("Mark as Interested") },
-                        onClick = {
-                            showOptionsMenu = false
-                            onMarkInterest()
-                        }
-                    )
                     if (notification.isClearable) {
                         DropdownMenuItem(
                             text = { Text("Dismiss") },

@@ -222,8 +222,6 @@ fun NotesHubScreen(
                     },
                     autoTags = ruleCreationState.autoTags,
                     onAutoTagsChanged = viewModel::updateAutoTags,
-                    enableAutoNaming = ruleCreationState.enableAutoNaming,
-                    onAutoNamingChanged = viewModel::updateAutoNaming,
                     onCreateFolder = viewModel::createFolder,
                     onFinish = {
                         viewModel.createRule()

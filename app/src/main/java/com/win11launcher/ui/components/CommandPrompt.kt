@@ -32,16 +32,21 @@ import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.delay
 import android.os.Build
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.win11launcher.services.AIService
-import com.win11launcher.viewmodel.AIServiceViewModel
-import kotlinx.coroutines.launch
+import dagger.hilt.android.lifecycle.HiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import javax.inject.Inject
 
 @Composable
 fun CommandPrompt(
     isVisible: Boolean,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: CommandPromptViewModel = hiltViewModel()
 ) {
     if (isVisible) {
         Dialog(
@@ -54,7 +59,8 @@ fun CommandPrompt(
         ) {
             CommandPromptWindow(
                 onClose = onDismiss,
-                modifier = modifier
+                modifier = modifier,
+                viewModel = viewModel
             )
         }
     }
@@ -63,7 +69,8 @@ fun CommandPrompt(
 @Composable
 private fun CommandPromptWindow(
     onClose: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: CommandPromptViewModel
 ) {
     var commandHistory by remember { mutableStateOf(listOf<CommandEntry>()) }
     var currentCommand by remember { mutableStateOf("") }
@@ -72,7 +79,6 @@ private fun CommandPromptWindow(
     val keyboardController = LocalSoftwareKeyboardController.current
     val listState = rememberLazyListState()
     val context = LocalContext.current
-    val aiService = hiltViewModel<AIServiceViewModel>().aiService
     val coroutineScope = rememberCoroutineScope()
     
     // Auto-focus the input field when the dialog opens
@@ -212,40 +218,23 @@ private fun CommandPromptWindow(
                                 val command = currentCommand.trim()
                                 currentCommand = ""
                                 
-                                // Handle AI commands asynchronously
-                                if (command.startsWith("ai ") || command in listOf("ai-info", "ai-status", "ai-clear")) {
-                                    // Add processing entry immediately
-                                    commandHistory = commandHistory + CommandEntry(
-                                        command = command,
-                                        output = "🤖 AI is thinking...",
-                                        timestamp = System.currentTimeMillis(),
-                                        isProcessing = true
-                                    )
-                                    
-                                    coroutineScope.launch {
-                                        val result = executeAICommand(command, aiService)
-                                        // Update the last entry with the result
-                                        commandHistory = commandHistory.dropLast(1) + CommandEntry(
-                                            command = command,
-                                            output = result,
-                                            timestamp = System.currentTimeMillis()
-                                        )
-                                        isProcessing = false
-                                    }
-                                } else {
-                                    // Handle regular commands synchronously
-                                    val result = executeCommand(command, context)
-                                    
-                                    // Handle clear/cls commands
+                                // Handle commands
+                                coroutineScope.launch {
+                                    // Handle clear/cls commands immediately
                                     if (command.lowercase().trim() in listOf("clear", "cls")) {
                                         commandHistory = emptyList()
-                                    } else {
-                                        commandHistory = commandHistory + CommandEntry(
-                                            command = command,
-                                            output = result,
-                                            timestamp = System.currentTimeMillis()
-                                        )
+                                        isProcessing = false
+                                        return@launch
                                     }
+                                    
+                                    // Handle regular commands (including async AI commands)
+                                    val result = executeCommand(command, context, viewModel)
+                                    
+                                    commandHistory = commandHistory + CommandEntry(
+                                        command = command,
+                                        output = result,
+                                        timestamp = System.currentTimeMillis()
+                                    )
                                     isProcessing = false
                                 }
                                 keyboardController?.hide()
@@ -312,7 +301,7 @@ private data class CommandEntry(
     val isProcessing: Boolean = false
 )
 
-private fun executeCommand(command: String, context: android.content.Context): String {
+private suspend fun executeCommand(command: String, context: android.content.Context, viewModel: CommandPromptViewModel): String {
     return when (command.lowercase().trim()) {
         "help" -> {
             """Available commands:
@@ -334,11 +323,10 @@ build - Show build information
 memory - Show memory information
 network - Show network information
 
-AI Commands (Powered by Gemma 3):
-ai <question> - Ask AI anything
-ai-info - Show AI model information
-ai-status - Check AI model status
-ai-clear - Clear AI conversation history
+AI Commands:
+ai <prompt> - Ask AI a question (e.g., ai What is Android?)
+ask <prompt> - Same as ai command
+
 """
         }
         "clear", "cls" -> {
@@ -393,6 +381,22 @@ Built with Jetpack Compose"""
                         calculateExpression(expression)
                     } catch (e: Exception) {
                         "Error: Invalid expression"
+                    }
+                }
+                command.startsWith("ai ") -> {
+                    val prompt = command.substring(3).trim()
+                    if (prompt.isNotEmpty()) {
+                        viewModel.processAICommand(prompt)
+                    } else {
+                        "Error: Please provide a prompt after 'ai' command"
+                    }
+                }
+                command.startsWith("ask ") -> {
+                    val prompt = command.substring(4).trim()
+                    if (prompt.isNotEmpty()) {
+                        viewModel.processAICommand(prompt)
+                    } else {
+                        "Error: Please provide a prompt after 'ask' command"
                     }
                 }
                 else -> {
@@ -548,30 +552,22 @@ Is Roaming: ${networkInfo.isRoaming}
     }
 }
 
-private suspend fun executeAICommand(command: String, aiService: AIService): String {
-    return when {
-        command.startsWith("ai ") -> {
-            val question = command.substring(3).trim()
-            if (question.isBlank()) {
-                "Please provide a question. Example: ai What is Android?"
+@HiltViewModel
+class CommandPromptViewModel @Inject constructor(
+    private val aiService: AIService
+) : ViewModel() {
+    
+    suspend fun processAICommand(prompt: String): String {
+        return try {
+            val response = aiService.generateResponse(prompt)
+            if (response.success) {
+                response.response
             } else {
-                val response = aiService.generateResponse(question)
-                if (response.success) {
-                    "🤖 AI: ${response.response}"
-                } else {
-                    "❌ AI Error: ${response.error}"
-                }
+                "AI Error: ${response.response}"
             }
+        } catch (e: Exception) {
+            "AI Error: ${e.message}"
         }
-        command == "ai-info" -> {
-            "🤖 ${aiService.getModelInfo()}"
-        }
-        command == "ai-status" -> {
-            "🤖 Status: ${aiService.getModelStatus()}"
-        }
-        command == "ai-clear" -> {
-            "🤖 AI conversation history cleared"
-        }
-        else -> "Unknown AI command"
     }
 }
+
