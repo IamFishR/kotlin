@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -59,7 +60,7 @@ fun PermissionsScreen(
             )
         }
         
-        listOf(
+        val permissions = mutableListOf(
             storagePermission,
             Permission(
                 "Phone State",
@@ -85,6 +86,20 @@ fun PermissionsScreen(
                 isRequired = false
             )
         )
+        
+        // Add All Files Access for Android 11+ (required for AI model access)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            permissions.add(
+                Permission(
+                    "All Files Access",
+                    Manifest.permission.MANAGE_EXTERNAL_STORAGE,
+                    "Required to access AI model files and full storage",
+                    requiresSpecialHandling = true
+                )
+            )
+        }
+        
+        permissions
     }
     
     var permissionStatuses by remember { mutableStateOf(emptyMap<String, Boolean>()) }
@@ -99,6 +114,13 @@ fun PermissionsScreen(
                             Settings.canDrawOverlays(context)
                         Manifest.permission.WRITE_SETTINGS -> 
                             Settings.System.canWrite(context)
+                        Manifest.permission.MANAGE_EXTERNAL_STORAGE -> {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                Environment.isExternalStorageManager()
+                            } else {
+                                true // Not needed on older Android versions
+                            }
+                        }
                         else -> false
                     }
                 }
@@ -168,6 +190,13 @@ fun PermissionsScreen(
                                     val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
                                     intent.data = Uri.parse("package:${context.packageName}")
                                     context.startActivity(intent)
+                                }
+                                Manifest.permission.MANAGE_EXTERNAL_STORAGE -> {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                        val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                                        intent.data = Uri.parse("package:${context.packageName}")
+                                        context.startActivity(intent)
+                                    }
                                 }
                             }
                         } else {

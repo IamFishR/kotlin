@@ -48,7 +48,12 @@ class AIService @Inject constructor(
                 // Check and request storage permission
                 if (!hasStoragePermission()) {
                     isLoading = false
-                    return@withContext AIResponse(false, "", "Storage permission required to access model file. Please grant storage permission in app settings.")
+                    val permissionMessage = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                        "All Files Access permission required to access AI model file. Please go to Settings → Permissions and grant 'All Files Access' permission."
+                    } else {
+                        "Storage permission required to access AI model file. Please grant storage permission in app settings."
+                    }
+                    return@withContext AIResponse(false, "", permissionMessage)
                 }
                 
                 // Copy model from assets to internal storage if needed
@@ -188,14 +193,10 @@ class AIService @Inject constructor(
     
     private fun hasStoragePermission(): Boolean {
         return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-            // Android 11+ - check for MANAGE_EXTERNAL_STORAGE
-            android.os.Environment.isExternalStorageManager() ||
-            androidx.core.content.ContextCompat.checkSelfPermission(
-                context, 
-                android.Manifest.permission.READ_MEDIA_IMAGES
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            // Android 11+ - MANAGE_EXTERNAL_STORAGE is required for accessing model files
+            android.os.Environment.isExternalStorageManager()
         } else {
-            // Android 10 and below
+            // Android 10 and below - READ_EXTERNAL_STORAGE is sufficient
             androidx.core.content.ContextCompat.checkSelfPermission(
                 context, 
                 android.Manifest.permission.READ_EXTERNAL_STORAGE
@@ -220,6 +221,11 @@ class AIService @Inject constructor(
             val hasMediaPermission = android.content.pm.PackageManager.PERMISSION_GRANTED == 
                 androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_MEDIA_IMAGES)
             Log.d(TAG, "Has READ_MEDIA_IMAGES permission: $hasMediaPermission")
+        }
+        
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            val hasManageStoragePermission = android.os.Environment.isExternalStorageManager()
+            Log.d(TAG, "Has MANAGE_EXTERNAL_STORAGE permission: $hasManageStoragePermission")
         }
         
         // List contents of possible directories
