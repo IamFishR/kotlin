@@ -13,6 +13,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -20,6 +22,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.win11launcher.services.AIService
+import com.win11launcher.ui.theme.Win11Colors // Import Win11Colors
 import com.win11launcher.viewmodels.ChatbotViewModel
 
 @Composable
@@ -37,7 +40,12 @@ fun ChatbotScreen() {
     val messages by chatbotViewModel.messages
     var inputText by remember { mutableStateOf("") }
 
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFF1F1F1F))) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Win11Colors.SystemBackground) // Use Win11Colors
+            .windowInsetsPadding(WindowInsets.ime)
+    ) {
         LazyColumn(
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(16.dp),
@@ -50,21 +58,31 @@ fun ChatbotScreen() {
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth().padding(8.dp).padding(bottom = 56.dp),
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             OutlinedTextField(
                 value = inputText,
                 onValueChange = { inputText = it },
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("Type a message...") },
-                shape = RoundedCornerShape(24.dp),
+                placeholder = { Text("Type a message...", color = Win11Colors.TextSecondary) }, // Styled placeholder
+                shape = RoundedCornerShape(12.dp), // Adjusted shape
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    cursorColor = Color.White,
-                    focusedBorderColor = Color(0xFF0078D4),
-                    unfocusedBorderColor = Color.Gray
+                    focusedTextColor = Win11Colors.TextPrimary,
+                    unfocusedTextColor = Win11Colors.TextPrimary,
+                    cursorColor = Win11Colors.SystemAccent,
+                    focusedBorderColor = Win11Colors.SystemAccent,
+                    unfocusedBorderColor = Win11Colors.Outline,
+                    disabledTextColor = Win11Colors.TextSecondary, // Added for completeness
+                    disabledBorderColor = Win11Colors.OutlineVariant, // Added for completeness
+                    errorCursorColor = Win11Colors.Error, // Added for completeness
+                    errorBorderColor = Win11Colors.Error, // Added for completeness
+                    focusedLabelColor = Win11Colors.SystemAccent, // Added for completeness
+                    unfocusedLabelColor = Win11Colors.TextSecondary, // Added for completeness
+                    disabledLabelColor = Win11Colors.TextTertiary, // Added for completeness
+                    focusedPlaceholderColor = Win11Colors.TextSecondary, // Added for completeness
+                    unfocusedPlaceholderColor = Win11Colors.TextSecondary, // Added for completeness
+                    disabledPlaceholderColor = Win11Colors.TextTertiary // Added for completeness
                 )
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -77,7 +95,7 @@ fun ChatbotScreen() {
                 Icon(
                     imageVector = Icons.Default.Send,
                     contentDescription = "Send",
-                    tint = Color.White
+                    tint = Win11Colors.SystemAccent // Use Win11Colors
                 )
             }
         }
@@ -92,11 +110,13 @@ fun MessageBubble(sender: String, text: String) {
     ) {
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .background(if (sender == "user") Color(0xFF0078D4) else Color(0xFF3A3A3A))
+                .clip(RoundedCornerShape(12.dp)) // Adjusted shape
+                .background(
+                    if (sender == "user") Win11Colors.SystemAccent else Win11Colors.SystemSurface // Use Win11Colors
+                )
                 .padding(12.dp)
         ) {
-            Text(text = text, color = Color.White)
+            Text(text = text, color = Win11Colors.TextPrimary) // Use Win11Colors for text
         }
     }
 }
