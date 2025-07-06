@@ -31,7 +31,7 @@ import com.win11launcher.data.converters.Converters
 
 @Database(
     entities = [Note::class, Folder::class, TrackingRule::class, RuleActivity::class, FinancialPattern::class, ResearchPattern::class, AppSetting::class, PermissionState::class, UserProfile::class, UserCustomization::class, UserFile::class, NotificationEntity::class],
-    version = 9,
+    version = 10,
     exportSchema = true
 )
 @androidx.room.TypeConverters(Converters::class)
@@ -59,7 +59,7 @@ abstract class NotesDatabase : RoomDatabase() {
                     "notes_database"
                 )
                 .addCallback(DatabaseCallback())
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
                 .build()
                 INSTANCE = instance
                 instance
@@ -419,6 +419,13 @@ abstract class NotesDatabase : RoomDatabase() {
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_timestamp ON all_notifications (timestamp)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_notes_created ON all_notifications (notes_created)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_all_notifications_source_package_title_content ON all_notifications (source_package, title, content)")
+            }
+        }
+        
+        private val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // This migration is to fix schema integrity issue
+                // No actual schema changes needed, just version bump
             }
         }
         
