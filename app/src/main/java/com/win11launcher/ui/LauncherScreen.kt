@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.win11launcher.data.AppRepository
 import com.win11launcher.ui.components.AllAppsScreen
+import com.win11launcher.ui.components.ChatbotScreen
 import com.win11launcher.ui.components.CommandPrompt
 import com.win11launcher.ui.components.NotificationPanel
 import com.win11launcher.ui.components.StartMenu
@@ -37,6 +38,7 @@ fun LauncherScreen() {
     var showNotesHub by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showCommandPrompt by remember { mutableStateOf(false) }
+    var showChatbot by remember { mutableStateOf(false) }
     
     // Start monitoring system status
     LaunchedEffect(Unit) {
@@ -117,6 +119,10 @@ fun LauncherScreen() {
                 )
             }
         }
+
+        if (showChatbot) {
+            ChatbotScreen()
+        }
         
         // Notification panel
         NotificationPanel(
@@ -146,6 +152,9 @@ fun LauncherScreen() {
                 showCommandPrompt = true
                 showStartMenu = false
                 showNotificationPanel = false
+            },
+            onAiClick = {
+                showChatbot = !showChatbot
             },
             onSystemTrayClick = { 
                 showNotificationPanel = !showNotificationPanel

@@ -502,7 +502,6 @@ private fun PinnedAppsSection(
                     onClick = { 
                         when (app.launchAction) {
                             com.win11launcher.utils.AppLaunchAction.NotesHub -> onNotesHubClick()
-                            com.win11launcher.utils.AppLaunchAction.AllNotifications -> onAllNotificationsClick()
                             else -> appLauncher.launchApp(app)
                         }
                     }
