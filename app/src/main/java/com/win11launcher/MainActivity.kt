@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.Settings
 import android.view.View
 import android.view.WindowInsets
@@ -112,11 +113,20 @@ class MainActivity : ComponentActivity() {
             ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
         }
         
-        val specialPermissionsGranted = Settings.canDrawOverlays(this) && Settings.System.canWrite(this)
+        val manageStorageGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Environment.isExternalStorageManager()
+        } else {
+            true // Not required on older Android versions
+        }
+        
+        val specialPermissionsGranted = Settings.canDrawOverlays(this) && 
+                                       Settings.System.canWrite(this) && 
+                                       manageStorageGranted
         
         permissionsGranted = normalPermissionsGranted && specialPermissionsGranted
         
         android.util.Log.d("MainActivity", "Normal permissions granted: $normalPermissionsGranted")
+        android.util.Log.d("MainActivity", "Manage storage granted: $manageStorageGranted")
         android.util.Log.d("MainActivity", "Special permissions granted: $specialPermissionsGranted")
         android.util.Log.d("MainActivity", "All permissions granted: $permissionsGranted")
     }
