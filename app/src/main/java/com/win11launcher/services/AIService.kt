@@ -45,12 +45,23 @@ class AIService @Inject constructor(
                 isLoading = true
                 Log.d(TAG, "Starting MediaPipe LLM model initialization...")
                 
+                // Check and request storage permission
+                if (!hasStoragePermission()) {
+                    isLoading = false
+                    return@withContext AIResponse(false, "", "Storage permission required to access model file. Please grant storage permission in app settings.")
+                }
+                
                 // Copy model from assets to internal storage if needed
                 val modelFile = copyModelToInternalStorage()
                 
                 if (!modelFile.exists()) {
                     isLoading = false
-                    return@withContext AIResponse(false, "", "Model file not found")
+                    return@withContext AIResponse(false, "", "Model file not found at ${modelFile.absolutePath}")
+                }
+                
+                if (!modelFile.canRead()) {
+                    isLoading = false
+                    return@withContext AIResponse(false, "", "Cannot read model file. Check file permissions and storage access.")
                 }
                 
                 // Initialize MediaPipe LLM inference with the model file
@@ -173,6 +184,23 @@ class AIService @Inject constructor(
         }
         
         return modelFile
+    }
+    
+    private fun hasStoragePermission(): Boolean {
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            // Android 11+ - check for MANAGE_EXTERNAL_STORAGE
+            android.os.Environment.isExternalStorageManager() ||
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                context, 
+                android.Manifest.permission.READ_MEDIA_IMAGES
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        } else {
+            // Android 10 and below
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                context, 
+                android.Manifest.permission.READ_EXTERNAL_STORAGE
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
     }
     
     private fun debugModelPaths() {
