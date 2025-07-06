@@ -117,6 +117,33 @@ class AIService @Inject constructor(
     
     
     private fun copyModelToInternalStorage(): File {
+        // Debug: Log all possible paths and check permissions
+        debugModelPaths()
+        
+        // Try multiple possible paths for the model
+        val possiblePaths = listOf(
+            "/storage/emulated/0/Models/$modelFileName",
+            "/sdcard/Models/$modelFileName",
+            "/storage/self/primary/Models/$modelFileName",
+            "/mnt/sdcard/Models/$modelFileName",
+            "${android.os.Environment.getExternalStorageDirectory()}/Models/$modelFileName"
+        )
+        
+        for (path in possiblePaths) {
+            val modelFile = File(path)
+            Log.d(TAG, "Checking path: $path")
+            Log.d(TAG, "  - Exists: ${modelFile.exists()}")
+            Log.d(TAG, "  - Can read: ${modelFile.canRead()}")
+            Log.d(TAG, "  - Size: ${if (modelFile.exists()) modelFile.length() else "N/A"}")
+            Log.d(TAG, "  - Parent exists: ${modelFile.parentFile?.exists()}")
+            
+            if (modelFile.exists() && modelFile.canRead()) {
+                Log.d(TAG, "Found readable model at: $path")
+                return modelFile
+            }
+        }
+        
+        // Fallback: check if already copied to app internal storage
         val internalDir = File(context.filesDir, "ai_models")
         if (!internalDir.exists()) {
             internalDir.mkdirs()
@@ -125,9 +152,11 @@ class AIService @Inject constructor(
         val modelFile = File(internalDir, modelFileName)
         
         if (modelFile.exists()) {
+            Log.d(TAG, "Found model in app internal storage: ${modelFile.absolutePath}")
             return modelFile
         }
         
+        // Last resort: try to copy from assets (will fail for large files)
         try {
             context.assets.open(modelFileName).use { inputStream ->
                 FileOutputStream(modelFile).use { outputStream ->
@@ -138,12 +167,61 @@ class AIService @Inject constructor(
                     }
                 }
             }
-            Log.d(TAG, "Model copied to internal storage: ${modelFile.absolutePath}")
+            Log.d(TAG, "Model copied from assets to internal storage: ${modelFile.absolutePath}")
         } catch (e: IOException) {
-            Log.e(TAG, "Failed to copy model file", e)
+            Log.e(TAG, "Failed to copy model file from assets", e)
         }
         
         return modelFile
+    }
+    
+    private fun debugModelPaths() {
+        Log.d(TAG, "=== DEBUG MODEL PATHS ===")
+        Log.d(TAG, "Model filename: $modelFileName")
+        Log.d(TAG, "External storage directory: ${android.os.Environment.getExternalStorageDirectory()}")
+        Log.d(TAG, "External storage state: ${android.os.Environment.getExternalStorageState()}")
+        Log.d(TAG, "App files dir: ${context.filesDir}")
+        Log.d(TAG, "App external files dir: ${context.getExternalFilesDir(null)}")
+        
+        // Check storage permissions
+        val hasReadPermission = android.content.pm.PackageManager.PERMISSION_GRANTED == 
+            androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_EXTERNAL_STORAGE)
+        Log.d(TAG, "Has READ_EXTERNAL_STORAGE permission: $hasReadPermission")
+        
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val hasMediaPermission = android.content.pm.PackageManager.PERMISSION_GRANTED == 
+                androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_MEDIA_IMAGES)
+            Log.d(TAG, "Has READ_MEDIA_IMAGES permission: $hasMediaPermission")
+        }
+        
+        // List contents of possible directories
+        val possibleDirs = listOf(
+            "/storage/emulated/0/Models",
+            "/sdcard/Models",
+            "/storage/self/primary/Models",
+            "${android.os.Environment.getExternalStorageDirectory()}/Models"
+        )
+        
+        for (dirPath in possibleDirs) {
+            val dir = File(dirPath)
+            Log.d(TAG, "Directory: $dirPath")
+            Log.d(TAG, "  - Exists: ${dir.exists()}")
+            Log.d(TAG, "  - Can read: ${dir.canRead()}")
+            Log.d(TAG, "  - Is directory: ${dir.isDirectory}")
+            
+            if (dir.exists() && dir.canRead() && dir.isDirectory) {
+                try {
+                    val files = dir.listFiles()
+                    Log.d(TAG, "  - Files count: ${files?.size ?: 0}")
+                    files?.forEach { file ->
+                        Log.d(TAG, "    - ${file.name} (${file.length()} bytes)")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "  - Error listing files: ${e.message}")
+                }
+            }
+        }
+        Log.d(TAG, "=== END DEBUG ===")
     }
     
     fun getModelStatus(): String {
