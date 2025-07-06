@@ -98,8 +98,8 @@ fun LauncherScreen() {
                     },
                     onAllNotificationsClick = {
                         showStartMenu = false
-                        val intent = Intent(context, com.win11launcher.ui.AllNotificationsActivity::class.java)
-                        context.startActivity(intent)
+                        showNotesHub = true
+                        // TODO: Navigate to notifications screen within Notes Hub
                     }
                 )
             }

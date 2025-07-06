@@ -35,7 +35,7 @@ fun RuleManagementScreen(
     onCreateNewRule: () -> Unit,
     onRuleDetails: (String) -> Unit,
     onViewNotes: () -> Unit = {},
-    onSmartNotifications: () -> Unit = {},
+    onAllNotifications: () -> Unit = {},
 ) {
     val activeRules = rules.filter { it.isActive }
     val inactiveRules = rules.filter { !it.isActive }
@@ -113,7 +113,7 @@ fun RuleManagementScreen(
             }
             
             OutlinedButton(
-                onClick = onSmartNotifications,
+                onClick = onAllNotifications,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.secondary
@@ -121,11 +121,11 @@ fun RuleManagementScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Notifications,
-                    contentDescription = "Smart notifications",
+                    contentDescription = "All notifications",
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Smart Notifications")
+                Text("All Notifications")
             }
         }
         

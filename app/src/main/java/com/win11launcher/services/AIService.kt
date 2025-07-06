@@ -19,7 +19,7 @@ class AIService @Inject constructor(
     private var llmInference: LlmInference? = null
     private var isModelLoaded = false
     private var isLoading = false
-    private val modelFileName = "gemma2-2b-it-gpu-int8.bin"
+    private val modelFileName = "gemma-3n-E4B-it-int4.task"
     
     companion object {
         private const val TAG = "AIService"
@@ -65,7 +65,7 @@ class AIService @Inject constructor(
                 isLoading = false
                 
                 Log.d(TAG, "MediaPipe LLM model initialized successfully")
-                AIResponse(true, "Gemma 2 model loaded successfully via MediaPipe")
+                AIResponse(true, "Gemma 3N model loaded successfully via MediaPipe")
                 
             } catch (e: Exception) {
                 isLoading = false
@@ -88,7 +88,7 @@ class AIService @Inject constructor(
                 
                 Log.d(TAG, "Generating response for: $prompt")
                 
-                // Format the prompt for Gemma 3
+                // Format the prompt for Gemma 3N
                 val formattedPrompt = formatPromptForGemma(prompt)
                 
                 // Generate response using MediaPipe LLM inference
@@ -111,7 +111,7 @@ class AIService @Inject constructor(
     
     
     private fun formatPromptForGemma(userPrompt: String): String {
-        // Format prompt according to Gemma 2 instruction format
+        // Format prompt according to Gemma 3N instruction format
         return "<start_of_turn>user\n$userPrompt<end_of_turn>\n<start_of_turn>model\n"
     }
     
@@ -156,12 +156,14 @@ class AIService @Inject constructor(
     
     fun getModelInfo(): String {
         return """
-            Model: Gemma 2 (2B parameters)
-            Format: MediaPipe Binary (INT8 quantized, GPU optimized)
-            Size: ~1.2GB
+            Model: Gemma 3N (E4B parameters with selective activation)
+            Format: MediaPipe Task (INT4 quantized)
+            Size: 4.41GB
             Runtime: MediaPipe LLM Inference
             Status: ${getModelStatus()}
-            Capabilities: Text generation, Q&A, conversation
+            Capabilities: Multimodal (text, image, audio, video), Text generation, Q&A, conversation
+            Context: 32K tokens input/output
+            Languages: 140+ supported languages
         """.trimIndent()
     }
     

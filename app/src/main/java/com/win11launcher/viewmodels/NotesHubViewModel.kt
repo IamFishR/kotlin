@@ -391,7 +391,6 @@ data class NotesViewState(
 enum class NotesHubScreen {
     RULE_MANAGEMENT,
     SMART_NOTIFICATIONS,
-    SIMPLE_NOTIFICATIONS,
     APP_SELECTION,
     CONTENT_FILTERING,
     DESTINATION,

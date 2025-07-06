@@ -42,8 +42,7 @@ fun NotesHubScreen(
                 Text(
                     text = when (uiState.currentScreen) {
                         Screen.RULE_MANAGEMENT -> "Notes Hub"
-                        Screen.SMART_NOTIFICATIONS -> "Smart Notifications"
-                        Screen.SIMPLE_NOTIFICATIONS -> "All Notifications"
+                        Screen.SMART_NOTIFICATIONS -> "All Notifications"
                         Screen.APP_SELECTION -> "Create Rule - Step 1"
                         Screen.CONTENT_FILTERING -> "Create Rule - Step 2"
                         Screen.DESTINATION -> "Create Rule - Step 3"
@@ -59,7 +58,6 @@ fun NotesHubScreen(
                         when (uiState.currentScreen) {
                             Screen.RULE_MANAGEMENT -> onNavigateBack()
                             Screen.SMART_NOTIFICATIONS -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
-                            Screen.SIMPLE_NOTIFICATIONS -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
                             Screen.NOTES_VIEW -> viewModel.navigateToScreen(Screen.RULE_MANAGEMENT)
                             Screen.NOTE_DETAIL -> viewModel.navigateToScreen(Screen.NOTES_VIEW)
                             else -> viewModel.navigateToPreviousCreationStep()
@@ -141,25 +139,17 @@ fun NotesHubScreen(
                         // TODO: Navigate to rule details
                     },
                     onViewNotes = viewModel::navigateToNotesView,
-                    onSmartNotifications = { viewModel.navigateToScreen(Screen.SIMPLE_NOTIFICATIONS) },
+                    onAllNotifications = { viewModel.navigateToScreen(Screen.SMART_NOTIFICATIONS) },
                 )
             }
             
             
             Screen.SMART_NOTIFICATIONS -> {
-                SmartNotificationScreen(
-                    onNavigateBack = { viewModel.navigateToScreen(Screen.RULE_MANAGEMENT) }
+                AllNotificationsScreen(
+                    onBackPressed = { viewModel.navigateToScreen(Screen.RULE_MANAGEMENT) }
                 )
             }
             
-            Screen.SIMPLE_NOTIFICATIONS -> {
-                SimpleNotificationsScreen(
-                    onNavigateBack = { viewModel.navigateToScreen(Screen.RULE_MANAGEMENT) },
-                    onTrackNotification = { notification ->
-                        viewModel.startRuleCreationFromNotification(notification)
-                    }
-                )
-            }
             
             Screen.APP_SELECTION -> {
                 AppSelectionScreen(
@@ -332,7 +322,7 @@ private fun WindowsMenuBar(
             menuItems = listOf(
                 MenuBarDropdownItem("Notes", Icons.Default.Visibility, "notes"),
                 MenuBarDropdownItem("Rules", Icons.AutoMirrored.Filled.Rule, "rules"),
-                MenuBarDropdownItem("Smart Notifications", Icons.Default.Notifications, "notifications")
+                MenuBarDropdownItem("All Notifications", Icons.Default.Notifications, "notifications")
             ),
             onMenuItemClick = onViewMenuAction
         )

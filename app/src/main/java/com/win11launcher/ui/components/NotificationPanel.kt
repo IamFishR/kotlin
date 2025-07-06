@@ -22,6 +22,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.win11launcher.models.AppNotification
+import com.win11launcher.data.entities.NotificationEntity
+import com.win11launcher.data.repositories.NotificationRepository
+import com.win11launcher.data.database.NotesDatabase
 import com.win11launcher.utils.NotificationManager
 import com.win11launcher.utils.SystemStatus
 import com.win11launcher.utils.SystemStatusManager
@@ -29,6 +32,10 @@ import com.win11launcher.utils.WiFiManager
 import com.win11launcher.utils.BluetoothManager
 import com.win11launcher.utils.LocationManager
 import com.win11launcher.utils.rememberNotifications
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -63,7 +70,39 @@ fun NotificationPanel(
     val bluetoothManager = remember { systemStatusManager.getBluetoothManager() }
     val locationManager = remember { systemStatusManager.getLocationManager() }
     
-    val realNotifications = rememberNotifications(notificationManager)
+    // Use database notifications (same as AllNotificationsScreen)
+    val notificationRepository = remember {
+        val database = NotesDatabase.getDatabase(context)
+        NotificationRepository(database.notificationDao())
+    }
+    
+    // Get active notifications from database (same as AllNotificationsScreen)
+    val databaseNotifications by notificationRepository.getActiveNotifications()
+        .collectAsStateWithLifecycle(emptyList())
+    
+    // Also keep real-time notifications for immediate updates
+    val realTimeNotifications = rememberNotifications(notificationManager)
+    
+    // Combine both sources, prioritizing database for consistency with AllNotificationsScreen
+    val combinedNotifications = remember(databaseNotifications, realTimeNotifications) {
+        // Convert database notifications to AppNotification format
+        val dbAsAppNotifications = databaseNotifications
+            .take(30) // Limit to most recent 30 for performance
+            .map { it.toAppNotification() }
+        
+        // Create a set of database notification IDs for deduplication
+        val dbNotificationIds = databaseNotifications.map { it.id }.toSet()
+        
+        // Add real-time notifications that aren't already in database
+        val additionalRealTimeNotifications = realTimeNotifications
+            .filter { it.id !in dbNotificationIds }
+            .take(10) // Limit real-time additions
+        
+        // Combine and sort by timestamp (newest first)
+        (dbAsAppNotifications + additionalRealTimeNotifications)
+            .sortedByDescending { it.timestamp }
+            .take(25) // Final limit for notification panel
+    }
     if (showPanel) {
         Popup(
             alignment = Alignment.BottomEnd,
@@ -97,8 +136,9 @@ fun NotificationPanel(
                     
                     // Notifications at the top
                     NotificationsSection(
-                        notifications = realNotifications,
+                        notifications = combinedNotifications,
                         notificationManager = notificationManager,
+                        notificationRepository = notificationRepository,
                         modifier = Modifier.weight(1f)
                     )
                     
@@ -295,8 +335,10 @@ private fun QuickActionButton(
 private fun NotificationsSection(
     notifications: List<AppNotification>,
     notificationManager: NotificationManager,
+    notificationRepository: NotificationRepository,
     modifier: Modifier = Modifier
 ) {
+    val coroutineScope = remember { CoroutineScope(Dispatchers.IO) }
     
     Column(modifier = modifier) {
         Row(
@@ -468,8 +510,35 @@ private fun NotificationsSection(
                     items(notifications) { notification ->
                         RealNotificationCard(
                             notification = notification,
-                            onDismiss = { notificationManager.dismissNotification(notification.id) },
-                            onClick = { notificationManager.handleNotificationClick(notification) }
+                            onDismiss = { 
+                                notificationManager.dismissNotification(notification.id)
+                                // Also soft delete from database if it exists
+                                coroutineScope.launch {
+                                    try {
+                                        notificationRepository.softDeleteNotification(notification.id)
+                                    } catch (e: Exception) {
+                                        // Ignore if notification doesn't exist in DB
+                                    }
+                                }
+                            },
+                            onClick = { 
+                                notificationManager.handleNotificationClick(notification)
+                                // Mark user interaction in database
+                                coroutineScope.launch {
+                                    try {
+                                        notificationRepository.markUserInteraction(
+                                            id = notification.id,
+                                            showedInterest = true,
+                                            interactionType = "click",
+                                            interactionAt = System.currentTimeMillis(),
+                                            rating = null,
+                                            notes = null
+                                        )
+                                    } catch (e: Exception) {
+                                        // Ignore if notification doesn't exist in DB
+                                    }
+                                }
+                            }
                         )
                     }
                 }
@@ -603,4 +672,22 @@ private fun NotificationCard(notification: NotificationItem) {
 private fun getCurrentFullDate(): String {
     val format = SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault())
     return format.format(Date())
+}
+
+// Extension function to convert NotificationEntity to AppNotification for UI consistency
+fun NotificationEntity.toAppNotification(): AppNotification {
+    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    return AppNotification(
+        id = this.id,
+        packageName = this.sourcePackage,
+        appName = this.sourceAppName,
+        title = this.title,
+        content = this.content,
+        time = timeFormat.format(Date(this.timestamp)),
+        timestamp = this.timestamp,
+        smallIcon = null, // SmallIcon is not stored in database
+        isOngoing = false, // Assume not ongoing for database notifications
+        isClearable = true, // Most notifications are clearable
+        contentIntent = null // ContentIntent is not stored in database
+    )
 }
