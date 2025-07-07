@@ -57,6 +57,7 @@ data class NotificationItem(
 
 @Composable
 fun NotificationPanel(
+    modifier: Modifier = Modifier,
     showPanel: Boolean,
     systemStatus: SystemStatus,
     systemStatusManager: SystemStatusManager,
@@ -117,7 +118,7 @@ fun NotificationPanel(
             )
         ) {
             Card(
-                modifier = Modifier
+                modifier = modifier
                     .width(400.dp)
                     .height(600.dp)
                     .clip(RoundedCornerShape(12.dp)),

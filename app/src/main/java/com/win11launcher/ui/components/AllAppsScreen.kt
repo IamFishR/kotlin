@@ -30,6 +30,7 @@ import com.google.accompanist.drawablepainter.rememberDrawablePainter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllAppsScreen(
+    modifier: Modifier = Modifier,
     appRepository: AppRepository,
     onBackClick: () -> Unit
 ) {
@@ -51,7 +52,7 @@ fun AllAppsScreen(
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(Color(0xFF232323))
             .padding(16.dp)

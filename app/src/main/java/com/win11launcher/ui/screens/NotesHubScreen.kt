@@ -20,6 +20,7 @@ import com.win11launcher.viewmodels.NotesHubScreen as Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotesHubScreen(
+    modifier: Modifier = Modifier,
     onNavigateBack: () -> Unit,
     viewModel: NotesHubViewModel = viewModel()
 ) {
@@ -32,7 +33,7 @@ fun NotesHubScreen(
     val notesViewState by viewModel.notesViewState.collectAsStateWithLifecycle()
     
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(bottom = 56.dp) // Account for taskbar
     ) {

@@ -56,6 +56,7 @@ enum class SettingsTab(
 
 @Composable
 fun SettingsScreen(
+    modifier: Modifier = Modifier,
     systemStatusManager: SystemStatusManager,
     onNavigateBack: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
@@ -118,7 +119,7 @@ fun SettingsScreen(
     }
     
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(Color(0xFF1E1E1E))
     ) {
