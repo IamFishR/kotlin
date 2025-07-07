@@ -693,7 +693,12 @@ private fun BottomActions(
 ) {
     var showPowerMenu by remember { mutableStateOf(false) }
     Row(
-        modifier = modifier,
+        modifier = modifier
+            .background(
+                Color(0xFF1A1A1A).copy(alpha = 0.8f),
+                RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+            )
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

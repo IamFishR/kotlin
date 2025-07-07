@@ -10,13 +10,6 @@
  - `adb devices` - Check connected Android devices
  - `adb install app/build/outputs/apk/debug/app-debug.apk` - Manual APK install
 
-## Android Device Connection in WSL
- - Enable USB Debugging on your Android device (Settings → Developer Options)
- - Install Android SDK Platform Tools on Windows
- - Connect device to Windows PC and authorize debugging
- - WSL can use Windows ADB daemon for device connection
- - Use `./gradlew installDebug --no-daemon` to build and install directly
-
 ## Build Issues in WSL
  - Gradle daemon hangs in WSL environment - always use `--no-daemon` flag
  - Regular `./gradlew build` will hang - avoid using it
@@ -26,10 +19,6 @@
  - check for deprecated APIs before using them
  - Build system uses Kotlin 2.1.0, Android Gradle Plugin 8.11.0
  - Target SDK 34, Compile SDK 36, Min SDK 26
-
-# Regarding Explainations
- - I am new to Android development, Kotlin, and Jetpack Compose.
- - So please provide correct names in explaination for the features i am trying to implement.
 
 # Explore, plan, code, commit
  - Explore the project structure and files regarding requested features (use multiple subagents strongly)

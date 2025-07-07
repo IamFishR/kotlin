@@ -63,13 +63,12 @@ fun Taskbar(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            verticalAlignment = Alignment.CenterVertically
         ) {
             // Left spacer
             Spacer(modifier = Modifier.weight(1f))
             
-            // Center taskbar items
+            // Center taskbar items (only main icons)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -85,21 +84,26 @@ fun Taskbar(
                 CommandButton(
                     onClick = onCommandClick
                 )
-                
-                NotificationButton(
-                    onClick = onSystemTrayClick
-                )
-                
-                SystemTrayButton()
-                
+            }
+            
+            // Center spacer
+            Spacer(modifier = Modifier.weight(1f))
+            
+            // Right side items
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
                 DateTimeDisplay(
                     systemStatus = systemStatus,
                     onClick = onSystemTrayClick
                 )
+                
+                NotificationButton(
+                    onClick = onSystemTrayClick
+                )
             }
-            
-            // Right spacer
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
@@ -240,8 +244,8 @@ private fun NotificationButton(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = Icons.Default.Notifications,
-            contentDescription = "Notifications",
+            imageVector = Icons.Default.Chat,
+            contentDescription = "Messages",
             tint = Color.White,
             modifier = Modifier.size(18.dp)
         )
