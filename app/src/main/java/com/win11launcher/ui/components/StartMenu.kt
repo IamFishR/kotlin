@@ -112,12 +112,12 @@ fun StartMenu(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
     ) {
-        Box(
+        Column(
             modifier = Modifier.fillMaxHeight()
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxHeight()
+                    .weight(1f)
                     .padding(bottom = 60.dp) // Space for bottom actions
                     .verticalScroll(rememberScrollState())
             ) {
@@ -184,11 +184,11 @@ fun StartMenu(
             }
             }
             
-            // Bottom actions positioned absolutely at the bottom
+            // Bottom actions positioned at the bottom
             BottomActions(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.BottomCenter),
+                    .align(Alignment.CenterHorizontally),
                 userProfile = userProfile,
                 userCustomization = userCustomization,
                 onPowerClick = onDismiss
@@ -791,6 +791,7 @@ private fun BottomActions(
             }
         }
         
+        // Bottom actions section - outside scrollable content
         Box {
             IconButton(
                 onClick = { showPowerMenu = true }
