@@ -80,7 +80,11 @@ fun StartMenu(
     
     // Load installed apps when component is created
     LaunchedEffect(Unit) {
-        appRepository.loadInstalledApps()
+        try {
+            appRepository.loadInstalledApps()
+        } catch (e: Exception) {
+            // Handle error silently
+        }
     }
     
     val installedApps by appRepository.installedApps
@@ -109,11 +113,11 @@ fun StartMenu(
         elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
     ) {
         Box(
-            modifier = Modifier.wrapContentHeight()
+            modifier = Modifier.fillMaxHeight()
         ) {
             Column(
                 modifier = Modifier
-                    .wrapContentHeight()
+                    .fillMaxHeight()
                     .padding(bottom = 60.dp) // Space for bottom actions
                     .verticalScroll(rememberScrollState())
             ) {
@@ -421,16 +425,30 @@ private fun SearchResultsSection(
                 )
             }
         } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(6),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            // Regular Grid layout instead of LazyVerticalGrid to avoid infinite height constraints
+            val searchRows = (searchResults.size + 5) / 6 // Calculate rows needed for 6 columns
+            Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(searchResults) { app ->
-                    SearchResultAppIcon(
-                        app = app,
-                        onClick = { appRepository.launchApp(app) }
-                    )
+                repeat(searchRows) { rowIndex ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        repeat(6) { columnIndex ->
+                            val appIndex = rowIndex * 6 + columnIndex
+                            if (appIndex < searchResults.size) {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    SearchResultAppIcon(
+                                        app = searchResults[appIndex],
+                                        onClick = { appRepository.launchApp(searchResults[appIndex]) }
+                                    )
+                                }
+                            } else {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -524,21 +542,34 @@ private fun PinnedAppsSection(
             }
         }
         
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(6),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.wrapContentHeight()
+        // Regular Grid layout instead of LazyVerticalGrid to avoid infinite height constraints
+        val rows = (pinnedApps.size + 5) / 6 // Calculate rows needed for 6 columns
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(pinnedApps) { app ->
-                PinnedAppIcon(
-                    app = app,
-                    onClick = { 
-                        when (app.launchAction) {
-                            else -> appLauncher.launchApp(app)
+            repeat(rows) { rowIndex ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    repeat(6) { columnIndex ->
+                        val appIndex = rowIndex * 6 + columnIndex
+                        if (appIndex < pinnedApps.size) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                PinnedAppIcon(
+                                    app = pinnedApps[appIndex],
+                                    onClick = { 
+                                        when (pinnedApps[appIndex].launchAction) {
+                                            else -> appLauncher.launchApp(pinnedApps[appIndex])
+                                        }
+                                    }
+                                )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
                         }
                     }
-                )
+                }
             }
         }
         
@@ -553,21 +584,34 @@ private fun PinnedAppsSection(
             modifier = Modifier.padding(bottom = 12.dp)
         )
         
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.wrapContentHeight()
+        // Regular Grid layout instead of LazyVerticalGrid to avoid infinite height constraints
+        val recommendedRows = (recommendedApps.size + 1) / 2 // Calculate rows needed for 2 columns
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(recommendedApps) { app ->
-                RecommendedAppItem(
-                    app = app,
-                    onClick = { 
-                        when (app.launchAction) {
-                            else -> appLauncher.launchApp(app)
+            repeat(recommendedRows) { rowIndex ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    repeat(2) { columnIndex ->
+                        val appIndex = rowIndex * 2 + columnIndex
+                        if (appIndex < recommendedApps.size) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                RecommendedAppItem(
+                                    app = recommendedApps[appIndex],
+                                    onClick = { 
+                                        when (recommendedApps[appIndex].launchAction) {
+                                            else -> appLauncher.launchApp(recommendedApps[appIndex])
+                                        }
+                                    }
+                                )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
                         }
                     }
-                )
+                }
             }
         }
     }
@@ -713,10 +757,11 @@ private fun BottomActions(
         ) {
             // Show profile picture if enabled and available
             if (userCustomization?.showUserPictureInStartMenu != false) {
-                if (!userProfile?.profilePicturePath.isNullOrEmpty() && 
-                    File(userProfile?.profilePicturePath ?: "").exists()) {
+                val profilePicturePath = userProfile?.profilePicturePath
+                if (!profilePicturePath.isNullOrEmpty() && 
+                    try { File(profilePicturePath).exists() } catch (e: Exception) { false }) {
                     AsyncImage(
-                        model = File(userProfile?.profilePicturePath ?: ""),
+                        model = File(profilePicturePath),
                         contentDescription = "Profile Picture",
                         modifier = Modifier
                             .size(32.dp)
@@ -738,8 +783,8 @@ private fun BottomActions(
                 Spacer(modifier = Modifier.width(8.dp))
                 
                 Text(
-                    text = userProfile?.displayName?.takeIf { it.isNotEmpty() } 
-                        ?: userProfile?.username ?: "User",
+                    text = userProfile?.displayName?.takeIf { !it.isNullOrEmpty() } 
+                        ?: userProfile?.username?.takeIf { !it.isNullOrEmpty() } ?: "User",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White
                 )
