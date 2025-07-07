@@ -17,7 +17,7 @@ import com.win11launcher.data.converters.Converters
 
 @Database(
     entities = [AppSetting::class, PermissionState::class, UserProfile::class, UserCustomization::class, UserFile::class],
-    version = 12,
+    version = 13,
     exportSchema = true
 )
 @androidx.room.TypeConverters(Converters::class)
@@ -60,25 +60,25 @@ abstract class NotesDatabase : RoomDatabase() {
                 
                 // Insert default user profile
                 db.execSQL("""
-                    INSERT INTO user_profiles (id, username, displayName, createdAt, updatedAt, isDefault)
-                    VALUES ('default', 'User', '', $currentTime, $currentTime, 1)
+                    INSERT INTO user_profiles (id, username, displayName, profilePicturePath, profilePictureUri, backgroundImagePath, themeColor, bio, email, createdAt, updatedAt, isDefault)
+                    VALUES ('default', 'User', '', '', '', '', '#0078D4', '', '', $currentTime, $currentTime, 1)
                 """)
                 
                 // Insert default user customization
                 db.execSQL("""
-                    INSERT INTO user_customizations (profileId, createdAt, updatedAt)
-                    VALUES ('default', $currentTime, $currentTime)
+                    INSERT INTO user_customizations (profileId, startMenuLayout, taskbarPosition, showUserPictureInStartMenu, showUsernameInStartMenu, enableAnimations, enableSounds, autoHideTaskbar, transparencyEffects, fontSize, iconSize, cornerRadius, accentColor, createdAt, updatedAt)
+                    VALUES ('default', 'DEFAULT', 'BOTTOM', 1, 1, 1, 0, 0, 1, 'MEDIUM', 'MEDIUM', 8, '#0078D4', $currentTime, $currentTime)
                 """)
                 
                 // Insert default permission states
                 db.execSQL("""
-                    INSERT INTO permission_states (permissionName, isGranted, isRequired, createdAt, updatedAt)
+                    INSERT INTO permission_states (permissionName, isGranted, isRequired, requestCount, userNotes, autoRequestEnabled, createdAt, updatedAt)
                     VALUES 
-                    ('android.permission.ACCESS_WIFI_STATE', 1, 1, $currentTime, $currentTime),
-                    ('android.permission.CHANGE_WIFI_STATE', 1, 1, $currentTime, $currentTime),
-                    ('android.permission.BLUETOOTH_CONNECT', 0, 0, $currentTime, $currentTime),
-                    ('android.permission.ACCESS_FINE_LOCATION', 0, 0, $currentTime, $currentTime),
-                    ('android.permission.SYSTEM_ALERT_WINDOW', 0, 0, $currentTime, $currentTime)
+                    ('android.permission.ACCESS_WIFI_STATE', 1, 1, 0, '', 1, $currentTime, $currentTime),
+                    ('android.permission.CHANGE_WIFI_STATE', 1, 1, 0, '', 1, $currentTime, $currentTime),
+                    ('android.permission.BLUETOOTH_CONNECT', 0, 0, 0, '', 1, $currentTime, $currentTime),
+                    ('android.permission.ACCESS_FINE_LOCATION', 0, 0, 0, '', 1, $currentTime, $currentTime),
+                    ('android.permission.SYSTEM_ALERT_WINDOW', 0, 0, 0, '', 1, $currentTime, $currentTime)
                 """)
             }
         }
