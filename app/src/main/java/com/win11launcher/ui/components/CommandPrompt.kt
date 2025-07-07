@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -98,16 +99,17 @@ private fun CommandPromptWindow(
         modifier = modifier
             .fillMaxWidth(0.9f)
             .fillMaxHeight(0.7f)
+            .blur(radius = 32.dp)
             .clip(RoundedCornerShape(8.dp))
             .border(
                 width = 1.dp,
-                color = Color(0xFF808080),
+                color = Color(0xFF808080).copy(alpha = 0.5f),
                 shape = RoundedCornerShape(8.dp)
             ),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF0C0C0C)
+            containerColor = Color(0xFF0C0C0C).copy(alpha = 0.8f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxSize()

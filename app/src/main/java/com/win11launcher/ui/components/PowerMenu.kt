@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -78,11 +79,12 @@ fun PowerMenu(
             Card(
                 modifier = Modifier
                     .width(180.dp)
+                    .blur(radius = 32.dp)
                     .clip(RoundedCornerShape(8.dp)),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF2D2D2D)
+                    containerColor = Color(0xFF2D2D2D).copy(alpha = 0.8f)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(4.dp)

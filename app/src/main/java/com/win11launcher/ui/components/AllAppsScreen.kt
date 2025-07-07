@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -54,7 +55,8 @@ fun AllAppsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF232323))
+            .blur(radius = 32.dp)
+            .background(Color(0xFF232323).copy(alpha = 0.7f))
             .padding(16.dp)
     ) {
         // Header with back button
