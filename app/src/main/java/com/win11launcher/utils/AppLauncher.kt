@@ -49,12 +49,16 @@ class AppLauncher(private val context: Context) {
             PinnedApp("Calculator", icon = Icons.Default.Calculate, launchAction = AppLaunchAction.Calculator),
             PinnedApp("Camera", icon = Icons.Default.Camera, launchAction = AppLaunchAction.Camera),
             PinnedApp("Photos", icon = Icons.Default.Photo, launchAction = AppLaunchAction.Photos),
-            PinnedApp("Store", icon = Icons.Default.Store, launchAction = AppLaunchAction.Store),
+            PinnedApp("Store", icon = Icons.Default.Store, launchAction = AppLaunchAction.Store)
+        )
+    }
+    
+    fun getRecommendedApps(): List<PinnedApp> {
+        return listOf(
             PinnedApp("Mail", icon = Icons.Default.Mail, launchAction = AppLaunchAction.Mail),
             PinnedApp("Calendar", icon = Icons.Default.CalendarToday, launchAction = AppLaunchAction.Calendar),
             PinnedApp("Music", icon = Icons.Default.MusicNote, launchAction = AppLaunchAction.Music),
-            PinnedApp("Videos", icon = Icons.Default.VideoLibrary, launchAction = AppLaunchAction.Videos),
-            PinnedApp("News", icon = Icons.Default.Article, launchAction = AppLaunchAction.News)
+            PinnedApp("Videos", icon = Icons.Default.VideoLibrary, launchAction = AppLaunchAction.Videos)
         )
     }
     

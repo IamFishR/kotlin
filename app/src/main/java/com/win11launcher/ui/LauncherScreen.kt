@@ -138,6 +138,11 @@ fun LauncherScreen() {
             },
             onSystemTrayClick = { 
                 showStartMenu = false
+            },
+            onTaskViewClick = {
+                // Task view - shows running apps/windows
+                // For now, dismiss start menu if open
+                showStartMenu = false
             }
         )
     }

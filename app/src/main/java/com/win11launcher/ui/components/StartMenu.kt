@@ -482,8 +482,10 @@ private fun PinnedAppsSection(
     val context = LocalContext.current
     val appLauncher = remember { AppLauncher(context) }
     val pinnedApps = remember { appLauncher.getPinnedApps() }
+    val recommendedApps = remember { appLauncher.getRecommendedApps() }
     
     Column(modifier = modifier) {
+        // Pinned Apps Section
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -508,13 +510,19 @@ private fun PinnedAppsSection(
                     text = "All apps",
                     fontSize = 14.sp
                 )
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
             }
         }
         
         LazyVerticalGrid(
             columns = GridCells.Fixed(6),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.height(120.dp)
         ) {
             items(pinnedApps) { app ->
                 PinnedAppIcon(
@@ -526,6 +534,101 @@ private fun PinnedAppsSection(
                     }
                 )
             }
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        // Recommended Apps Section
+        Text(
+            text = "Recommended",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+        
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.height(160.dp)
+        ) {
+            items(recommendedApps) { app ->
+                RecommendedAppItem(
+                    app = app,
+                    onClick = { 
+                        when (app.launchAction) {
+                            else -> appLauncher.launchApp(app)
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecommendedAppItem(
+    app: PinnedApp,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .background(
+                    Color(0xFF323233),
+                    RoundedCornerShape(6.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (app.icon != null) {
+                Icon(
+                    imageVector = app.icon,
+                    contentDescription = app.name,
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp)
+                )
+            } else if (app.iconRes != null) {
+                Icon(
+                    painter = painterResource(app.iconRes),
+                    contentDescription = app.name,
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.width(12.dp))
+        
+        Column {
+            Text(
+                text = app.name,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White,
+                fontSize = 13.sp,
+                maxLines = 1
+            )
+            Text(
+                text = when (app.name) {
+                    "Mail" -> "1m ago"
+                    "Calendar" -> "5m ago" 
+                    "Music" -> "2h ago"
+                    "Videos" -> "3m ago"
+                    else -> "Now"
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFFCCCCCC),
+                fontSize = 11.sp
+            )
         }
     }
 }

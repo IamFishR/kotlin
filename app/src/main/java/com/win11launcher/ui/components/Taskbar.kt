@@ -35,7 +35,8 @@ fun Taskbar(
     systemStatus: SystemStatus,
     onStartClick: () -> Unit,
     onCommandClick: () -> Unit,
-    onSystemTrayClick: () -> Unit
+    onSystemTrayClick: () -> Unit,
+    onTaskViewClick: () -> Unit = {}
 ) {
     Box(
         modifier = modifier
@@ -62,26 +63,43 @@ fun Taskbar(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            StartButton(
-                onClick = onStartClick,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            
-            CommandButton(
-                onClick = onCommandClick,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-
-            
+            // Left spacer
             Spacer(modifier = Modifier.weight(1f))
             
-            SystemTray(
-                systemStatus = systemStatus,
-                onSystemTrayClick = onSystemTrayClick,
-                modifier = Modifier.padding(start = 8.dp)
-            )
+            // Center taskbar items
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                StartButton(
+                    onClick = onStartClick
+                )
+                
+                TaskViewButton(
+                    onClick = onTaskViewClick
+                )
+                
+                CommandButton(
+                    onClick = onCommandClick
+                )
+                
+                NotificationButton(
+                    onClick = onSystemTrayClick
+                )
+                
+                SystemTrayButton()
+                
+                DateTimeDisplay(
+                    systemStatus = systemStatus,
+                    onClick = onSystemTrayClick
+                )
+            }
+            
+            // Right spacer
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
@@ -165,6 +183,28 @@ private fun StartButton(
 }
 
 @Composable
+private fun TaskViewButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color.Transparent)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Apps,
+            contentDescription = "Task View",
+            tint = Color.White,
+            modifier = Modifier.size(18.dp)
+        )
+    }
+}
+
+@Composable
 private fun CommandButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -182,6 +222,48 @@ private fun CommandButton(
             contentDescription = "Command Prompt",
             tint = Color.White,
             modifier = Modifier.size(18.dp)
+        )
+    }
+}
+
+@Composable
+private fun NotificationButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color.Transparent)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Notifications,
+            contentDescription = "Notifications",
+            tint = Color.White,
+            modifier = Modifier.size(18.dp)
+        )
+    }
+}
+
+@Composable
+private fun SystemTrayButton(
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color.Transparent),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.ExpandLess,
+            contentDescription = "System Tray",
+            tint = Color.White,
+            modifier = Modifier.size(16.dp)
         )
     }
 }
