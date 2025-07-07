@@ -17,7 +17,7 @@ import com.win11launcher.data.converters.Converters
 
 @Database(
     entities = [AppSetting::class, PermissionState::class, UserProfile::class, UserCustomization::class, UserFile::class],
-    version = 11,
+    version = 12,
     exportSchema = true
 )
 @androidx.room.TypeConverters(Converters::class)
@@ -52,10 +52,10 @@ abstract class NotesDatabase : RoomDatabase() {
                 // Insert default settings
                 val currentTime = System.currentTimeMillis()
                 db.execSQL("""
-                    INSERT INTO app_settings (key, value, settingType, category, description, createdAt, updatedAt)
+                    INSERT INTO app_settings (key, value, settingType, category, description, isUserModified, createdAt, updatedAt)
                     VALUES 
-                    ('theme_mode', 'DARK', 'STRING', 'appearance', 'Application theme mode', $currentTime, $currentTime),
-                    ('launcher_auto_start', 'true', 'BOOLEAN', 'system', 'Start launcher automatically on boot', $currentTime, $currentTime)
+                    ('theme_mode', 'DARK', 'STRING', 'appearance', 'Application theme mode', 0, $currentTime, $currentTime),
+                    ('launcher_auto_start', 'true', 'BOOLEAN', 'system', 'Start launcher automatically on boot', 0, $currentTime, $currentTime)
                 """)
                 
                 // Insert default user profile
