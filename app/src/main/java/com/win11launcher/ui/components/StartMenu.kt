@@ -522,7 +522,7 @@ private fun PinnedAppsSection(
             columns = GridCells.Fixed(6),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.height(120.dp)
+            modifier = Modifier.wrapContentHeight()
         ) {
             items(pinnedApps) { app ->
                 PinnedAppIcon(
@@ -551,7 +551,7 @@ private fun PinnedAppsSection(
             columns = GridCells.Fixed(2),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.height(160.dp)
+            modifier = Modifier.wrapContentHeight()
         ) {
             items(recommendedApps) { app ->
                 RecommendedAppItem(

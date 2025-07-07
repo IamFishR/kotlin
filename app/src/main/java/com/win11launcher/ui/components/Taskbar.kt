@@ -64,11 +64,10 @@ fun Taskbar(
                 .fillMaxSize()
                 .padding(vertical = 8.dp)
         ) {
-            // Center taskbar items (only main icons) - absolutely centered
             Row(
                 modifier = Modifier.align(Alignment.Center),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 StartButton(
                     onClick = onStartClick

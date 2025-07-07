@@ -86,10 +86,10 @@ fun LauncherScreen() {
                 }
                 showStartMenu -> {
                     StartMenu(
-                        modifier = Modifier // No longer needs padding(bottom = 56.dp)
-                            .align(Alignment.BottomStart) // Aligns to bottom of this Box
-                            .width(600.dp)
-                            .height(680.dp),
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter) // Center horizontally at bottom
+                            .fillMaxWidth(0.8f) // 80% of screen width
+                            .wrapContentHeight(), // Height based on content
                         onDismiss = { showStartMenu = false },
                     )
                 }
