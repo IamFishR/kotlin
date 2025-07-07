@@ -143,3 +143,4 @@ android-sdk/
 app/src/main/assets/*.tflite
 app/src/main/assets/*.task
 app/src/main/assets/*.bin
+local.properties
