@@ -7,6 +7,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.with
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -35,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -132,6 +134,24 @@ fun StartMenu(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
+                        .pointerInput(showAllApps) {
+                            detectDragGestures(
+                                onDragEnd = {
+                                    // No action needed on drag end
+                                }
+                            ) { change, dragAmount ->
+                                val threshold = 100f
+                                
+                                // Swipe left (negative dragAmount.x) to go to All Apps
+                                if (dragAmount.x < -threshold && !showAllApps) {
+                                    showAllApps = true
+                                }
+                                // Swipe right (positive dragAmount.x) to go back to Pinned Apps
+                                else if (dragAmount.x > threshold && showAllApps) {
+                                    showAllApps = false
+                                }
+                            }
+                        }
                 ) { isShowingAllApps ->
                     if (isShowingAllApps) {
                         AllAppsView(
