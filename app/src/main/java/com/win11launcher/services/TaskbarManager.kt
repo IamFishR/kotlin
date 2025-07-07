@@ -219,7 +219,6 @@ class TaskbarManager @Inject constructor(
     
     private fun extractGroupId(window: WindowState): String {
         return when {
-            window.id.startsWith("note_detail_") -> "notes_hub"
             window.id.startsWith("external_app_") -> {
                 val appId = window.id.removePrefix("external_app_")
                 "app_$appId"
@@ -230,7 +229,6 @@ class TaskbarManager @Inject constructor(
     
     private fun extractGroupTitle(window: WindowState): String {
         return when {
-            window.id.startsWith("note_detail_") -> "Notes Hub"
             window.id.startsWith("external_app_") -> window.title
             else -> window.title
         }

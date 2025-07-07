@@ -85,13 +85,6 @@ class WindowRouter @Inject constructor(
         }
     }
     
-    /**
-     * Navigates to a parameterized destination (like NoteDetail)
-     */
-    fun navigateToNoteDetail(noteId: String, noteTitle: String) {
-        val destination = WindowDestination.NoteDetail(noteId, noteTitle)
-        navigateTo(destination)
-    }
     
     /**
      * Navigates to an external app
@@ -343,8 +336,6 @@ class WindowRouter @Inject constructor(
     private fun registerDefaultDestinations() {
         // Register built-in destinations
         registerDestination("home", WindowDestination.Home)
-        registerDestination("notes_hub", WindowDestination.NotesHub)
-        registerDestination("rule_wizard", WindowDestination.RuleWizard)
         registerDestination("file_manager", WindowDestination.FileManager)
         registerDestination("settings", WindowDestination.Settings)
         registerDestination("all_apps", WindowDestination.AllApps)

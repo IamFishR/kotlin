@@ -14,13 +14,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.win11launcher.data.AppRepository
 import com.win11launcher.ui.components.AllAppsScreen
-import com.win11launcher.ui.components.ChatbotScreen
 import com.win11launcher.ui.components.CommandPrompt
-import com.win11launcher.ui.components.NotificationPanel
 import com.win11launcher.ui.components.StartMenu
 import com.win11launcher.ui.components.Taskbar
 import com.win11launcher.ui.components.WallpaperBackground
-import com.win11launcher.ui.screens.NotesHubScreen
 import com.win11launcher.ui.screens.SettingsScreen
 import com.win11launcher.utils.SystemStatusManager
 import com.win11launcher.utils.rememberWallpaperManager
@@ -34,11 +31,8 @@ fun LauncherScreen() {
     
     var showStartMenu by remember { mutableStateOf(false) }
     var showAllApps by remember { mutableStateOf(false) }
-    var showNotificationPanel by remember { mutableStateOf(false) }
-    var showNotesHub by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showCommandPrompt by remember { mutableStateOf(false) }
-    var showChatbot by remember { mutableStateOf(false) }
     
     // Start monitoring system status
     LaunchedEffect(Unit) {
@@ -80,12 +74,6 @@ fun LauncherScreen() {
                         onNavigateBack = { showSettings = false }
                     )
                 }
-                showNotesHub -> {
-                    NotesHubScreen(
-                        modifier = Modifier.fillMaxSize(), // Fill this content Box
-                        onNavigateBack = { showNotesHub = false }
-                    )
-                }
                 showAllApps -> {
                     AllAppsScreen(
                         modifier = Modifier.fillMaxSize(), // Fill this content Box
@@ -103,16 +91,12 @@ fun LauncherScreen() {
                             .width(600.dp)
                             .height(680.dp),
                         onDismiss = { showStartMenu = false },
-                        onNotesHubClick = {
-                            showStartMenu = false
-                            showNotesHub = true
-                        },
                     )
                 }
             }
 
             // Settings icon in top left corner of the main content area
-            if (!showSettings && !showNotesHub && !showAllApps) {
+            if (!showSettings && !showAllApps) {
                 IconButton(
                     onClick = { showSettings = true },
                     modifier = Modifier
@@ -129,20 +113,7 @@ fun LauncherScreen() {
                 }
             }
 
-            if (showChatbot) {
-                ChatbotScreen(modifier = Modifier.fillMaxSize()) // Fill this content Box
-            }
 
-            // Notification panel - typically an overlay, might need alignment if within this box
-            // Or could be outside this main content box if it's meant to overlay taskbar too
-            // For now, keeping it inside, assuming it aligns within the padded Box.
-            NotificationPanel(
-                modifier = Modifier.align(Alignment.TopEnd), // Example alignment
-                showPanel = showNotificationPanel,
-                systemStatus = systemStatus,
-                systemStatusManager = systemStatusManager,
-                onDismiss = { showNotificationPanel = false }
-            )
 
             // Command prompt - also an overlay
             CommandPrompt(
@@ -160,18 +131,12 @@ fun LauncherScreen() {
             systemStatus = systemStatus,
             onStartClick = { 
                 showStartMenu = !showStartMenu
-                showNotificationPanel = false
             },
             onCommandClick = {
                 showCommandPrompt = true
                 showStartMenu = false
-                showNotificationPanel = false
-            },
-            onAiClick = {
-                showChatbot = !showChatbot
             },
             onSystemTrayClick = { 
-                showNotificationPanel = !showNotificationPanel
                 showStartMenu = false
             }
         )

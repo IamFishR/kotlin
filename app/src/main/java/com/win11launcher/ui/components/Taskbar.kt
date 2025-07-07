@@ -35,7 +35,6 @@ fun Taskbar(
     systemStatus: SystemStatus,
     onStartClick: () -> Unit,
     onCommandClick: () -> Unit,
-    onAiClick: () -> Unit,
     onSystemTrayClick: () -> Unit
 ) {
     Box(
@@ -70,10 +69,6 @@ fun Taskbar(
                 modifier = Modifier.padding(end = 8.dp)
             )
 
-            AiButton(
-                onClick = onAiClick,
-                modifier = Modifier.padding(end = 8.dp)
-            )
             
             Spacer(modifier = Modifier.weight(1f))
             
@@ -86,27 +81,6 @@ fun Taskbar(
     }
 }
 
-@Composable
-private fun AiButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .size(40.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(Color.Transparent)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.AutoAwesome,
-            contentDescription = "AI Chat",
-            tint = Color.White,
-            modifier = Modifier.size(18.dp)
-        )
-    }
-}
 
 @Composable
 private fun StartButton(

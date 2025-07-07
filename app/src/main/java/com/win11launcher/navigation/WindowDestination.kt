@@ -1,12 +1,9 @@
 package com.win11launcher.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Note
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -52,65 +49,8 @@ sealed class WindowDestination {
         override val maximumSize: DpSize? = null
     }
     
-    /**
-     * Notes Hub main window
-     */
-    object NotesHub : WindowDestination() {
-        override val windowId: String = "notes_hub_main"
-        override val title: String = "Notes Hub"
-        override val icon: ImageVector = Icons.Default.Note
-        override val defaultSize: DpSize = DpSize(1000.dp, 700.dp)
-        override val isResizable: Boolean = true
-        override val isMinimizable: Boolean = true
-        override val isMaximizable: Boolean = true
-        override val isClosable: Boolean = true
-        override val alwaysOnTop: Boolean = false
-        override val showInTaskbar: Boolean = true
-        override val hasMenuBar: Boolean = true
-        override val minimumSize: DpSize = DpSize(600.dp, 400.dp)
-        override val maximumSize: DpSize? = null
-    }
     
-    /**
-     * Rule creation wizard window
-     */
-    object RuleWizard : WindowDestination() {
-        override val windowId: String = "notes_rule_wizard"
-        override val title: String = "Create Notification Rule"
-        override val icon: ImageVector = Icons.Default.Add
-        override val defaultSize: DpSize = DpSize(600.dp, 500.dp)
-        override val isResizable: Boolean = false
-        override val isMinimizable: Boolean = true
-        override val isMaximizable: Boolean = false
-        override val isClosable: Boolean = true
-        override val alwaysOnTop: Boolean = false
-        override val showInTaskbar: Boolean = true
-        override val hasMenuBar: Boolean = false
-        override val minimumSize: DpSize = DpSize(600.dp, 500.dp)
-        override val maximumSize: DpSize = DpSize(600.dp, 500.dp)
-    }
     
-    /**
-     * Individual note detail window
-     */
-    data class NoteDetail(
-        val noteId: String,
-        val noteTitle: String
-    ) : WindowDestination() {
-        override val windowId: String = "note_detail_$noteId"
-        override val title: String = noteTitle
-        override val icon: ImageVector = Icons.Default.Description
-        override val defaultSize: DpSize = DpSize(800.dp, 600.dp)
-        override val isResizable: Boolean = true
-        override val isMinimizable: Boolean = true
-        override val isMaximizable: Boolean = true
-        override val isClosable: Boolean = true
-        override val alwaysOnTop: Boolean = false
-        override val showInTaskbar: Boolean = true
-        override val hasMenuBar: Boolean = true
-        override val minimumSize: DpSize = DpSize(400.dp, 300.dp)
-        override val maximumSize: DpSize? = null
-    }
     
     /**
      * File Manager window
