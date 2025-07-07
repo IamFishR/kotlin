@@ -119,7 +119,6 @@ fun StartMenu(
                 modifier = Modifier
                     .weight(1f)
                     .padding(bottom = 60.dp) // Space for bottom actions
-                    .verticalScroll(rememberScrollState())
             ) {
             SearchBar(
                 modifier = Modifier
@@ -297,7 +296,7 @@ private fun AllAppsView(
             // Apps list with scrollbar
             LazyColumn(
                 state = listState,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 groupedApps.forEach { (letter, apps) ->
