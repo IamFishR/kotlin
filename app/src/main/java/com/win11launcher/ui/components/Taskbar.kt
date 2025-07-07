@@ -59,17 +59,14 @@ fun Taskbar(
                 .background(Color(0xFF404040))
                 .align(Alignment.TopCenter)
         )
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(vertical = 8.dp)
         ) {
-            // Left spacer
-            Spacer(modifier = Modifier.weight(1f))
-            
-            // Center taskbar items (only main icons)
+            // Center taskbar items (only main icons) - absolutely centered
             Row(
+                modifier = Modifier.align(Alignment.Center),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
@@ -86,14 +83,13 @@ fun Taskbar(
                 )
             }
             
-            // Center spacer
-            Spacer(modifier = Modifier.weight(1f))
-            
             // Right side items
             Row(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(end = 8.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 DateTimeDisplay(
                     systemStatus = systemStatus,
@@ -597,12 +593,12 @@ private fun DateTimeDisplay(
             .clickable { onClick() }
             .padding(horizontal = 8.dp, vertical = 2.dp),
         horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.spacedBy((-2).dp)
+        verticalArrangement = Arrangement.spacedBy((-4).dp)
     ) {
         Text(
             text = systemStatus.currentTime,
             color = Color.White,
-            fontSize = 11.sp,
+            fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.End
         )
@@ -610,7 +606,7 @@ private fun DateTimeDisplay(
         Text(
             text = systemStatus.currentDate,
             color = Color.White,
-            fontSize = 11.sp,
+            fontSize = 13.sp,
             textAlign = TextAlign.End
         )
     }
