@@ -65,7 +65,6 @@ fun StartMenu(
     onDismiss: () -> Unit,
     onAllAppsClick: () -> Unit = {},
     onNotesHubClick: () -> Unit = {},
-    onAllNotificationsClick: () -> Unit = {},
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -146,8 +145,7 @@ fun StartMenu(
                         PinnedAppsSection(
                             modifier = Modifier.fillMaxSize(),
                             onAllAppsClick = { showAllApps = true },
-                            onNotesHubClick = onNotesHubClick,
-                            onAllNotificationsClick = onAllNotificationsClick
+                            onNotesHubClick = onNotesHubClick
                         )
                     }
                 }
@@ -456,8 +454,7 @@ private fun SearchResultAppIcon(
 private fun PinnedAppsSection(
     modifier: Modifier = Modifier,
     onAllAppsClick: () -> Unit = {},
-    onNotesHubClick: () -> Unit = {},
-    onAllNotificationsClick: () -> Unit = {}
+    onNotesHubClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val appLauncher = remember { AppLauncher(context) }
@@ -502,7 +499,6 @@ private fun PinnedAppsSection(
                     onClick = { 
                         when (app.launchAction) {
                             com.win11launcher.utils.AppLaunchAction.NotesHub -> onNotesHubClick()
-                            com.win11launcher.utils.AppLaunchAction.AllNotifications -> onAllNotificationsClick()
                             else -> appLauncher.launchApp(app)
                         }
                     }
