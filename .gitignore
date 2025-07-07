@@ -144,3 +144,4 @@ app/src/main/assets/*.tflite
 app/src/main/assets/*.task
 app/src/main/assets/*.bin
 local.properties
+app/src/main/assets/Screenshot_20250707_214735.png

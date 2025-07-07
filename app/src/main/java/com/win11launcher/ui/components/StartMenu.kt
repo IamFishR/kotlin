@@ -110,13 +110,14 @@ fun StartMenu(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
+                .wrapContentHeight()
+                .padding(0.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             SearchBar(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
+                    .padding(bottom = 16.dp, top = 16.dp, start = 16.dp, end = 16.dp),
                 searchQuery = searchQuery,
                 onSearchQueryChange = { searchQuery = it }
             )
@@ -126,7 +127,7 @@ fun StartMenu(
                 SearchResultsSection(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .wrapContentHeight(),
                     searchResults = filteredApps,
                     appRepository = appRepository
                 )
@@ -139,7 +140,7 @@ fun StartMenu(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f)
+                        .wrapContentHeight()
                         .pointerInput(showAllApps) {
                             detectDragGestures(
                                 onDragEnd = {
@@ -199,7 +200,7 @@ private fun SearchBar(
         modifier = modifier,
         placeholder = {
             Text(
-                text = "Search for apps, settings, and documents",
+                text = "Search for apps, settings",
                 color = Color(0xFFCCCCCC)
             )
         },
@@ -212,6 +213,7 @@ private fun SearchBar(
         },
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color(0xFF0078D4),
+            backgroundColor = Color(0xFF1A1A1A),
             unfocusedBorderColor = Color(0xFF404040),
             focusedTextColor = Color.White,
             unfocusedTextColor = Color.White,
@@ -698,7 +700,7 @@ private fun BottomActions(
                 Color(0xFF1A1A1A).copy(alpha = 0.8f),
                 RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
             )
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 0.dp, top = 7.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

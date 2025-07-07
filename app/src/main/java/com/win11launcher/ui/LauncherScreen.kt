@@ -89,7 +89,8 @@ fun LauncherScreen() {
                         modifier = Modifier
                             .align(Alignment.BottomCenter) // Center horizontally at bottom
                             .fillMaxWidth(0.8f) // 80% of screen width
-                            .wrapContentHeight(), // Height based on content
+                            .wrapContentHeight() // Height based on content
+                            .fillMaxHeight(0.5f), // Maximum 50% of screen height
                         onDismiss = { showStartMenu = false },
                     )
                 }
