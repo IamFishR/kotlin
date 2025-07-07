@@ -16,7 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
+import androidx.compose.foundation.border
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -55,8 +55,11 @@ fun AllAppsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .blur(radius = 32.dp)
-            .background(Color(0xFF232323).copy(alpha = 0.7f))
+            .background(Color(0xFF232323).copy(alpha = 0.9f))
+            .border(
+                width = 1.dp,
+                color = Color.White.copy(alpha = 0.1f)
+            )
             .padding(16.dp)
     ) {
         // Header with back button
@@ -94,14 +97,14 @@ fun AllAppsScreen(
             placeholder = {
                 Text(
                     text = "Search for apps",
-                    color = Color.Gray
+                    color = Color(0xFFCCCCCC)
                 )
             },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Search",
-                    tint = Color.Gray
+                    tint = Color(0xFFCCCCCC)
                 )
             },
             modifier = Modifier
@@ -109,7 +112,7 @@ fun AllAppsScreen(
                 .clip(RoundedCornerShape(8.dp)),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFF0078D4),
-                unfocusedBorderColor = Color.Gray,
+                unfocusedBorderColor = Color(0xFF666666),
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
                 cursorColor = Color(0xFF0078D4)
@@ -122,7 +125,7 @@ fun AllAppsScreen(
         // Apps count
         Text(
             text = "${filteredApps.size} apps",
-            color = Color.Gray,
+            color = Color(0xFFCCCCCC),
             fontSize = 14.sp,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -169,7 +172,7 @@ private fun AppItem(
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(Color.Gray),
+                .background(Color(0xFF444444)),
             contentAlignment = Alignment.Center
         ) {
             Icon(

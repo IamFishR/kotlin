@@ -31,4 +31,9 @@
  - I am new to Android development, Kotlin, and Jetpack Compose.
  - So please provide correct names in explaination for the features i am trying to implement.
 
-- always create multiple subagents to work faster and more efficiently, while maintaining a single main agent for overall coordination. make sure to have accuracy and performance in mind when creating these subagents.
+# Explore, plan, code, commit
+ - Explore the project structure and files regarding requested features (use multiple subagents strongly)
+ - make a plan for how to approach a specific problem
+ - implement its solution in code
+ - Commit changes with clear messages
+ - Push to remote repository when ready

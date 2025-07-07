@@ -17,7 +17,6 @@ import com.win11launcher.R
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -40,10 +39,14 @@ fun Taskbar(
 ) {
     Box(
         modifier = modifier
-            .blur(radius = 32.dp)
             .background(
-                Color(0xFF1F1F1F).copy(alpha = 0.8f),
+                Color(0xFF1F1F1F).copy(alpha = 0.9f),
                 RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = Color.White.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
             )
             .padding(horizontal = 8.dp)
     ) {

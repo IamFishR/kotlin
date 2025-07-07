@@ -33,7 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
+import androidx.compose.foundation.border
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -97,12 +97,16 @@ fun StartMenu(
     }
     Card(
         modifier = modifier
-            .blur(radius = 32.dp)
-            .clip(RoundedCornerShape(12.dp)),
+            .clip(RoundedCornerShape(12.dp))
+            .border(
+                width = 1.dp,
+                color = Color.White.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(12.dp)
+            ),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF232323).copy(alpha = 0.7f)
+            containerColor = Color(0xFF232323).copy(alpha = 0.9f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
     ) {
         Column(
             modifier = Modifier
@@ -196,14 +200,14 @@ private fun SearchBar(
         placeholder = {
             Text(
                 text = "Search for apps, settings, and documents",
-                color = Color(0xFF999999)
+                color = Color(0xFFCCCCCC)
             )
         },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = null,
-                tint = Color(0xFF999999)
+                tint = Color(0xFFCCCCCC)
             )
         },
         colors = OutlinedTextFieldDefaults.colors(
@@ -406,7 +410,7 @@ private fun SearchResultsSection(
             ) {
                 Text(
                     text = "No apps found",
-                    color = Color(0xFF999999),
+                    color = Color(0xFFCCCCCC),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
