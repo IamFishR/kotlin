@@ -87,9 +87,9 @@ fun Taskbar(
             Row(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .padding(end = 8.dp),
+                    .padding(end = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 DateTimeDisplay(
                     systemStatus = systemStatus,
@@ -591,7 +591,7 @@ private fun DateTimeDisplay(
     Column(
         modifier = modifier
             .clickable { onClick() }
-            .padding(horizontal = 8.dp, vertical = 2.dp),
+            .padding(horizontal = 2.dp, vertical = 2.dp),
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy((-4).dp)
     ) {
