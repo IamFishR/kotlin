@@ -108,12 +108,15 @@ fun StartMenu(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .wrapContentHeight()
-                .padding(0.dp)
-                .verticalScroll(rememberScrollState())
+        Box(
+            modifier = Modifier.wrapContentHeight()
         ) {
+            Column(
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .padding(bottom = 60.dp) // Space for bottom actions
+                    .verticalScroll(rememberScrollState())
+            ) {
             SearchBar(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -175,11 +178,13 @@ fun StartMenu(
                     }
                 }
             }
+            }
             
-            Spacer(modifier = Modifier.height(16.dp))
-            
+            // Bottom actions positioned absolutely at the bottom
             BottomActions(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter),
                 userProfile = userProfile,
                 userCustomization = userCustomization,
                 onPowerClick = onDismiss
@@ -213,7 +218,6 @@ private fun SearchBar(
         },
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color(0xFF0078D4),
-            backgroundColor = Color(0xFF1A1A1A),
             unfocusedBorderColor = Color(0xFF404040),
             focusedTextColor = Color.White,
             unfocusedTextColor = Color.White,
@@ -700,7 +704,7 @@ private fun BottomActions(
                 Color(0xFF1A1A1A).copy(alpha = 0.8f),
                 RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
             )
-            .padding(horizontal = 0.dp, top = 7.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
