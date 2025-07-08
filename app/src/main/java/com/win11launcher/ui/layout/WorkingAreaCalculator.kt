@@ -92,6 +92,11 @@ class WorkingAreaCalculator(
         return Offset(x, y.coerceAtLeast(LayoutConstants.WORKING_AREA_PADDING_TOP.value))
     }
     
+    fun getTaskbarPosition(): Offset {
+        val bounds = calculateBounds()
+        return Offset(bounds.taskbarArea.left, bounds.taskbarArea.top)
+    }
+    
     fun isPositionInTaskbar(position: Offset): Boolean {
         return calculateBounds().taskbarArea.contains(position)
     }

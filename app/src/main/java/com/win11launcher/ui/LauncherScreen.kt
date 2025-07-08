@@ -55,98 +55,116 @@ fun LauncherScreen() {
     }
     
     val systemStatus by systemStatusManager.systemStatus
-    val workingAreaCalculator = rememberWorkingAreaCalculator()
 
     WallpaperBackground(
         wallpaper = wallpaperManager.getWallpaper(),
         modifier = Modifier.fillMaxSize()
     ) {
-        // Working area for main content
-        WorkingAreaContainer(
-            workingAreaCalculator = workingAreaCalculator
-        ) {
-            when {
-                showSettings -> {
-                    SettingsScreen(
-                        modifier = Modifier.fillMaxSize(),
-                        systemStatusManager = systemStatusManager,
-                        onNavigateBack = { showSettings = false }
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Main content area - simple padding from bottom for taskbar
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        top = LayoutConstants.WORKING_AREA_PADDING_TOP,
+                        start = LayoutConstants.WORKING_AREA_PADDING_HORIZONTAL,
+                        end = LayoutConstants.WORKING_AREA_PADDING_HORIZONTAL,
+                        bottom = LayoutConstants.TASKBAR_HEIGHT + LayoutConstants.TASKBAR_MARGIN_BOTTOM + LayoutConstants.WORKING_AREA_PADDING_BOTTOM
                     )
-                }
-                showAllApps -> {
-                    AllAppsScreen(
-                        modifier = Modifier.fillMaxSize(),
-                        appRepository = appRepository,
-                        onBackClick = {
-                            showAllApps = false
-                            showStartMenu = true
-                        }
-                    )
-                }
-            }
-
-            // Settings icon in top left corner of the working area
-            if (!showSettings && !showAllApps) {
-                IconButton(
-                    onClick = { showSettings = true },
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(LayoutConstants.SPACING_LARGE)
-                        .size(40.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Settings",
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-
-            // Command prompt overlay
-            CommandPrompt(
-                modifier = Modifier.fillMaxSize(),
-                isVisible = showCommandPrompt,
-                onDismiss = { showCommandPrompt = false }
-            )
-        }
-
-        // Taskbar container with proper positioning
-        TaskbarContainer(
-            workingAreaCalculator = workingAreaCalculator
-        ) {
-            Taskbar(
-                modifier = Modifier.fillMaxSize(),
-                systemStatus = systemStatus,
-                onStartClick = { 
-                    showStartMenu = !showStartMenu
-                },
-                onCommandClick = {
-                    showCommandPrompt = true
-                    showStartMenu = false
-                },
-                onSystemTrayClick = { 
-                    showStartMenu = false
-                },
-                onTaskViewClick = {
-                    showStartMenu = false
-                }
-            )
-        }
-        
-        // StartMenu overlay with proper positioning
-        if (showStartMenu) {
-            OverlayContainer(
-                position = workingAreaCalculator.getStartMenuPosition(),
-                showBackdrop = false,
-                onDismiss = { showStartMenu = false }
             ) {
-                StartMenu(
-                    modifier = Modifier
-                        .width(LayoutConstants.START_MENU_WIDTH)
-                        .heightIn(max = LayoutConstants.START_MENU_MAX_HEIGHT),
-                    onDismiss = { showStartMenu = false }
+                when {
+                    showSettings -> {
+                        SettingsScreen(
+                            modifier = Modifier.fillMaxSize(),
+                            systemStatusManager = systemStatusManager,
+                            onNavigateBack = { showSettings = false }
+                        )
+                    }
+                    showAllApps -> {
+                        AllAppsScreen(
+                            modifier = Modifier.fillMaxSize(),
+                            appRepository = appRepository,
+                            onBackClick = {
+                                showAllApps = false
+                                showStartMenu = true
+                            }
+                        )
+                    }
+                }
+
+                // Settings icon in top left corner
+                if (!showSettings && !showAllApps) {
+                    IconButton(
+                        onClick = { showSettings = true },
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(LayoutConstants.SPACING_LARGE)
+                            .size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
+                // Command prompt overlay
+                CommandPrompt(
+                    modifier = Modifier.fillMaxSize(),
+                    isVisible = showCommandPrompt,
+                    onDismiss = { showCommandPrompt = false }
                 )
+            }
+
+            // Taskbar - positioned at bottom with margins
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(
+                        start = LayoutConstants.TASKBAR_MARGIN_HORIZONTAL,
+                        end = LayoutConstants.TASKBAR_MARGIN_HORIZONTAL,
+                        bottom = LayoutConstants.TASKBAR_MARGIN_BOTTOM
+                    )
+                    .height(LayoutConstants.TASKBAR_HEIGHT)
+            ) {
+                Taskbar(
+                    modifier = Modifier.fillMaxSize(),
+                    systemStatus = systemStatus,
+                    onStartClick = { 
+                        showStartMenu = !showStartMenu
+                    },
+                    onCommandClick = {
+                        showCommandPrompt = true
+                        showStartMenu = false
+                    },
+                    onSystemTrayClick = { 
+                        showStartMenu = false
+                    },
+                    onTaskViewClick = {
+                        showStartMenu = false
+                    }
+                )
+            }
+            
+            // StartMenu overlay - positioned above taskbar
+            if (showStartMenu) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(
+                            bottom = LayoutConstants.TASKBAR_HEIGHT + LayoutConstants.TASKBAR_MARGIN_BOTTOM + LayoutConstants.START_MENU_MARGIN_BOTTOM
+                        )
+                ) {
+                    StartMenu(
+                        modifier = Modifier
+                            .width(LayoutConstants.START_MENU_WIDTH)
+                            .heightIn(max = LayoutConstants.START_MENU_MAX_HEIGHT),
+                        onDismiss = { showStartMenu = false }
+                    )
+                }
             }
         }
     }
