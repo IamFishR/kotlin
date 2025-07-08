@@ -7,6 +7,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import com.win11launcher.ui.layout.LayoutConstants
 
 /**
  * Represents the different states a window can be in
@@ -41,7 +42,7 @@ data class WindowState(
     val title: String,
     val icon: ImageVector = Icons.Default.Window,
     val position: Offset = Offset.Zero,
-    val size: DpSize = DpSize(800.dp, 600.dp),
+    val size: DpSize = DpSize(LayoutConstants.DEFAULT_WINDOW_WIDTH, LayoutConstants.DEFAULT_WINDOW_HEIGHT),
     val state: WindowStateType = WindowStateType.NORMAL,
     val isResizable: Boolean = true,
     val isMinimizable: Boolean = true,
@@ -55,7 +56,7 @@ data class WindowState(
     val opacity: Float = 1.0f,
     val hasFocus: Boolean = false,
     val isVisible: Boolean = true,
-    val minimumSize: DpSize = DpSize(200.dp, 150.dp),
+    val minimumSize: DpSize = DpSize(LayoutConstants.MIN_WINDOW_WIDTH, LayoutConstants.MIN_WINDOW_HEIGHT),
     val maximumSize: DpSize? = null,
     val isClosable: Boolean = true,
     val hasMenuBar: Boolean = false,

@@ -18,6 +18,7 @@ import com.win11launcher.ui.components.CommandPrompt
 import com.win11launcher.ui.components.StartMenu
 import com.win11launcher.ui.components.Taskbar
 import com.win11launcher.ui.components.WallpaperBackground
+import com.win11launcher.ui.layout.*
 import com.win11launcher.ui.screens.SettingsScreen
 import com.win11launcher.utils.SystemStatusManager
 import com.win11launcher.utils.rememberWallpaperManager
@@ -54,29 +55,27 @@ fun LauncherScreen() {
     }
     
     val systemStatus by systemStatusManager.systemStatus
-    val taskbarHeight = 56.dp // Defined taskbar height
+    val workingAreaCalculator = rememberWorkingAreaCalculator()
 
     WallpaperBackground(
         wallpaper = wallpaperManager.getWallpaper(),
         modifier = Modifier.fillMaxSize()
     ) {
-        // Main content area, above the taskbar
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 40.dp) // Content area is above taskbar
+        // Working area for main content
+        WorkingAreaContainer(
+            workingAreaCalculator = workingAreaCalculator
         ) {
             when {
                 showSettings -> {
                     SettingsScreen(
-                        modifier = Modifier.fillMaxSize(), // Fill this content Box
+                        modifier = Modifier.fillMaxSize(),
                         systemStatusManager = systemStatusManager,
                         onNavigateBack = { showSettings = false }
                     )
                 }
                 showAllApps -> {
                     AllAppsScreen(
-                        modifier = Modifier.fillMaxSize(), // Fill this content Box
+                        modifier = Modifier.fillMaxSize(),
                         appRepository = appRepository,
                         onBackClick = {
                             showAllApps = false
@@ -84,24 +83,15 @@ fun LauncherScreen() {
                         }
                     )
                 }
-                showStartMenu -> {
-                    StartMenu(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter) // Center horizontally at bottom
-                            .fillMaxWidth(0.9f) // 90% of screen width
-                            .heightIn(max = 700.dp), // Increased maximum height constraint
-                        onDismiss = { showStartMenu = false },
-                    )
-                }
             }
 
-            // Settings icon in top left corner of the main content area
+            // Settings icon in top left corner of the working area
             if (!showSettings && !showAllApps) {
                 IconButton(
                     onClick = { showSettings = true },
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .padding(16.dp)
+                        .padding(LayoutConstants.SPACING_LARGE)
                         .size(40.dp)
                 ) {
                     Icon(
@@ -113,37 +103,51 @@ fun LauncherScreen() {
                 }
             }
 
-
-
-            // Command prompt - also an overlay
+            // Command prompt overlay
             CommandPrompt(
-                modifier = Modifier.fillMaxSize(), // Fill this content Box if shown here
+                modifier = Modifier.fillMaxSize(),
                 isVisible = showCommandPrompt,
                 onDismiss = { showCommandPrompt = false }
             )
-        } // End of main content Box
+        }
 
-        Taskbar(
-            modifier = Modifier // Taskbar is outside the main content Box, aligned to WallpaperBackground bottom
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(56.dp),
-            systemStatus = systemStatus,
-            onStartClick = { 
-                showStartMenu = !showStartMenu
-            },
-            onCommandClick = {
-                showCommandPrompt = true
-                showStartMenu = false
-            },
-            onSystemTrayClick = { 
-                showStartMenu = false
-            },
-            onTaskViewClick = {
-                // Task view - shows running apps/windows
-                // For now, dismiss start menu if open
-                showStartMenu = false
+        // Taskbar container with proper positioning
+        TaskbarContainer(
+            workingAreaCalculator = workingAreaCalculator
+        ) {
+            Taskbar(
+                modifier = Modifier.fillMaxSize(),
+                systemStatus = systemStatus,
+                onStartClick = { 
+                    showStartMenu = !showStartMenu
+                },
+                onCommandClick = {
+                    showCommandPrompt = true
+                    showStartMenu = false
+                },
+                onSystemTrayClick = { 
+                    showStartMenu = false
+                },
+                onTaskViewClick = {
+                    showStartMenu = false
+                }
+            )
+        }
+        
+        // StartMenu overlay with proper positioning
+        if (showStartMenu) {
+            OverlayContainer(
+                position = workingAreaCalculator.getStartMenuPosition(),
+                showBackdrop = false,
+                onDismiss = { showStartMenu = false }
+            ) {
+                StartMenu(
+                    modifier = Modifier
+                        .width(LayoutConstants.START_MENU_WIDTH)
+                        .heightIn(max = LayoutConstants.START_MENU_MAX_HEIGHT),
+                    onDismiss = { showStartMenu = false }
+                )
             }
-        )
+        }
     }
 }

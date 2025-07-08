@@ -11,6 +11,7 @@ import com.win11launcher.models.WindowState
 import com.win11launcher.models.WindowStateType
 import com.win11launcher.navigation.WindowConfig
 import com.win11launcher.navigation.WindowDestination
+import com.win11launcher.ui.layout.WorkingAreaCalculator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,6 +44,10 @@ class WindowManager @Inject constructor() {
     private val _screenSize = mutableStateOf(DpSize(1920.dp, 1080.dp))
     val screenSize: DpSize get() = _screenSize.value
     
+    // Working area calculator for layout constraints
+    private var _workingAreaCalculator: WorkingAreaCalculator? = null
+    val workingAreaCalculator: WorkingAreaCalculator? get() = _workingAreaCalculator
+    
     /**
      * Creates a new window from a destination configuration
      */
@@ -61,7 +66,17 @@ class WindowManager @Inject constructor() {
             isVisible = true
         )
         
-        _windows[config.windowId] = windowState
+        // Constrain window to working area if available
+        val constrainedState = _workingAreaCalculator?.let { calculator ->
+            val bounds = calculator.calculateBounds()
+            val constrainedPosition = Offset(
+                windowState.position.x.coerceIn(bounds.workingArea.left, bounds.workingArea.right - windowState.size.width.value),
+                windowState.position.y.coerceIn(bounds.workingArea.top, bounds.workingArea.bottom - windowState.size.height.value)
+            )
+            windowState.withPosition(constrainedPosition)
+        } ?: windowState
+        
+        _windows[config.windowId] = constrainedState
         
         // Focus the new window
         focusWindow(config.windowId)
@@ -126,8 +141,17 @@ class WindowManager @Inject constructor() {
         
         if (!window.canMove()) return
         
-        _windows[windowId] = window.withPosition(position)
-        notifyListeners(WindowEvent.Move(windowId, position))
+        // Constrain position to working area if available
+        val constrainedPosition = _workingAreaCalculator?.let { calculator ->
+            val bounds = calculator.calculateBounds()
+            Offset(
+                position.x.coerceIn(bounds.workingArea.left, bounds.workingArea.right - window.size.width.value),
+                position.y.coerceIn(bounds.workingArea.top, bounds.workingArea.bottom - window.size.height.value)
+            )
+        } ?: position
+        
+        _windows[windowId] = window.withPosition(constrainedPosition)
+        notifyListeners(WindowEvent.Move(windowId, constrainedPosition))
     }
     
     /**
@@ -166,7 +190,15 @@ class WindowManager @Inject constructor() {
         
         if (!window.isMaximizable) return
         
-        _windows[windowId] = window.withState(WindowStateType.MAXIMIZED)
+        // Maximize to working area bounds if available
+        val maximizedWindow = _workingAreaCalculator?.let { calculator ->
+            val bounds = calculator.calculateBounds()
+            window.withState(WindowStateType.MAXIMIZED)
+                .withPosition(Offset(bounds.workingArea.left, bounds.workingArea.top))
+                .withSize(DpSize(bounds.availableWidth, bounds.availableHeight))
+        } ?: window.withState(WindowStateType.MAXIMIZED)
+        
+        _windows[windowId] = maximizedWindow
         notifyListeners(WindowEvent.Maximize(windowId))
     }
     
@@ -286,6 +318,13 @@ class WindowManager @Inject constructor() {
     }
     
     /**
+     * Updates working area calculator for layout constraints
+     */
+    fun updateWorkingAreaCalculator(calculator: WorkingAreaCalculator) {
+        _workingAreaCalculator = calculator
+    }
+    
+    /**
      * Checks if a window exists
      */
     fun hasWindow(windowId: String): Boolean {
@@ -323,29 +362,36 @@ class WindowManager @Inject constructor() {
     }
     
     private fun calculateSnapSize(snapPosition: SnapPosition): DpSize {
-        val screenWidth = screenSize.width
-        val screenHeight = screenSize.height
+        // Use working area bounds if available, otherwise use screen size
+        val bounds = _workingAreaCalculator?.calculateBounds()
+        val availableWidth = bounds?.availableWidth ?: screenSize.width
+        val availableHeight = bounds?.availableHeight ?: screenSize.height
         
         return when (snapPosition) {
             SnapPosition.LEFT_HALF, SnapPosition.RIGHT_HALF -> 
-                DpSize(screenWidth / 2, screenHeight)
+                DpSize(availableWidth / 2, availableHeight)
             SnapPosition.TOP_LEFT_QUARTER, SnapPosition.TOP_RIGHT_QUARTER,
             SnapPosition.BOTTOM_LEFT_QUARTER, SnapPosition.BOTTOM_RIGHT_QUARTER ->
-                DpSize(screenWidth / 2, screenHeight / 2)
+                DpSize(availableWidth / 2, availableHeight / 2)
         }
     }
     
     private fun calculateSnapPosition(snapPosition: SnapPosition): Offset {
-        val screenWidth = screenSize.width.value
-        val screenHeight = screenSize.height.value
+        // Use working area bounds if available, otherwise use screen size
+        val bounds = _workingAreaCalculator?.calculateBounds()
+        val workingArea = bounds?.workingArea
+        val availableWidth = bounds?.availableWidth?.value ?: screenSize.width.value
+        val availableHeight = bounds?.availableHeight?.value ?: screenSize.height.value
+        val offsetX = workingArea?.left ?: 0f
+        val offsetY = workingArea?.top ?: 0f
         
         return when (snapPosition) {
-            SnapPosition.LEFT_HALF -> Offset(0f, 0f)
-            SnapPosition.RIGHT_HALF -> Offset(screenWidth / 2, 0f)
-            SnapPosition.TOP_LEFT_QUARTER -> Offset(0f, 0f)
-            SnapPosition.TOP_RIGHT_QUARTER -> Offset(screenWidth / 2, 0f)
-            SnapPosition.BOTTOM_LEFT_QUARTER -> Offset(0f, screenHeight / 2)
-            SnapPosition.BOTTOM_RIGHT_QUARTER -> Offset(screenWidth / 2, screenHeight / 2)
+            SnapPosition.LEFT_HALF -> Offset(offsetX, offsetY)
+            SnapPosition.RIGHT_HALF -> Offset(offsetX + availableWidth / 2, offsetY)
+            SnapPosition.TOP_LEFT_QUARTER -> Offset(offsetX, offsetY)
+            SnapPosition.TOP_RIGHT_QUARTER -> Offset(offsetX + availableWidth / 2, offsetY)
+            SnapPosition.BOTTOM_LEFT_QUARTER -> Offset(offsetX, offsetY + availableHeight / 2)
+            SnapPosition.BOTTOM_RIGHT_QUARTER -> Offset(offsetX + availableWidth / 2, offsetY + availableHeight / 2)
         }
     }
     

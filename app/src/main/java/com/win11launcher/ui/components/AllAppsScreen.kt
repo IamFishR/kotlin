@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.win11launcher.data.AppRepository
 import com.win11launcher.data.InstalledApp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import com.win11launcher.ui.layout.LayoutConstants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,13 +56,13 @@ fun AllAppsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .heightIn(min = 600.dp) // Increased minimum height for better usability
+            .heightIn(min = LayoutConstants.LAYOUT_HEIGHT_MEDIUM) // Increased minimum height for better usability
             .background(Color(0xFF232323).copy(alpha = 0.9f))
             .border(
-                width = 1.dp,
+                width = LayoutConstants.WINDOW_BORDER_WIDTH,
                 color = Color.White.copy(alpha = 0.1f)
             )
-            .padding(24.dp) // Increased padding for better spacing
+            .padding(LayoutConstants.SPACING_EXTRA_LARGE) // Increased padding for better spacing
     ) {
         // Header with back button
         Row(
@@ -70,7 +71,7 @@ fun AllAppsScreen(
         ) {
             IconButton(
                 onClick = onBackClick,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(LayoutConstants.BUTTON_HEIGHT_EXTRA_LARGE)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -79,7 +80,7 @@ fun AllAppsScreen(
                 )
             }
             
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(LayoutConstants.SPACING_MEDIUM))
             
             Text(
                 text = "All apps",
@@ -89,7 +90,7 @@ fun AllAppsScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(LayoutConstants.SPACING_LARGE))
 
         // Search bar
         OutlinedTextField(
@@ -110,7 +111,7 @@ fun AllAppsScreen(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp)),
+                .clip(RoundedCornerShape(LayoutConstants.SPACING_MEDIUM)),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFF0078D4),
                 unfocusedBorderColor = Color(0xFF666666),
@@ -121,22 +122,22 @@ fun AllAppsScreen(
             singleLine = true
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(LayoutConstants.SPACING_LARGE))
 
         // Apps count
         Text(
             text = "${filteredApps.size} apps",
             color = Color(0xFFCCCCCC),
             fontSize = 14.sp,
-            modifier = Modifier.padding(bottom = 8.dp, start = 16.dp, end = 16.dp)
+            modifier = Modifier.padding(bottom = LayoutConstants.SPACING_MEDIUM, start = LayoutConstants.SPACING_LARGE, end = LayoutConstants.SPACING_LARGE)
         )
 
         // Apps grid
         LazyVerticalGrid(
             columns = GridCells.Fixed(6),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            contentPadding = PaddingValues(horizontal = LayoutConstants.SPACING_LARGE, vertical = LayoutConstants.SPACING_MEDIUM),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_LARGE),
             modifier = Modifier.fillMaxSize()
         ) {
             items(filteredApps) { app ->
@@ -158,7 +159,7 @@ private fun AppItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .clickable { onClick() }
-            .padding(4.dp)
+            .padding(LayoutConstants.SPACING_SMALL)
     ) {
         // App icon
         app.iconDrawable?.let { drawable ->
@@ -166,13 +167,13 @@ private fun AppItem(
                 painter = rememberDrawablePainter(drawable),
                 contentDescription = app.name,
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .size(LayoutConstants.ICON_MASSIVE)
+                    .clip(RoundedCornerShape(LayoutConstants.SPACING_MEDIUM))
             )
         } ?: Box(
             modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .size(LayoutConstants.ICON_MASSIVE)
+                .clip(RoundedCornerShape(LayoutConstants.SPACING_MEDIUM))
                 .background(Color(0xFF444444)),
             contentAlignment = Alignment.Center
         ) {
@@ -180,11 +181,11 @@ private fun AppItem(
                 imageVector = Icons.Default.Apps,
                 contentDescription = app.name,
                 tint = Color.White,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(LayoutConstants.ICON_EXTRA_LARGE)
             )
         }
         
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(LayoutConstants.SPACING_SMALL))
         
         // App name
         Text(
@@ -194,7 +195,7 @@ private fun AppItem(
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.width(80.dp)
+            modifier = Modifier.width(LayoutConstants.LAYOUT_WIDTH_SMALL)
         )
     }
 }

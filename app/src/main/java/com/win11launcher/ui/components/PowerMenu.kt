@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.win11launcher.utils.SystemPowerManager
+import com.win11launcher.ui.layout.LayoutConstants
 
 data class PowerOption(
     val text: String,
@@ -77,15 +78,15 @@ fun PowerMenu(
         ) {
             Card(
                 modifier = Modifier
-                    .width(180.dp)
-                    .clip(RoundedCornerShape(8.dp)),
+                    .width(LayoutConstants.LAYOUT_WIDTH_MEDIUM)
+                    .clip(RoundedCornerShape(LayoutConstants.SPACING_MEDIUM)),
                 colors = CardDefaults.cardColors(
                     containerColor = Color(0xFF2D2D2D).copy(alpha = 0.9f)
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(4.dp)
+                    modifier = Modifier.padding(LayoutConstants.SPACING_SMALL)
                 ) {
                     powerOptions.forEach { option ->
                         PowerMenuItem(
@@ -115,7 +116,7 @@ private fun PowerMenuItem(
             imageVector = option.icon,
             contentDescription = option.text,
             tint = Color.White,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(LayoutConstants.ICON_LARGE)
         )
         
         Spacer(modifier = Modifier.width(12.dp))

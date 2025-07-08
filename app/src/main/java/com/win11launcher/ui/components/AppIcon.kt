@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.win11launcher.ui.theme.Win11Colors
+import com.win11launcher.ui.layout.LayoutConstants
 
 @Composable
 fun AppIcon(
@@ -42,8 +43,8 @@ fun AppIcon(
     
     Box(
         modifier = modifier
-            .size(32.dp)
-            .clip(RoundedCornerShape(6.dp))
+            .size(LayoutConstants.APP_ICON_SIZE)
+            .clip(RoundedCornerShape(LayoutConstants.APP_ICON_CORNER_RADIUS))
             .background(Win11Colors.SystemAccent.copy(alpha = 0.1f)),
         contentAlignment = Alignment.Center
     ) {
@@ -51,14 +52,14 @@ fun AppIcon(
             Image(
                 painter = appIcon!!,
                 contentDescription = "App icon for $packageName",
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(LayoutConstants.APP_ICON_CONTENT_SIZE)
             )
         } else {
             Icon(
                 Icons.Default.Android,
                 contentDescription = "Default app icon",
                 tint = Win11Colors.SystemAccent,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(LayoutConstants.APP_ICON_FALLBACK_SIZE)
             )
         }
     }

@@ -31,6 +31,7 @@ import androidx.compose.ui.zIndex
 import com.win11launcher.models.WindowEvent
 import com.win11launcher.models.WindowState as AppWindowState
 import com.win11launcher.models.WindowStateType
+import com.win11launcher.ui.layout.LayoutConstants
 
 /**
  * Container for a window with title bar, controls, and content area.
@@ -56,8 +57,8 @@ fun WindowContainer(
     Box(
         modifier = modifier
             .size(
-                width = if (isMaximized) 1920.dp else windowState.size.width,
-                height = if (isMaximized) 1080.dp else windowState.size.height
+                width = if (isMaximized) LayoutConstants.MAX_SCREEN_WIDTH else windowState.size.width,
+                height = if (isMaximized) LayoutConstants.MAX_SCREEN_HEIGHT else windowState.size.height
             )
             .offset(
                 x = if (isMaximized) 0.dp else with(density) { windowState.position.x.toDp() },
@@ -66,19 +67,19 @@ fun WindowContainer(
             .zIndex(windowState.zIndex.toFloat())
             .shadow(
                 elevation = if (hasFocus) 12.dp else 6.dp,
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(LayoutConstants.WINDOW_CORNER_RADIUS)
             )
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(LayoutConstants.WINDOW_CORNER_RADIUS))
             .background(
                 color = MaterialTheme.colorScheme.surface.copy(alpha = opacity)
             )
             .border(
-                width = if (hasFocus) 2.dp else 1.dp,
+                width = if (hasFocus) 2.dp else LayoutConstants.WINDOW_BORDER_WIDTH,
                 color = if (hasFocus) 
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) 
                 else 
                     MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(LayoutConstants.WINDOW_CORNER_RADIUS)
             )
             .clickable { onEvent(WindowEvent.Focus(windowState.id)) }
     ) {
@@ -126,7 +127,7 @@ private fun WindowTitleBar(
     
     Row(
         modifier = modifier
-            .height(32.dp)
+            .height(LayoutConstants.WINDOW_TITLE_BAR_HEIGHT)
             .background(
                 color = if (windowState.hasFocus) 
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
@@ -147,18 +148,18 @@ private fun WindowTitleBar(
                     }
                 }
             }
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = LayoutConstants.SPACING_MEDIUM),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Window icon
         Icon(
             imageVector = windowState.icon,
             contentDescription = null,
-            modifier = Modifier.size(16.dp),
+            modifier = Modifier.size(LayoutConstants.ICON_MEDIUM),
             tint = MaterialTheme.colorScheme.onSurface
         )
         
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(LayoutConstants.SPACING_MEDIUM))
         
         // Window title
         Text(
@@ -192,9 +193,9 @@ private fun WindowMenuBar(
 ) {
     Row(
         modifier = modifier
-            .height(28.dp)
+            .height(LayoutConstants.LAYOUT_HEIGHT_SMALL)
             .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = LayoutConstants.SPACING_MEDIUM),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Common menu items
@@ -208,12 +209,12 @@ private fun WindowMenuBar(
         // Additional menu actions
         IconButton(
             onClick = { /* Handle menu */ },
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(LayoutConstants.ICON_EXTRA_LARGE)
         ) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = "More options",
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(LayoutConstants.ICON_MEDIUM)
             )
         }
     }
@@ -229,7 +230,7 @@ private fun MenuBarItem(
 ) {
     TextButton(
         onClick = onClick,
-        modifier = Modifier.height(24.dp),
+        modifier = Modifier.height(LayoutConstants.BUTTON_HEIGHT_SMALL),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp)
     ) {
         Text(
@@ -249,7 +250,7 @@ private fun WindowControls(
     onEvent: (WindowEvent) -> Unit
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_SMALL)
     ) {
         // Minimize button
         if (windowState.isMinimizable) {
@@ -300,19 +301,19 @@ private fun WindowControlButton(
     IconButton(
         onClick = onClick,
         modifier = Modifier
-            .size(24.dp)
+            .size(LayoutConstants.ICON_EXTRA_LARGE)
             .background(
                 color = if (isCloseButton) 
                     Color.Transparent 
                 else 
                     Color.Transparent,
-                shape = RoundedCornerShape(4.dp)
+                shape = RoundedCornerShape(LayoutConstants.SPACING_SMALL)
             )
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            modifier = Modifier.size(14.dp),
+            modifier = Modifier.size(LayoutConstants.ICON_SMALL),
             tint = if (isCloseButton) 
                 Color.Red.copy(alpha = 0.8f) 
             else 

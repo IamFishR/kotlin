@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.win11launcher.ui.layout.LayoutConstants
 
 data class Permission(
     val name: String,
@@ -147,10 +148,10 @@ fun PermissionsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp),
+            .padding(LayoutConstants.SPACING_EXTRA_LARGE),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(LayoutConstants.PERMISSIONS_SCREEN_TOP_SPACING))
         
         Text(
             text = "Win11 Launcher Setup",
@@ -159,7 +160,7 @@ fun PermissionsScreen(
             color = MaterialTheme.colorScheme.onBackground
         )
         
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(LayoutConstants.SPACING_MEDIUM))
         
         Text(
             text = "Please grant the following permissions to use all features",
@@ -168,7 +169,7 @@ fun PermissionsScreen(
             textAlign = TextAlign.Center
         )
         
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(LayoutConstants.SPACING_EXTRA_LARGE + LayoutConstants.SPACING_MEDIUM))
         
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -207,14 +208,14 @@ fun PermissionsScreen(
             }
         }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(LayoutConstants.SPACING_EXTRA_LARGE))
         
         if (allRequiredPermissionsGranted) {
             Button(
                 onClick = onAllPermissionsGranted,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(LayoutConstants.BUTTON_HEIGHT_HUGE),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF0078D4)
                 )
@@ -234,7 +235,7 @@ fun PermissionsScreen(
             )
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(LayoutConstants.SPACING_LARGE))
         
         TextButton(
             onClick = onOpenSettings,
@@ -243,13 +244,13 @@ fun PermissionsScreen(
             Icon(
                 imageVector = Icons.Default.Settings,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(LayoutConstants.ICON_MEDIUM)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text("Open App Settings")
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(LayoutConstants.SPACING_LARGE))
     }
 }
 
@@ -267,22 +268,22 @@ private fun PermissionItem(
             else 
                 MaterialTheme.colorScheme.surface
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(LayoutConstants.PERMISSIONS_SCREEN_CARD_RADIUS)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(LayoutConstants.SPACING_LARGE),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = if (isGranted) Icons.Default.Check else Icons.Default.Warning,
                 contentDescription = null,
                 tint = if (isGranted) Color(0xFF0078D4) else Color(0xFFF7630C),
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(LayoutConstants.ICON_EXTRA_LARGE)
             )
             
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(LayoutConstants.SPACING_LARGE))
             
             Column(modifier = Modifier.weight(1f)) {
                 Row(
@@ -304,7 +305,7 @@ private fun PermissionItem(
                             modifier = Modifier
                                 .background(
                                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                    RoundedCornerShape(4.dp)
+                                    RoundedCornerShape(LayoutConstants.PERMISSIONS_SCREEN_BADGE_RADIUS)
                                 )
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         )
@@ -324,7 +325,7 @@ private fun PermissionItem(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF0078D4)
                     ),
-                    modifier = Modifier.height(36.dp)
+                    modifier = Modifier.height(LayoutConstants.BUTTON_HEIGHT_LARGE)
                 ) {
                     Text(
                         text = "Grant",

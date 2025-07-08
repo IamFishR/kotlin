@@ -40,6 +40,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import javax.inject.Inject
+import com.win11launcher.ui.layout.LayoutConstants
 
 @Composable
 fun CommandPrompt(
@@ -98,16 +99,16 @@ private fun CommandPromptWindow(
         modifier = modifier
             .fillMaxWidth(0.9f)
             .fillMaxHeight(0.7f)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(LayoutConstants.SPACING_MEDIUM))
             .border(
-                width = 1.dp,
+                width = LayoutConstants.COMMAND_PROMPT_BORDER_WIDTH,
                 color = Color(0xFF808080),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(LayoutConstants.SPACING_MEDIUM)
             ),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF0C0C0C).copy(alpha = 0.9f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = LayoutConstants.COMMAND_PROMPT_ELEVATION)
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -117,7 +118,7 @@ private fun CommandPromptWindow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFF1F1F1F))
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = LayoutConstants.SPACING_LARGE, vertical = LayoutConstants.SPACING_MEDIUM),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -130,13 +131,13 @@ private fun CommandPromptWindow(
                 
                 IconButton(
                     onClick = onClose,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(LayoutConstants.ICON_EXTRA_LARGE)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Close",
                         tint = Color.White,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(LayoutConstants.ICON_MEDIUM)
                     )
                 }
             }
@@ -147,8 +148,8 @@ private fun CommandPromptWindow(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                    .padding(horizontal = LayoutConstants.SPACING_LARGE, vertical = LayoutConstants.SPACING_MEDIUM),
+                verticalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_SMALL)
             ) {
                 // Welcome message
                 if (commandHistory.isEmpty()) {
@@ -158,7 +159,7 @@ private fun CommandPromptWindow(
                             color = Color.White,
                             fontSize = 12.sp,
                             fontFamily = FontFamily.Monospace,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            modifier = Modifier.padding(bottom = LayoutConstants.SPACING_MEDIUM)
                         )
                     }
                 }
@@ -173,7 +174,7 @@ private fun CommandPromptWindow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFF0C0C0C))
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = LayoutConstants.SPACING_LARGE, vertical = LayoutConstants.SPACING_MEDIUM),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -268,7 +269,7 @@ private fun CommandEntry(
         // Command output
         if (entry.output.isNotBlank()) {
             Row(
-                modifier = Modifier.padding(start = 8.dp),
+                modifier = Modifier.padding(start = LayoutConstants.SPACING_MEDIUM),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -283,10 +284,10 @@ private fun CommandEntry(
                 if (entry.isProcessing) {
                     CircularProgressIndicator(
                         modifier = Modifier
-                            .size(16.dp)
-                            .padding(start = 8.dp),
+                            .size(LayoutConstants.COMMAND_PROMPT_PROGRESS_SIZE)
+                            .padding(start = LayoutConstants.SPACING_MEDIUM),
                         color = Color(0xFF4CAF50),
-                        strokeWidth = 2.dp
+                        strokeWidth = LayoutConstants.COMMAND_PROMPT_PROGRESS_STROKE
                     )
                 }
             }

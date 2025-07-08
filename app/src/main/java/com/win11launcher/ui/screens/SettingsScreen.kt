@@ -40,6 +40,7 @@ import com.win11launcher.data.entities.PermissionState
 import com.win11launcher.utils.SystemStatusManager
 import com.win11launcher.viewmodels.SettingsViewModel
 import androidx.core.content.ContextCompat
+import com.win11launcher.ui.layout.LayoutConstants
 
 enum class SettingsTab(
     val title: String,
@@ -128,22 +129,22 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xFF2D2D2D))
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = LayoutConstants.SPACING_LARGE, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
                 onClick = onNavigateBack,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(LayoutConstants.ICON_HUGE)
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
                     tint = Color.White,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(LayoutConstants.ICON_LARGE)
                 )
             }
             
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(LayoutConstants.SPACING_MEDIUM))
             
             Text(
                 text = "Settings",

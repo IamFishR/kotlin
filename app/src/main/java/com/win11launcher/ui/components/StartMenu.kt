@@ -46,6 +46,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.win11launcher.ui.layout.LayoutConstants
 import com.win11launcher.utils.AppLauncher
 import com.win11launcher.utils.PinnedApp
 import com.win11launcher.data.AppRepository
@@ -101,11 +102,11 @@ fun StartMenu(
     }
     Card(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(LayoutConstants.WINDOW_CORNER_RADIUS))
             .border(
-                width = 1.dp,
+                width = LayoutConstants.WINDOW_BORDER_WIDTH,
                 color = Color.White.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(LayoutConstants.WINDOW_CORNER_RADIUS)
             ),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF232323).copy(alpha = 0.9f)
@@ -123,7 +124,12 @@ fun StartMenu(
             SearchBar(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp, top = 16.dp, start = 24.dp, end = 24.dp),
+                    .padding(
+                        bottom = LayoutConstants.SPACING_LARGE,
+                        top = LayoutConstants.SPACING_LARGE,
+                        start = LayoutConstants.SPACING_EXTRA_LARGE,
+                        end = LayoutConstants.SPACING_EXTRA_LARGE
+                    ),
                 searchQuery = searchQuery,
                 onSearchQueryChange = { searchQuery = it }
             )
@@ -226,7 +232,7 @@ private fun SearchBar(
             unfocusedTextColor = Color.White,
             cursorColor = Color(0xFF0078D4)
         ),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(LayoutConstants.SPACING_MEDIUM)
     )
 }
 
@@ -305,7 +311,7 @@ private fun AllAppsView(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxSize(), // Ensure the LazyColumn fills available space
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_MEDIUM),
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp
@@ -379,9 +385,9 @@ private fun AllAppsItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(LayoutConstants.SPACING_MEDIUM))
             .clickable { onClick() }
-            .padding(horizontal = 8.dp, vertical = 8.dp),
+            .padding(horizontal = LayoutConstants.SPACING_MEDIUM, vertical = LayoutConstants.SPACING_MEDIUM),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // App icon
@@ -390,7 +396,7 @@ private fun AllAppsItem(
                 .size(40.dp)
                 .background(
                     Color(0xFF323233),
-                    RoundedCornerShape(8.dp)
+                    RoundedCornerShape(LayoutConstants.SPACING_MEDIUM)
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -444,13 +450,13 @@ private fun SearchResultsSection(
             // Regular Grid layout instead of LazyVerticalGrid to avoid infinite height constraints
             val searchRows = (searchResults.size + 5) / 6 // Calculate rows needed for 6 columns
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_MEDIUM),
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 repeat(searchRows) { rowIndex ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_MEDIUM)
                     ) {
                         repeat(6) { columnIndex ->
                             val appIndex = rowIndex * 6 + columnIndex
@@ -480,9 +486,9 @@ private fun SearchResultAppIcon(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(LayoutConstants.SPACING_MEDIUM))
             .clickable { onClick() }
-            .padding(8.dp),
+            .padding(LayoutConstants.SPACING_MEDIUM),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -490,7 +496,7 @@ private fun SearchResultAppIcon(
                 .size(48.dp)
                 .background(
                     Color(0xFF323233),
-                    RoundedCornerShape(8.dp)
+                    RoundedCornerShape(LayoutConstants.SPACING_MEDIUM)
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -564,7 +570,7 @@ private fun PinnedAppsSection(
         // Regular Grid layout instead of LazyVerticalGrid to avoid infinite height constraints
         val rows = (pinnedApps.size + 3) / 4 // Calculate rows needed for 4 columns
         Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_MEDIUM),
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .heightIn(min = 200.dp) // Minimum height for pinned apps section
@@ -572,7 +578,7 @@ private fun PinnedAppsSection(
             repeat(rows) { rowIndex ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_MEDIUM)
                 ) {
                     repeat(4) { columnIndex ->
                         val appIndex = rowIndex * 4 + columnIndex
@@ -609,7 +615,7 @@ private fun PinnedAppsSection(
         // Regular Grid layout instead of LazyVerticalGrid to avoid infinite height constraints
         val recommendedRows = (recommendedApps.size + 1) / 2 // Calculate rows needed for 2 columns
         Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_MEDIUM),
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .heightIn(min = 120.dp) // Minimum height for recommended section
@@ -617,7 +623,7 @@ private fun PinnedAppsSection(
             repeat(recommendedRows) { rowIndex ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_MEDIUM)
                 ) {
                     repeat(2) { columnIndex ->
                         val appIndex = rowIndex * 2 + columnIndex
@@ -651,9 +657,9 @@ private fun RecommendedAppItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(LayoutConstants.SPACING_MEDIUM))
             .clickable { onClick() }
-            .padding(8.dp),
+            .padding(LayoutConstants.SPACING_MEDIUM),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -716,9 +722,9 @@ private fun PinnedAppIcon(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(LayoutConstants.SPACING_MEDIUM))
             .clickable { onClick() }
-            .padding(8.dp),
+            .padding(LayoutConstants.SPACING_MEDIUM),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -726,7 +732,7 @@ private fun PinnedAppIcon(
                 .size(48.dp)
                 .background(
                     Color(0xFF323233),
-                    RoundedCornerShape(8.dp)
+                    RoundedCornerShape(LayoutConstants.SPACING_MEDIUM)
                 ),
             contentAlignment = Alignment.Center
         ) {

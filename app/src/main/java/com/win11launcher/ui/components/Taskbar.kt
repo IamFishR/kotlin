@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.win11launcher.ui.layout.LayoutConstants
 import com.win11launcher.utils.SystemStatus
 
 @Composable
@@ -42,14 +43,20 @@ fun Taskbar(
         modifier = modifier
             .background(
                 Color(0xFF1F1F1F).copy(alpha = 0.9f),
-                RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+                RoundedCornerShape(
+                    topStart = LayoutConstants.TASKBAR_CORNER_RADIUS,
+                    topEnd = LayoutConstants.TASKBAR_CORNER_RADIUS
+                )
             )
             .border(
-                width = 1.dp,
+                width = LayoutConstants.WINDOW_BORDER_WIDTH,
                 color = Color.White.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+                shape = RoundedCornerShape(
+                    topStart = LayoutConstants.TASKBAR_CORNER_RADIUS,
+                    topEnd = LayoutConstants.TASKBAR_CORNER_RADIUS
+                )
             )
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = LayoutConstants.SPACING_MEDIUM)
     ) {
         // Top border only
         Box(
@@ -62,12 +69,12 @@ fun Taskbar(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 8.dp)
+                .padding(vertical = LayoutConstants.SPACING_MEDIUM)
         ) {
             Row(
                 modifier = Modifier.align(Alignment.Center),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                horizontalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_SMALL)
             ) {
                 StartButton(
                     onClick = onStartClick
@@ -86,9 +93,9 @@ fun Taskbar(
             Row(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .padding(end = 2.dp),
+                    .padding(end = LayoutConstants.SPACING_SMALL),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                horizontalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_SMALL)
             ) {
                 DateTimeDisplay(
                     systemStatus = systemStatus,
@@ -112,7 +119,7 @@ private fun StartButton(
     Box(
         modifier = modifier
             .size(40.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(LayoutConstants.SPACING_SMALL))
             .background(Color.Transparent)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
@@ -124,11 +131,11 @@ private fun StartButton(
         ) {
             Row(
                 modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                horizontalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_SMALL)
             ) {
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_SMALL)
                 ) {
                     // Top-left box - Blue
                     Box(
@@ -153,7 +160,7 @@ private fun StartButton(
                 }
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(LayoutConstants.SPACING_SMALL)
                 ) {
                     // Top-right box - Orange
                     Box(
@@ -189,7 +196,7 @@ private fun TaskViewButton(
     Box(
         modifier = modifier
             .size(40.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(LayoutConstants.SPACING_SMALL))
             .background(Color.Transparent)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
@@ -211,7 +218,7 @@ private fun CommandButton(
     Box(
         modifier = modifier
             .size(40.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(LayoutConstants.SPACING_SMALL))
             .background(Color.Transparent)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
@@ -233,7 +240,7 @@ private fun NotificationButton(
     Box(
         modifier = modifier
             .size(40.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(LayoutConstants.SPACING_SMALL))
             .background(Color.Transparent)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
@@ -254,7 +261,7 @@ private fun SystemTrayButton(
     Box(
         modifier = modifier
             .size(40.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(LayoutConstants.SPACING_SMALL))
             .background(Color.Transparent),
         contentAlignment = Alignment.Center
     ) {
@@ -361,7 +368,7 @@ private fun TooltipIcon(
     Box(
         modifier = Modifier
             .size(24.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(LayoutConstants.SPACING_SMALL))
             .background(Color.Transparent)
             .clickable { },
         contentAlignment = Alignment.Center
