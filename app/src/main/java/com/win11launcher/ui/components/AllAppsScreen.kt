@@ -55,12 +55,13 @@ fun AllAppsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .heightIn(min = 600.dp) // Increased minimum height for better usability
             .background(Color(0xFF232323).copy(alpha = 0.9f))
             .border(
                 width = 1.dp,
                 color = Color.White.copy(alpha = 0.1f)
             )
-            .padding(16.dp)
+            .padding(24.dp) // Increased padding for better spacing
     ) {
         // Header with back button
         Row(
@@ -127,15 +128,15 @@ fun AllAppsScreen(
             text = "${filteredApps.size} apps",
             color = Color(0xFFCCCCCC),
             fontSize = 14.sp,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 8.dp, start = 16.dp, end = 16.dp)
         )
 
         // Apps grid
         LazyVerticalGrid(
             columns = GridCells.Fixed(6),
-            contentPadding = PaddingValues(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxSize()
         ) {
             items(filteredApps) { app ->

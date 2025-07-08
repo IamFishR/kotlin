@@ -123,7 +123,7 @@ fun StartMenu(
             SearchBar(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp, top = 16.dp, start = 16.dp, end = 16.dp),
+                    .padding(bottom = 16.dp, top = 16.dp, start = 24.dp, end = 24.dp),
                 searchQuery = searchQuery,
                 onSearchQueryChange = { searchQuery = it }
             )
@@ -265,7 +265,7 @@ private fun AllAppsView(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp),
+                    .padding(bottom = 12.dp, start = 16.dp, end = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -297,7 +297,8 @@ private fun AllAppsView(
             LazyColumn(
                 state = listState,
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp)
             ) {
                 groupedApps.forEach { (letter, apps) ->
                     item {
@@ -427,7 +428,8 @@ private fun SearchResultsSection(
             // Regular Grid layout instead of LazyVerticalGrid to avoid infinite height constraints
             val searchRows = (searchResults.size + 5) / 6 // Calculate rows needed for 6 columns
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 repeat(searchRows) { rowIndex ->
                     Row(
@@ -512,7 +514,7 @@ private fun PinnedAppsSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp),
+                .padding(bottom = 12.dp, start = 16.dp, end = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -542,17 +544,18 @@ private fun PinnedAppsSection(
         }
         
         // Regular Grid layout instead of LazyVerticalGrid to avoid infinite height constraints
-        val rows = (pinnedApps.size + 5) / 6 // Calculate rows needed for 6 columns
+        val rows = (pinnedApps.size + 3) / 4 // Calculate rows needed for 4 columns
         Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp)
         ) {
             repeat(rows) { rowIndex ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    repeat(6) { columnIndex ->
-                        val appIndex = rowIndex * 6 + columnIndex
+                    repeat(4) { columnIndex ->
+                        val appIndex = rowIndex * 4 + columnIndex
                         if (appIndex < pinnedApps.size) {
                             Box(modifier = Modifier.weight(1f)) {
                                 PinnedAppIcon(
@@ -580,13 +583,14 @@ private fun PinnedAppsSection(
             style = MaterialTheme.typography.titleMedium,
             color = Color.White,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(bottom = 12.dp)
+            modifier = Modifier.padding(bottom = 12.dp, start = 16.dp, end = 16.dp)
         )
         
         // Regular Grid layout instead of LazyVerticalGrid to avoid infinite height constraints
         val recommendedRows = (recommendedApps.size + 1) / 2 // Calculate rows needed for 2 columns
         Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp)
         ) {
             repeat(recommendedRows) { rowIndex ->
                 Row(
