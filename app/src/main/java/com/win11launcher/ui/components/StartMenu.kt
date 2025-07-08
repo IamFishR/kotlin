@@ -168,9 +168,7 @@ fun StartMenu(
                 ) { isShowingAllApps ->
                     if (isShowingAllApps) {
                         AllAppsView(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(bottom = 60.dp), // Account for bottom actions space
+                            modifier = Modifier.fillMaxSize(),
                             installedApps = installedApps,
                             appRepository = appRepository,
                             onBackClick = { showAllApps = false }
@@ -264,7 +262,11 @@ private fun AllAppsView(
         modifier = modifier.fillMaxSize() // Ensure full space utilization
     ) {
         // Main content area
-        Column(modifier = Modifier.weight(1f)) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+        ) {
             // Header with back button
             Row(
                 modifier = Modifier
@@ -306,8 +308,7 @@ private fun AllAppsView(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(
                     start = 16.dp,
-                    end = 16.dp,
-                    bottom = 16.dp // Add bottom padding for better spacing
+                    end = 16.dp
                 )
             ) {
                 groupedApps.forEach { (letter, apps) ->
@@ -328,6 +329,11 @@ private fun AllAppsView(
                             onClick = { appRepository.launchApp(app) }
                         )
                     }
+                }
+                
+                // Add a spacer at the very end to push content to the bottom
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
