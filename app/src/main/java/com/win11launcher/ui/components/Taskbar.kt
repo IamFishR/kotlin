@@ -41,21 +41,7 @@ fun Taskbar(
 ) {
     Box(
         modifier = modifier
-            .background(
-                Color(0xFF1F1F1F).copy(alpha = 0.9f),
-                RoundedCornerShape(
-                    topStart = LayoutConstants.TASKBAR_CORNER_RADIUS,
-                    topEnd = LayoutConstants.TASKBAR_CORNER_RADIUS
-                )
-            )
-            .border(
-                width = LayoutConstants.WINDOW_BORDER_WIDTH,
-                color = Color.White.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(
-                    topStart = LayoutConstants.TASKBAR_CORNER_RADIUS,
-                    topEnd = LayoutConstants.TASKBAR_CORNER_RADIUS
-                )
-            )
+            .background(Color(0xFF1F1F1F).copy(alpha = 0.9f))
             .padding(horizontal = LayoutConstants.SPACING_MEDIUM)
     ) {
         // Top border only
@@ -246,8 +232,8 @@ private fun NotificationButton(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = Icons.Default.Chat,
-            contentDescription = "Messages",
+            imageVector = Icons.Default.Notifications,
+            contentDescription = "Notifications",
             tint = Color.White,
             modifier = Modifier.size(18.dp)
         )

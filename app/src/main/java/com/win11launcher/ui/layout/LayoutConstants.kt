@@ -5,9 +5,9 @@ import androidx.compose.ui.unit.dp
 object LayoutConstants {
     // Taskbar dimensions
     val TASKBAR_HEIGHT = 56.dp
-    val TASKBAR_MARGIN_HORIZONTAL = 16.dp
-    val TASKBAR_MARGIN_BOTTOM = 8.dp
-    val TASKBAR_CORNER_RADIUS = 8.dp
+    val TASKBAR_MARGIN_HORIZONTAL = 0.dp // Full width, no horizontal margins
+    val TASKBAR_MARGIN_BOTTOM = 0.dp    // No bottom margin
+    val TASKBAR_CORNER_RADIUS = 0.dp    // No corner radius
     
     // Working area padding
     val WORKING_AREA_PADDING_TOP = 8.dp

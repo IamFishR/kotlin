@@ -69,7 +69,7 @@ fun LauncherScreen() {
                         top = LayoutConstants.WORKING_AREA_PADDING_TOP,
                         start = LayoutConstants.WORKING_AREA_PADDING_HORIZONTAL,
                         end = LayoutConstants.WORKING_AREA_PADDING_HORIZONTAL,
-                        bottom = LayoutConstants.TASKBAR_HEIGHT + LayoutConstants.TASKBAR_MARGIN_BOTTOM + LayoutConstants.WORKING_AREA_PADDING_BOTTOM
+                        bottom = LayoutConstants.TASKBAR_HEIGHT + LayoutConstants.WORKING_AREA_PADDING_BOTTOM
                     )
             ) {
                 when {
@@ -118,16 +118,11 @@ fun LauncherScreen() {
                 )
             }
 
-            // Taskbar - positioned at bottom with margins
+            // Taskbar - positioned at bottom, full width
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(
-                        start = LayoutConstants.TASKBAR_MARGIN_HORIZONTAL,
-                        end = LayoutConstants.TASKBAR_MARGIN_HORIZONTAL,
-                        bottom = LayoutConstants.TASKBAR_MARGIN_BOTTOM
-                    )
                     .height(LayoutConstants.TASKBAR_HEIGHT)
             ) {
                 Taskbar(
@@ -155,7 +150,7 @@ fun LauncherScreen() {
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(
-                            bottom = LayoutConstants.TASKBAR_HEIGHT + LayoutConstants.TASKBAR_MARGIN_BOTTOM + LayoutConstants.START_MENU_MARGIN_BOTTOM
+                            bottom = LayoutConstants.TASKBAR_HEIGHT + LayoutConstants.START_MENU_MARGIN_BOTTOM
                         )
                 ) {
                     StartMenu(
