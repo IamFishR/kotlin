@@ -168,7 +168,9 @@ fun StartMenu(
                 ) { isShowingAllApps ->
                     if (isShowingAllApps) {
                         AllAppsView(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(bottom = 60.dp), // Account for bottom actions space
                             installedApps = installedApps,
                             appRepository = appRepository,
                             onBackClick = { showAllApps = false }
@@ -258,7 +260,9 @@ private fun AllAppsView(
         }
     }
     
-    Row(modifier = modifier) {
+    Row(
+        modifier = modifier.fillMaxSize() // Ensure full space utilization
+    ) {
         // Main content area
         Column(modifier = Modifier.weight(1f)) {
             // Header with back button
@@ -296,9 +300,15 @@ private fun AllAppsView(
             // Apps list with scrollbar
             LazyColumn(
                 state = listState,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize(), // Ensure the LazyColumn fills available space
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp)
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 16.dp // Add bottom padding for better spacing
+                )
             ) {
                 groupedApps.forEach { (letter, apps) ->
                     item {
@@ -328,7 +338,7 @@ private fun AllAppsView(
                 .width(24.dp)
                 .fillMaxHeight()
                 .padding(start = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+            verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically)
         ) {
             groupedApps.keys.forEach { letter ->
                 Text(
