@@ -88,8 +88,8 @@ fun LauncherScreen() {
                     StartMenu(
                         modifier = Modifier
                             .align(Alignment.BottomCenter) // Center horizontally at bottom
-                            .fillMaxWidth(0.8f) // 80% of screen width
-                            .heightIn(max = 500.dp), // Maximum height constraint
+                            .fillMaxWidth(0.9f) // 90% of screen width
+                            .heightIn(max = 700.dp), // Increased maximum height constraint
                         onDismiss = { showStartMenu = false },
                     )
                 }

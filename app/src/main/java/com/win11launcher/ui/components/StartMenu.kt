@@ -509,7 +509,9 @@ private fun PinnedAppsSection(
     val pinnedApps = remember { appLauncher.getPinnedApps() }
     val recommendedApps = remember { appLauncher.getRecommendedApps() }
     
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier.fillMaxHeight()
+    ) {
         // Pinned Apps Section
         Row(
             modifier = Modifier
@@ -547,7 +549,9 @@ private fun PinnedAppsSection(
         val rows = (pinnedApps.size + 3) / 4 // Calculate rows needed for 4 columns
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .heightIn(min = 200.dp) // Minimum height for pinned apps section
         ) {
             repeat(rows) { rowIndex ->
                 Row(
@@ -575,7 +579,7 @@ private fun PinnedAppsSection(
             }
         }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         
         // Recommended Apps Section
         Text(
@@ -590,7 +594,9 @@ private fun PinnedAppsSection(
         val recommendedRows = (recommendedApps.size + 1) / 2 // Calculate rows needed for 2 columns
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .heightIn(min = 120.dp) // Minimum height for recommended section
         ) {
             repeat(recommendedRows) { rowIndex ->
                 Row(
