@@ -64,7 +64,7 @@ fun LauncherScreen() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = taskbarHeight) // Content area is above taskbar
+                .padding(bottom = 40.dp) // Content area is above taskbar
         ) {
             when {
                 showSettings -> {

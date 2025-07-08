@@ -118,7 +118,7 @@ fun StartMenu(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(bottom = 60.dp) // Space for bottom actions
+//                    .padding(bottom = 60.dp) // Space for bottom actions
             ) {
             SearchBar(
                 modifier = Modifier
