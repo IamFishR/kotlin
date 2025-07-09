@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.win11launcher.services.AIService
+import com.win11launcher.data.repositories.CommandLineRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -84,6 +85,16 @@ private fun CommandPromptWindow(
     var commandHistoryList by remember { mutableStateOf(listOf<String>()) }
     var historyIndex by remember { mutableStateOf(-1) }
     var tempCommand by remember { mutableStateOf("") }
+    
+    // Load recent commands from database
+    LaunchedEffect(Unit) {
+        try {
+            val recentCommands = viewModel.getRecentCommands(50)
+            commandHistoryList = recentCommands
+        } catch (e: Exception) {
+            // Handle error silently - fall back to empty list
+        }
+    }
     
     // Function to handle command history navigation
     fun navigateHistory(direction: Int) {
@@ -292,10 +303,23 @@ private fun CommandPromptWindow(
                                 
                                 // Handle commands
                                 coroutineScope.launch {
+                                    val startTime = System.currentTimeMillis()
+                                    
                                     // Handle clear/cls commands immediately
                                     if (command.lowercase().trim() in listOf("clear", "cls")) {
                                         commandHistory = emptyList()
                                         isProcessing = false
+                                        
+                                        // Save clear command to database
+                                        val executionTime = System.currentTimeMillis() - startTime
+                                        viewModel.saveCommandHistory(
+                                            command = command,
+                                            commandType = "SYSTEM",
+                                            subCommand = "clear",
+                                            executionTimeMs = executionTime,
+                                            success = true,
+                                            output = "Screen cleared"
+                                        )
                                         return@launch
                                     }
                                     
@@ -346,11 +370,35 @@ private fun CommandPromptWindow(
                                                 // Add delay between words to simulate streaming
                                                 delay(50)
                                             }
+                                            
+                                            // Save AI command to database (handled in processAICommand)
+                                            val executionTime = System.currentTimeMillis() - startTime
+                                            viewModel.saveCommandHistory(
+                                                command = command,
+                                                commandType = "AI",
+                                                subCommand = if (command.startsWith("ai")) "ai" else "ask",
+                                                arguments = prompt,
+                                                executionTimeMs = executionTime,
+                                                success = true,
+                                                output = aiResponse
+                                            )
                                         } else {
+                                            val errorMsg = "Error: Please provide a prompt after '${command.split(" ")[0]}' command"
                                             commandHistory = commandHistory + CommandEntry(
                                                 command = command,
-                                                output = "Error: Please provide a prompt after '${command.split(" ")[0]}' command",
+                                                output = errorMsg,
                                                 timestamp = System.currentTimeMillis()
+                                            )
+                                            
+                                            // Save error to database
+                                            val executionTime = System.currentTimeMillis() - startTime
+                                            viewModel.saveCommandHistory(
+                                                command = command,
+                                                commandType = "AI",
+                                                subCommand = if (command.startsWith("ai")) "ai" else "ask",
+                                                executionTimeMs = executionTime,
+                                                success = false,
+                                                output = errorMsg
                                             )
                                         }
                                     } else {
@@ -361,6 +409,27 @@ private fun CommandPromptWindow(
                                             command = command,
                                             output = result,
                                             timestamp = System.currentTimeMillis()
+                                        )
+                                        
+                                        // Save regular command to database
+                                        val executionTime = System.currentTimeMillis() - startTime
+                                        val commandParts = command.split(" ")
+                                        val baseCommand = commandParts[0].lowercase().trim()
+                                        val commandType = when (baseCommand) {
+                                            "help", "ver", "version", "about", "date", "time", "exit" -> "SYSTEM"
+                                            "device", "system", "hardware", "build", "memory", "network" -> "SYSTEM"
+                                            "echo", "calc" -> "UTILITY"
+                                            else -> "UNKNOWN"
+                                        }
+                                        
+                                        viewModel.saveCommandHistory(
+                                            command = command,
+                                            commandType = commandType,
+                                            subCommand = if (commandParts.size > 1) commandParts[1] else null,
+                                            arguments = if (commandParts.size > 2) commandParts.drop(2).joinToString(" ") else null,
+                                            executionTimeMs = executionTime,
+                                            success = !result.startsWith("'$command' is not recognized"),
+                                            output = result
                                         )
                                     }
                                     isProcessing = false
@@ -724,20 +793,102 @@ Is Roaming: ${networkInfo.isRoaming}
 
 @HiltViewModel
 class CommandPromptViewModel @Inject constructor(
-    private val aiService: AIService
+    private val aiService: AIService,
+    private val commandLineRepository: CommandLineRepository
 ) : ViewModel() {
     
+    private val sessionId = commandLineRepository.generateSessionId()
+    
     suspend fun processAICommand(prompt: String): String {
+        val startTime = System.currentTimeMillis()
         return try {
             val response = aiService.generateResponse(prompt)
+            val processingTime = System.currentTimeMillis() - startTime
+            
+            // Save AI conversation to database
+            commandLineRepository.insertAIConversation(
+                sessionId = sessionId,
+                prompt = prompt,
+                response = if (response.success) response.response else "AI Error: ${response.response}",
+                modelUsed = "Gemma",
+                processingTimeMs = processingTime,
+                conversationType = "COMMAND_CHAT"
+            )
+            
             if (response.success) {
                 response.response
             } else {
                 "AI Error: ${response.response}"
             }
         } catch (e: Exception) {
+            val processingTime = System.currentTimeMillis() - startTime
+            
+            // Save error to database
+            commandLineRepository.insertAIConversation(
+                sessionId = sessionId,
+                prompt = prompt,
+                response = "AI Error: ${e.message}",
+                modelUsed = "Gemma",
+                processingTimeMs = processingTime,
+                conversationType = "COMMAND_CHAT"
+            )
+            
             "AI Error: ${e.message}"
         }
+    }
+    
+    suspend fun saveCommandHistory(
+        command: String,
+        commandType: String,
+        subCommand: String? = null,
+        arguments: String? = null,
+        executionTimeMs: Long,
+        success: Boolean,
+        output: String
+    ) {
+        val outputPreview = if (output.length > 200) {
+            output.substring(0, 200) + "..."
+        } else {
+            output
+        }
+        
+        val commandId = commandLineRepository.insertCommandHistory(
+            command = command,
+            commandType = commandType,
+            subCommand = subCommand,
+            arguments = arguments,
+            sessionId = sessionId,
+            executionTimeMs = executionTimeMs,
+            success = success,
+            outputPreview = outputPreview
+        )
+        
+        // If output is large, save it separately
+        if (output.length > 200) {
+            val outputId = commandLineRepository.insertCommandOutput(
+                commandId = commandId,
+                fullOutput = output,
+                outputType = "TEXT"
+            )
+            // Update command history with output reference
+            // Note: This would require an update method in the repository
+        }
+        
+        // Update command usage statistics
+        commandLineRepository.updateCommandUsage(
+            command = command,
+            category = commandType,
+            executionTimeMs = executionTimeMs,
+            success = success
+        )
+    }
+    
+    suspend fun getRecentCommands(limit: Int = 50): List<String> {
+        return commandLineRepository.getRecentCommands(limit)
+    }
+    
+    suspend fun getCommandSuggestions(pattern: String): List<String> {
+        return commandLineRepository.getCommandSuggestions(pattern)
     }
 }
 

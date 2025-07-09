@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.room.Room
 import com.win11launcher.data.dao.AppSettingDao
 import com.win11launcher.data.dao.UserProfileDao
+import com.win11launcher.data.dao.CommandHistoryDao
+import com.win11launcher.data.dao.AIConversationDao
+import com.win11launcher.data.dao.SystemMonitoringDao
 import com.win11launcher.data.database.NotesDatabase
 import com.win11launcher.utils.ProfileImageManager
 import com.win11launcher.services.AIService
@@ -34,6 +37,20 @@ object DatabaseModule {
         return database.userProfileDao()
     }
     
+    @Provides
+    fun provideCommandHistoryDao(database: NotesDatabase): CommandHistoryDao {
+        return database.commandHistoryDao()
+    }
+    
+    @Provides
+    fun provideAIConversationDao(database: NotesDatabase): AIConversationDao {
+        return database.aiConversationDao()
+    }
+    
+    @Provides
+    fun provideSystemMonitoringDao(database: NotesDatabase): SystemMonitoringDao {
+        return database.systemMonitoringDao()
+    }
     
     @Provides
     @Singleton
