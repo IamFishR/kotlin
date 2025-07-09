@@ -2,6 +2,7 @@ package com.win11launcher.ui
 
 import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -10,11 +11,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.win11launcher.data.AppRepository
 import com.win11launcher.ui.components.AllAppsScreen
 import com.win11launcher.ui.components.CommandPrompt
+import com.win11launcher.ui.components.NotificationPanel
 import com.win11launcher.ui.components.StartMenu
 import com.win11launcher.ui.components.Taskbar
 import com.win11launcher.ui.components.WallpaperBackground
@@ -34,6 +38,7 @@ fun LauncherScreen() {
     var showAllApps by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showCommandPrompt by remember { mutableStateOf(false) }
+    var showNotificationPanel by remember { mutableStateOf(false) }
     
     // Start monitoring system status
     LaunchedEffect(Unit) {
@@ -55,12 +60,30 @@ fun LauncherScreen() {
     }
     
     val systemStatus by systemStatusManager.systemStatus
+    val density = LocalDensity.current
 
     WallpaperBackground(
         wallpaper = wallpaperManager.getWallpaper(),
         modifier = Modifier.fillMaxSize()
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragEnd = {
+                            // Reset any temporary state if needed
+                        }
+                    ) { change, dragAmount ->
+                        // Only detect swipe down from the top area of the screen
+                        if (change.position.y < with(density) { 200.dp.toPx() } && 
+                            dragAmount.y > with(density) { 150.dp.toPx() } && 
+                            !showStartMenu && !showAllApps && !showSettings && !showCommandPrompt) {
+                            showNotificationPanel = true
+                        }
+                    }
+                }
+        ) {
             // Main content area - simple padding from bottom for taskbar
             Box(
                 modifier = Modifier
@@ -95,7 +118,10 @@ fun LauncherScreen() {
                 // Settings icon in top left corner
                 if (!showSettings && !showAllApps) {
                     IconButton(
-                        onClick = { showSettings = true },
+                        onClick = { 
+                            showSettings = true
+                            showNotificationPanel = false
+                        },
                         modifier = Modifier
                             .align(Alignment.TopStart)
                             .padding(LayoutConstants.SPACING_LARGE)
@@ -130,16 +156,20 @@ fun LauncherScreen() {
                     systemStatus = systemStatus,
                     onStartClick = { 
                         showStartMenu = !showStartMenu
+                        showNotificationPanel = false
                     },
                     onCommandClick = {
                         showCommandPrompt = true
                         showStartMenu = false
+                        showNotificationPanel = false
                     },
                     onSystemTrayClick = { 
                         showStartMenu = false
+                        showNotificationPanel = false
                     },
                     onTaskViewClick = {
                         showStartMenu = false
+                        showNotificationPanel = false
                     }
                 )
             }
@@ -157,10 +187,22 @@ fun LauncherScreen() {
                         modifier = Modifier
                             .width(LayoutConstants.START_MENU_WIDTH)
                             .heightIn(max = LayoutConstants.START_MENU_MAX_HEIGHT),
-                        onDismiss = { showStartMenu = false }
+                        onDismiss = { 
+                            showStartMenu = false
+                            showNotificationPanel = false
+                        }
                     )
                 }
             }
+            
+            // Notification panel - positioned at the top
+            NotificationPanel(
+                isVisible = showNotificationPanel,
+                onDismiss = { showNotificationPanel = false },
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = LayoutConstants.WORKING_AREA_PADDING_TOP)
+            )
         }
     }
 }
