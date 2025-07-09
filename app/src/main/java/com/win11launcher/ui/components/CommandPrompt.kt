@@ -86,6 +86,14 @@ private fun CommandPromptWindow(
         focusRequester.requestFocus()
     }
     
+    // Re-focus the input field after processing is complete
+    LaunchedEffect(isProcessing) {
+        if (!isProcessing) {
+            delay(100)
+            focusRequester.requestFocus()
+        }
+    }
+    
     // Auto-scroll to bottom when new commands are added
     LaunchedEffect(commandHistory.size) {
         if (commandHistory.isNotEmpty()) {
@@ -227,16 +235,72 @@ private fun CommandPromptWindow(
                                     }
                                     
                                     // Handle regular commands (including async AI commands)
-                                    val result = executeCommand(command, context, viewModel)
-                                    
-                                    commandHistory = commandHistory + CommandEntry(
-                                        command = command,
-                                        output = result,
-                                        timestamp = System.currentTimeMillis()
-                                    )
+                                    if (command.startsWith("ai ") || command.startsWith("ask ")) {
+                                        // Handle AI commands with streaming effect
+                                        val prompt = if (command.startsWith("ai ")) {
+                                            command.substring(3).trim()
+                                        } else {
+                                            command.substring(4).trim()
+                                        }
+                                        
+                                        if (prompt.isNotEmpty()) {
+                                            // Add command entry immediately with loading state
+                                            val tempEntry = CommandEntry(
+                                                command = command,
+                                                output = "Processing...",
+                                                timestamp = System.currentTimeMillis(),
+                                                isProcessing = true
+                                            )
+                                            commandHistory = commandHistory + tempEntry
+                                            
+                                            // Get AI response
+                                            val aiResponse = viewModel.processAICommand(prompt)
+                                            
+                                            // Replace with streaming entry
+                                            val streamingEntry = CommandEntry(
+                                                command = command,
+                                                output = "",
+                                                timestamp = System.currentTimeMillis(),
+                                                isStreaming = true
+                                            )
+                                            commandHistory = commandHistory.dropLast(1) + streamingEntry
+                                            
+                                            // Simulate streaming by showing words one by one
+                                            val words = aiResponse.split(" ")
+                                            var currentText = ""
+                                            
+                                            for (i in words.indices) {
+                                                currentText += if (i == 0) words[i] else " ${words[i]}"
+                                                
+                                                val updatedEntry = streamingEntry.copy(
+                                                    output = currentText,
+                                                    isStreaming = i < words.size - 1
+                                                )
+                                                commandHistory = commandHistory.dropLast(1) + updatedEntry
+                                                
+                                                // Add delay between words to simulate streaming
+                                                delay(50)
+                                            }
+                                        } else {
+                                            commandHistory = commandHistory + CommandEntry(
+                                                command = command,
+                                                output = "Error: Please provide a prompt after '${command.split(" ")[0]}' command",
+                                                timestamp = System.currentTimeMillis()
+                                            )
+                                        }
+                                    } else {
+                                        // Handle regular commands
+                                        val result = executeCommand(command, context, viewModel)
+                                        
+                                        commandHistory = commandHistory + CommandEntry(
+                                            command = command,
+                                            output = result,
+                                            timestamp = System.currentTimeMillis()
+                                        )
+                                    }
                                     isProcessing = false
                                 }
-                                keyboardController?.hide()
+                                // Don't hide keyboard - keep it visible for next command
                             }
                         }
                     )
@@ -288,6 +352,17 @@ private fun CommandEntry(
                         strokeWidth = LayoutConstants.COMMAND_PROMPT_PROGRESS_STROKE
                     )
                 }
+                
+                // Show streaming indicator
+                if (entry.isStreaming) {
+                    Text(
+                        text = "▋",
+                        color = Color(0xFF4CAF50),
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily.Monospace,
+                        modifier = Modifier.padding(start = LayoutConstants.SPACING_SMALL)
+                    )
+                }
             }
         }
     }
@@ -297,7 +372,8 @@ private data class CommandEntry(
     val command: String,
     val output: String,
     val timestamp: Long,
-    val isProcessing: Boolean = false
+    val isProcessing: Boolean = false,
+    val isStreaming: Boolean = false
 )
 
 private suspend fun executeCommand(command: String, context: android.content.Context, viewModel: CommandPromptViewModel): String {
@@ -383,20 +459,10 @@ Built with Jetpack Compose"""
                     }
                 }
                 command.startsWith("ai ") -> {
-                    val prompt = command.substring(3).trim()
-                    if (prompt.isNotEmpty()) {
-                        viewModel.processAICommand(prompt)
-                    } else {
-                        "Error: Please provide a prompt after 'ai' command"
-                    }
+                    "AI commands are handled separately with streaming support"
                 }
                 command.startsWith("ask ") -> {
-                    val prompt = command.substring(4).trim()
-                    if (prompt.isNotEmpty()) {
-                        viewModel.processAICommand(prompt)
-                    } else {
-                        "Error: Please provide a prompt after 'ask' command"
-                    }
+                    "AI commands are handled separately with streaming support"
                 }
                 else -> {
                     "'$command' is not recognized as an internal or external command.\nType 'help' for available commands."
