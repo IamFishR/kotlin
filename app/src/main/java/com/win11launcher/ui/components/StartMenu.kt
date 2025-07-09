@@ -5,6 +5,10 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.with
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -28,6 +32,8 @@ import androidx.compose.ui.text.style.TextAlign
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.runtime.*
@@ -39,13 +45,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import kotlin.math.abs
+import kotlin.math.sign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.win11launcher.ui.components.AppIcon
+import com.win11launcher.ui.components.AppIconMedium
+import com.win11launcher.ui.components.PowerMenu
 import com.win11launcher.ui.layout.LayoutConstants
 import com.win11launcher.utils.AppLauncher
 import com.win11launcher.utils.PinnedApp
@@ -62,6 +77,10 @@ data class AppItem(
     val packageName: String = ""
 )
 
+enum class SwipeDirection {
+    LEFT, RIGHT
+}
+
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun StartMenu(
@@ -71,9 +90,39 @@ fun StartMenu(
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val density = LocalDensity.current
+    val hapticFeedback = LocalHapticFeedback.current
     val appRepository = remember { AppRepository(context) }
     var searchQuery by remember { mutableStateOf("") }
     var showAllApps by remember { mutableStateOf(false) }
+    
+    // Swipe state management
+    var swipeOffset by remember { mutableStateOf(0f) }
+    var isDragging by remember { mutableStateOf(false) }
+    
+    // Calculate swipe threshold based on screen density
+    val swipeThreshold = with(density) { 120.dp.toPx() }
+    val maxSwipeDistance = with(density) { 200.dp.toPx() }
+    
+    // Animated swipe progress (0f to 1f)
+    val swipeProgress by animateFloatAsState(
+        targetValue = when {
+            isDragging -> (abs(swipeOffset) / swipeThreshold).coerceIn(0f, 1f)
+            else -> 0f
+        },
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "swipe_progress"
+    )
+    
+    // Reset swipe offset when not dragging
+    LaunchedEffect(isDragging) {
+        if (!isDragging) {
+            swipeOffset = 0f
+        }
+    }
     
     // Get user profile data
     val userProfile by settingsViewModel.userProfile.collectAsStateWithLifecycle()
@@ -144,45 +193,108 @@ fun StartMenu(
                     appRepository = appRepository
                 )
             } else {
-                AnimatedContent(
-                    targetState = showAllApps,
-                    transitionSpec = {
-                        slideInHorizontally(initialOffsetX = { if (targetState) it else -it }) with
-                        slideOutHorizontally(targetOffsetX = { if (targetState) -it else it })
-                    },
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight()
-                        .pointerInput(showAllApps) {
-                            detectDragGestures(
-                                onDragEnd = {
-                                    // No action needed on drag end
+                ) {
+                    // Enhanced swipe gesture handling
+                    AnimatedContent(
+                        targetState = showAllApps,
+                        transitionSpec = {
+                            slideInHorizontally(
+                                initialOffsetX = { if (targetState) it else -it },
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessLow
+                                )
+                            ) with slideOutHorizontally(
+                                targetOffsetX = { if (targetState) -it else it },
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessLow
+                                )
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .graphicsLayer {
+                                // Apply real-time swipe transformation
+                                translationX = when {
+                                    isDragging -> swipeOffset.coerceIn(-maxSwipeDistance, maxSwipeDistance)
+                                    else -> 0f
                                 }
-                            ) { change, dragAmount ->
-                                val threshold = 100f
                                 
-                                // Swipe left (negative dragAmount.x) to go to All Apps
-                                if (dragAmount.x < -threshold && !showAllApps) {
-                                    showAllApps = true
-                                }
-                                // Swipe right (positive dragAmount.x) to go back to Pinned Apps
-                                else if (dragAmount.x > threshold && showAllApps) {
-                                    showAllApps = false
+                                // Subtle scale effect during swipe
+                                val scaleEffect = 1f - (swipeProgress * 0.02f)
+                                scaleX = scaleEffect
+                                scaleY = scaleEffect
+                                
+                                // Subtle alpha effect during swipe
+                                alpha = 1f - (swipeProgress * 0.1f)
+                            }
+                            .pointerInput(showAllApps) {
+                                detectDragGestures(
+                                    onDragStart = {
+                                        isDragging = true
+                                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    },
+                                    onDragEnd = {
+                                        isDragging = false
+                                        
+                                        // Determine if swipe should trigger transition
+                                        val shouldTransition = abs(swipeOffset) > swipeThreshold
+                                        
+                                        if (shouldTransition) {
+                                            // Swipe left (negative) to go to All Apps
+                                            if (swipeOffset < 0 && !showAllApps) {
+                                                showAllApps = true
+                                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            }
+                                            // Swipe right (positive) to go back to Pinned Apps
+                                            else if (swipeOffset > 0 && showAllApps) {
+                                                showAllApps = false
+                                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            }
+                                        }
+                                        
+                                        // Reset swipe offset
+                                        swipeOffset = 0f
+                                    }
+                                ) { change, dragAmount ->
+                                    // Accumulate drag distance
+                                    swipeOffset += dragAmount.x
+                                    
+                                    // Provide haptic feedback at threshold
+                                    if (abs(swipeOffset) >= swipeThreshold && abs(swipeOffset - dragAmount.x) < swipeThreshold) {
+                                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
                                 }
                             }
+                    ) { isShowingAllApps ->
+                        if (isShowingAllApps) {
+                            AllAppsView(
+                                modifier = Modifier.fillMaxSize(),
+                                installedApps = installedApps,
+                                appRepository = appRepository,
+                                onBackClick = { showAllApps = false }
+                            )
+                        } else {
+                            PinnedAppsSection(
+                                modifier = Modifier.fillMaxSize(),
+                                onAllAppsClick = { showAllApps = true },
+                            )
                         }
-                ) { isShowingAllApps ->
-                    if (isShowingAllApps) {
-                        AllAppsView(
-                            modifier = Modifier.fillMaxSize(),
-                            installedApps = installedApps,
-                            appRepository = appRepository,
-                            onBackClick = { showAllApps = false }
-                        )
-                    } else {
-                        PinnedAppsSection(
-                            modifier = Modifier.fillMaxSize(),
-                            onAllAppsClick = { showAllApps = true },
+                    }
+                    
+                    // Swipe direction indicator
+                    if (isDragging && swipeProgress > 0.2f) {
+                        SwipeIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                            progress = swipeProgress,
+                            direction = if (swipeOffset < 0) SwipeDirection.LEFT else SwipeDirection.RIGHT,
+                            isShowingAllApps = showAllApps
                         )
                     }
                 }
@@ -289,7 +401,7 @@ private fun AllAppsView(
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
                             tint = Color.White,
                             modifier = Modifier.size(20.dp)
@@ -390,23 +502,12 @@ private fun AllAppsItem(
             .padding(horizontal = LayoutConstants.SPACING_MEDIUM, vertical = LayoutConstants.SPACING_MEDIUM),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // App icon
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(
-                    Color(0xFF323233),
-                    RoundedCornerShape(LayoutConstants.SPACING_MEDIUM)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Apps,
-                contentDescription = app.name,
-                tint = Color.White,
-                modifier = Modifier.size(20.dp)
-            )
-        }
+        // App icon using real app icon component
+        AppIcon(
+            app = app,
+            size = 40.dp,
+            iconSize = 20.dp
+        )
         
         Spacer(modifier = Modifier.width(12.dp))
         
@@ -491,23 +592,10 @@ private fun SearchResultAppIcon(
             .padding(LayoutConstants.SPACING_MEDIUM),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .background(
-                    Color(0xFF323233),
-                    RoundedCornerShape(LayoutConstants.SPACING_MEDIUM)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            // Use a default icon for now since we can't easily convert Drawable to ImageVector
-            Icon(
-                imageVector = Icons.Default.Apps,
-                contentDescription = app.name,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-        }
+        // App icon using real app icon component
+        AppIconMedium(
+            app = app
+        )
         
         Spacer(modifier = Modifier.height(4.dp))
         
@@ -842,5 +930,56 @@ private fun BottomActions(
                 }
             )
         }
+    }
+}
+
+@Composable
+private fun SwipeIndicator(
+    modifier: Modifier = Modifier,
+    progress: Float,
+    direction: SwipeDirection,
+    isShowingAllApps: Boolean
+) {
+    val alpha by animateFloatAsState(
+        targetValue = progress.coerceIn(0f, 1f),
+        animationSpec = tween(durationMillis = 100),
+        label = "indicator_alpha"
+    )
+    
+    val scale by animateFloatAsState(
+        targetValue = 0.8f + (progress * 0.2f),
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "indicator_scale"
+    )
+    
+    Box(
+        modifier = modifier
+            .size(80.dp)
+            .graphicsLayer {
+                this.alpha = alpha
+                scaleX = scale
+                scaleY = scale
+            }
+            .background(
+                Color.Black.copy(alpha = 0.6f),
+                RoundedCornerShape(40.dp)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = when (direction) {
+                SwipeDirection.LEFT -> if (isShowingAllApps) Icons.AutoMirrored.Filled.ArrowBack else Icons.AutoMirrored.Filled.ArrowForward
+                SwipeDirection.RIGHT -> if (isShowingAllApps) Icons.AutoMirrored.Filled.ArrowBack else Icons.AutoMirrored.Filled.ArrowForward
+            },
+            contentDescription = when (direction) {
+                SwipeDirection.LEFT -> if (isShowingAllApps) "Back to Pinned" else "Go to All Apps"
+                SwipeDirection.RIGHT -> if (isShowingAllApps) "Back to Pinned" else "Go to All Apps"
+            },
+            tint = Color.White.copy(alpha = 0.9f),
+            modifier = Modifier.size(32.dp)
+        )
     }
 }

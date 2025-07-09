@@ -27,8 +27,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.delay
 import android.os.Build
 import androidx.compose.ui.platform.LocalContext
@@ -50,17 +48,17 @@ fun CommandPrompt(
     viewModel: CommandPromptViewModel = hiltViewModel()
 ) {
     if (isVisible) {
-        Dialog(
-            onDismissRequest = onDismiss,
-            properties = DialogProperties(
-                dismissOnBackPress = true,
-                dismissOnClickOutside = true,
-                usePlatformDefaultWidth = false
-            )
+        // Use a Box overlay instead of Dialog to respect working area boundaries
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.3f))
+                .clickable { onDismiss() },
+            contentAlignment = Alignment.Center
         ) {
             CommandPromptWindow(
                 onClose = onDismiss,
-                modifier = modifier,
+                modifier = Modifier.clickable { }, // Prevent clicks from propagating to background
                 viewModel = viewModel
             )
         }
@@ -97,8 +95,8 @@ private fun CommandPromptWindow(
     
     Card(
         modifier = modifier
-            .fillMaxWidth(0.9f)
-            .fillMaxHeight(0.7f)
+            .fillMaxWidth(0.85f)
+            .fillMaxHeight(0.6f)
             .clip(RoundedCornerShape(LayoutConstants.SPACING_MEDIUM))
             .border(
                 width = LayoutConstants.COMMAND_PROMPT_BORDER_WIDTH,
@@ -106,7 +104,7 @@ private fun CommandPromptWindow(
                 shape = RoundedCornerShape(LayoutConstants.SPACING_MEDIUM)
             ),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF0C0C0C).copy(alpha = 0.9f)
+            containerColor = Color(0xFF0C0C0C).copy(alpha = 0.95f)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = LayoutConstants.COMMAND_PROMPT_ELEVATION)
     ) {

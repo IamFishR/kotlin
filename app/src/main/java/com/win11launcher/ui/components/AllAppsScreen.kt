@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.win11launcher.data.AppRepository
 import com.win11launcher.data.InstalledApp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import com.win11launcher.ui.components.AppIconLarge
 import com.win11launcher.ui.layout.LayoutConstants
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -161,29 +162,11 @@ private fun AppItem(
             .clickable { onClick() }
             .padding(LayoutConstants.SPACING_SMALL)
     ) {
-        // App icon
-        app.iconDrawable?.let { drawable ->
-            Image(
-                painter = rememberDrawablePainter(drawable),
-                contentDescription = app.name,
-                modifier = Modifier
-                    .size(LayoutConstants.ICON_MASSIVE)
-                    .clip(RoundedCornerShape(LayoutConstants.SPACING_MEDIUM))
-            )
-        } ?: Box(
+        // App icon using real app icon component
+        AppIconLarge(
+            app = app,
             modifier = Modifier
-                .size(LayoutConstants.ICON_MASSIVE)
-                .clip(RoundedCornerShape(LayoutConstants.SPACING_MEDIUM))
-                .background(Color(0xFF444444)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Apps,
-                contentDescription = app.name,
-                tint = Color.White,
-                modifier = Modifier.size(LayoutConstants.ICON_EXTRA_LARGE)
-            )
-        }
+        )
         
         Spacer(modifier = Modifier.height(LayoutConstants.SPACING_SMALL))
         
