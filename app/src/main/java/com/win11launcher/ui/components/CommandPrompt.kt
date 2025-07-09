@@ -15,6 +15,8 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -368,6 +370,42 @@ private fun CommandPromptWindow(
                         }
                     )
                 )
+                
+                // Navigation buttons for command history (mobile-friendly)
+                if (commandHistoryList.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier.padding(start = LayoutConstants.SPACING_SMALL),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        // Up arrow button
+                        IconButton(
+                            onClick = { navigateHistory(-1) },
+                            enabled = !isProcessing,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowUp,
+                                contentDescription = "Previous command",
+                                tint = if (isProcessing) Color.Gray else Color(0xFF4CAF50),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                        
+                        // Down arrow button
+                        IconButton(
+                            onClick = { navigateHistory(1) },
+                            enabled = !isProcessing,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = "Next command",
+                                tint = if (isProcessing) Color.Gray else Color(0xFF4CAF50),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -454,7 +492,8 @@ about - Show about information
 calc <expression> - Simple calculator (e.g., calc 2+2)
 
 Navigation:
-Up/Down Arrow Keys - Navigate through command history
+Up/Down Arrow Keys - Navigate through command history (keyboard)
+Up/Down Buttons - Navigate through command history (mobile-friendly)
 
 Device Information Commands:
 device - Show device information
