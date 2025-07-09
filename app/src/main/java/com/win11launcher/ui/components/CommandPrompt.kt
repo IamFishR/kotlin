@@ -10,6 +10,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.input.key.*
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
@@ -74,6 +77,41 @@ private fun CommandPromptWindow(
     var commandHistory by remember { mutableStateOf(listOf<CommandEntry>()) }
     var currentCommand by remember { mutableStateOf("") }
     var isProcessing by remember { mutableStateOf(false) }
+    
+    // Command history navigation
+    var commandHistoryList by remember { mutableStateOf(listOf<String>()) }
+    var historyIndex by remember { mutableStateOf(-1) }
+    var tempCommand by remember { mutableStateOf("") }
+    
+    // Function to handle command history navigation
+    fun navigateHistory(direction: Int) {
+        if (commandHistoryList.isEmpty()) return
+        
+        when (direction) {
+            -1 -> { // Up arrow - go to previous command
+                if (historyIndex == -1) {
+                    tempCommand = currentCommand
+                    historyIndex = commandHistoryList.size - 1
+                } else if (historyIndex > 0) {
+                    historyIndex--
+                }
+                if (historyIndex >= 0) {
+                    currentCommand = commandHistoryList[historyIndex]
+                }
+            }
+            1 -> { // Down arrow - go to next command
+                if (historyIndex >= 0) {
+                    historyIndex++
+                    if (historyIndex >= commandHistoryList.size) {
+                        historyIndex = -1
+                        currentCommand = tempCommand
+                    } else {
+                        currentCommand = commandHistoryList[historyIndex]
+                    }
+                }
+            }
+        }
+    }
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val listState = rememberLazyListState()
@@ -103,7 +141,7 @@ private fun CommandPromptWindow(
     
     Card(
         modifier = modifier
-            .fillMaxWidth(0.85f)
+            .fillMaxWidth(0.98f) // Use almost full width with minimal spacing
             .fillMaxHeight(0.6f)
             .clip(RoundedCornerShape(LayoutConstants.SPACING_MEDIUM))
             .border(
@@ -193,10 +231,28 @@ private fun CommandPromptWindow(
                 
                 OutlinedTextField(
                     value = currentCommand,
-                    onValueChange = { currentCommand = it },
+                    onValueChange = { 
+                        currentCommand = it
+                        historyIndex = -1 // Reset history navigation when typing
+                    },
                     modifier = Modifier
                         .weight(1f)
-                        .focusRequester(focusRequester),
+                        .focusRequester(focusRequester)
+                        .onKeyEvent { keyEvent ->
+                            if (keyEvent.type == KeyEventType.KeyDown) {
+                                when (keyEvent.key) {
+                                    Key.DirectionUp -> {
+                                        navigateHistory(-1)
+                                        true
+                                    }
+                                    Key.DirectionDown -> {
+                                        navigateHistory(1)
+                                        true
+                                    }
+                                    else -> false
+                                }
+                            } else false
+                        },
                     enabled = !isProcessing,
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -224,6 +280,13 @@ private fun CommandPromptWindow(
                                 isProcessing = true
                                 val command = currentCommand.trim()
                                 currentCommand = ""
+                                
+                                // Add command to history (exclude clear/cls commands)
+                                if (command.lowercase().trim() !in listOf("clear", "cls")) {
+                                    commandHistoryList = commandHistoryList + command
+                                }
+                                historyIndex = -1
+                                tempCommand = ""
                                 
                                 // Handle commands
                                 coroutineScope.launch {
@@ -389,6 +452,9 @@ ver - Show version information
 exit - Close command prompt
 about - Show about information
 calc <expression> - Simple calculator (e.g., calc 2+2)
+
+Navigation:
+Up/Down Arrow Keys - Navigate through command history
 
 Device Information Commands:
 device - Show device information
