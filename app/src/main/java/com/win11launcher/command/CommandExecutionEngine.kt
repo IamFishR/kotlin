@@ -6,6 +6,7 @@ import com.win11launcher.command.commands.NetworkCommands
 import com.win11launcher.command.commands.AppCommands
 import com.win11launcher.command.commands.FileCommands
 import com.win11launcher.command.commands.PowerCommands
+import com.win11launcher.command.commands.AICommandProvider
 import com.win11launcher.data.repositories.CommandLineRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -16,7 +17,8 @@ import javax.inject.Singleton
 class CommandExecutionEngine @Inject constructor(
     private val commandRegistry: CommandRegistry,
     private val commandParser: CommandParser,
-    private val commandLineRepository: CommandLineRepository
+    private val commandLineRepository: CommandLineRepository,
+    private val aiCommandProvider: AICommandProvider
 ) {
     
     init {
@@ -72,12 +74,29 @@ class CommandExecutionEngine @Inject constructor(
         commandRegistry.registerCommand(FileCommands.getRemoveCommand())
         commandRegistry.registerCommand(FileCommands.getMkdirCommand())
         commandRegistry.registerCommand(FileCommands.getCatCommand())
+        commandRegistry.registerCommand(FileCommands.getPwdCommand())
+        commandRegistry.registerCommand(FileCommands.getTouchCommand())
+        commandRegistry.registerCommand(FileCommands.getFindCommand())
+        commandRegistry.registerCommand(FileCommands.getGrepCommand())
+        commandRegistry.registerCommand(FileCommands.getStatCommand())
+        commandRegistry.registerCommand(FileCommands.getHeadCommand())
+        commandRegistry.registerCommand(FileCommands.getTailCommand())
+        commandRegistry.registerCommand(FileCommands.getWcCommand())
         
         // Register Power Commands
         commandRegistry.registerCommand(PowerCommands.getPowerCommand())
         commandRegistry.registerCommand(PowerCommands.getBatteryCommand())
         commandRegistry.registerCommand(PowerCommands.getThermalCommand())
         commandRegistry.registerCommand(PowerCommands.getScreenCommand())
+        
+        // Register AI Commands with proper DI
+        commandRegistry.registerCommand(aiCommandProvider.getAskCommand())
+        commandRegistry.registerCommand(aiCommandProvider.getInterpretCommand())
+        commandRegistry.registerCommand(aiCommandProvider.getAnalyzeCommand())
+        commandRegistry.registerCommand(aiCommandProvider.getOptimizeCommand())
+        commandRegistry.registerCommand(aiCommandProvider.getSuggestCommand())
+        commandRegistry.registerCommand(aiCommandProvider.getMemoryCommand())
+        commandRegistry.registerCommand(aiCommandProvider.getScriptCommand())
         
         // Register Utility Commands
         registerUtilityCommands()
@@ -285,8 +304,8 @@ class CommandExecutionEngine @Inject constructor(
         executionTime: Long,
         sessionId: String,
         rawCommand: String? = null
-    ) {
-        try {
+    ): String? {
+        return try {
             val command = parsedCommand?.commandName ?: rawCommand ?: "unknown"
             val commandType = parsedCommand?.let { 
                 commandRegistry.getCommand(it.commandName)?.category?.name 
@@ -324,9 +343,306 @@ class CommandExecutionEngine @Inject constructor(
                 success = result.success
             )
             
+            // Track file operations for FILE category commands
+            if (commandType == "FILE" && parsedCommand != null) {
+                trackFileOperation(
+                    commandName = command,
+                    parameters = parsedCommand.parameters,
+                    arguments = parsedCommand.arguments,
+                    result = result,
+                    commandId = commandId
+                )
+            }
+            
+            commandId
         } catch (e: Exception) {
             // Log error but don't fail the command execution
             println("Error saving command to database: ${e.message}")
+            null
+        }
+    }
+    
+    private suspend fun trackFileOperation(
+        commandName: String,
+        parameters: Map<String, String>,
+        arguments: List<String>,
+        result: CommandResult,
+        commandId: String
+    ) {
+        try {
+            when (commandName.lowercase()) {
+                "ls", "list", "dir" -> {
+                    val path = parameters["path"] ?: arguments.firstOrNull() ?: "."
+                    val actualPath = if (path == ".") {
+                        android.os.Environment.getExternalStorageDirectory().absolutePath
+                    } else {
+                        path
+                    }
+                    
+                    val fileCount = if (result.success) {
+                        val dir = java.io.File(actualPath)
+                        dir.listFiles()?.size ?: 0
+                    } else 0
+                    
+                    commandLineRepository.insertFileOperation(
+                        operation = "LS",
+                        sourcePath = actualPath,
+                        destinationPath = null,
+                        success = result.success,
+                        filesAffected = fileCount,
+                        bytesTransferred = null,
+                        commandId = commandId
+                    )
+                }
+                
+                "cp", "copy" -> {
+                    val source = parameters["source"] ?: arguments.getOrNull(0) ?: ""
+                    val destination = parameters["destination"] ?: arguments.getOrNull(1) ?: ""
+                    
+                    val bytesTransferred = if (result.success && source.isNotEmpty()) {
+                        val sourceFile = java.io.File(source)
+                        if (sourceFile.exists()) {
+                            calculateFileSize(sourceFile)
+                        } else null
+                    } else null
+                    
+                    commandLineRepository.insertFileOperation(
+                        operation = "CP",
+                        sourcePath = source,
+                        destinationPath = destination,
+                        success = result.success,
+                        filesAffected = 1,
+                        bytesTransferred = bytesTransferred,
+                        commandId = commandId
+                    )
+                }
+                
+                "mv", "move", "rename" -> {
+                    val source = parameters["source"] ?: arguments.getOrNull(0) ?: ""
+                    val destination = parameters["destination"] ?: arguments.getOrNull(1) ?: ""
+                    
+                    val bytesTransferred = if (result.success && source.isNotEmpty()) {
+                        val sourceFile = java.io.File(source)
+                        if (sourceFile.exists()) {
+                            calculateFileSize(sourceFile)
+                        } else null
+                    } else null
+                    
+                    commandLineRepository.insertFileOperation(
+                        operation = "MV",
+                        sourcePath = source,
+                        destinationPath = destination,
+                        success = result.success,
+                        filesAffected = 1,
+                        bytesTransferred = bytesTransferred,
+                        commandId = commandId
+                    )
+                }
+                
+                "rm", "delete", "del" -> {
+                    val path = parameters["path"] ?: arguments.firstOrNull() ?: ""
+                    val fileCount = if (result.success && path.isNotEmpty()) {
+                        val file = java.io.File(path)
+                        if (file.isDirectory) {
+                            countFilesRecursively(file)
+                        } else 1
+                    } else 0
+                    
+                    commandLineRepository.insertFileOperation(
+                        operation = "RM",
+                        sourcePath = path,
+                        destinationPath = null,
+                        success = result.success,
+                        filesAffected = fileCount,
+                        bytesTransferred = null,
+                        commandId = commandId
+                    )
+                }
+                
+                "mkdir", "makedir" -> {
+                    val path = parameters["path"] ?: arguments.firstOrNull() ?: ""
+                    
+                    commandLineRepository.insertFileOperation(
+                        operation = "MKDIR",
+                        sourcePath = path,
+                        destinationPath = null,
+                        success = result.success,
+                        filesAffected = 1,
+                        bytesTransferred = null,
+                        commandId = commandId
+                    )
+                }
+                
+                "cat", "view", "type" -> {
+                    val filePath = parameters["file"] ?: arguments.firstOrNull() ?: ""
+                    
+                    commandLineRepository.insertFileOperation(
+                        operation = "CAT",
+                        sourcePath = filePath,
+                        destinationPath = null,
+                        success = result.success,
+                        filesAffected = 1,
+                        bytesTransferred = null,
+                        commandId = commandId
+                    )
+                }
+                
+                "pwd", "cwd" -> {
+                    val currentDir = android.os.Environment.getExternalStorageDirectory().absolutePath
+                    
+                    commandLineRepository.insertFileOperation(
+                        operation = "PWD",
+                        sourcePath = currentDir,
+                        destinationPath = null,
+                        success = result.success,
+                        filesAffected = 0,
+                        bytesTransferred = null,
+                        commandId = commandId
+                    )
+                }
+                
+                "touch", "create" -> {
+                    val filePath = parameters["file"] ?: arguments.firstOrNull() ?: ""
+                    
+                    commandLineRepository.insertFileOperation(
+                        operation = "TOUCH",
+                        sourcePath = filePath,
+                        destinationPath = null,
+                        success = result.success,
+                        filesAffected = 1,
+                        bytesTransferred = null,
+                        commandId = commandId
+                    )
+                }
+                
+                "find", "search" -> {
+                    val path = parameters["path"] ?: arguments.firstOrNull() ?: ""
+                    val resultsCount = if (result.success) {
+                        // Extract count from output if possible
+                        extractNumberFromOutput(result.output, "Found (\\d+) matches")
+                    } else 0
+                    
+                    commandLineRepository.insertFileOperation(
+                        operation = "FIND",
+                        sourcePath = path,
+                        destinationPath = null,
+                        success = result.success,
+                        filesAffected = resultsCount,
+                        bytesTransferred = null,
+                        commandId = commandId
+                    )
+                }
+                
+                "grep", "search-text" -> {
+                    val filePath = parameters["file"] ?: arguments.getOrNull(1) ?: ""
+                    val matchesCount = if (result.success) {
+                        extractNumberFromOutput(result.output, "Found (\\d+) matches")
+                    } else 0
+                    
+                    commandLineRepository.insertFileOperation(
+                        operation = "GREP",
+                        sourcePath = filePath,
+                        destinationPath = null,
+                        success = result.success,
+                        filesAffected = matchesCount,
+                        bytesTransferred = null,
+                        commandId = commandId
+                    )
+                }
+                
+                "stat", "info" -> {
+                    val path = parameters["path"] ?: arguments.firstOrNull() ?: ""
+                    
+                    commandLineRepository.insertFileOperation(
+                        operation = "STAT",
+                        sourcePath = path,
+                        destinationPath = null,
+                        success = result.success,
+                        filesAffected = 1,
+                        bytesTransferred = null,
+                        commandId = commandId
+                    )
+                }
+                
+                "head", "top" -> {
+                    val filePath = parameters["file"] ?: arguments.firstOrNull() ?: ""
+                    
+                    commandLineRepository.insertFileOperation(
+                        operation = "HEAD",
+                        sourcePath = filePath,
+                        destinationPath = null,
+                        success = result.success,
+                        filesAffected = 1,
+                        bytesTransferred = null,
+                        commandId = commandId
+                    )
+                }
+                
+                "tail", "bottom" -> {
+                    val filePath = parameters["file"] ?: arguments.firstOrNull() ?: ""
+                    
+                    commandLineRepository.insertFileOperation(
+                        operation = "TAIL",
+                        sourcePath = filePath,
+                        destinationPath = null,
+                        success = result.success,
+                        filesAffected = 1,
+                        bytesTransferred = null,
+                        commandId = commandId
+                    )
+                }
+                
+                "wc", "count" -> {
+                    val filePath = parameters["file"] ?: arguments.firstOrNull() ?: ""
+                    
+                    commandLineRepository.insertFileOperation(
+                        operation = "WC",
+                        sourcePath = filePath,
+                        destinationPath = null,
+                        success = result.success,
+                        filesAffected = 1,
+                        bytesTransferred = null,
+                        commandId = commandId
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            // Log error but don't fail the command execution
+            println("Error tracking file operation: ${e.message}")
+        }
+    }
+    
+    private fun calculateFileSize(file: java.io.File): Long {
+        return if (file.isDirectory) {
+            var size = 0L
+            file.walkTopDown().forEach { f ->
+                if (f.isFile) {
+                    size += f.length()
+                }
+            }
+            size
+        } else {
+            file.length()
+        }
+    }
+    
+    private fun countFilesRecursively(directory: java.io.File): Int {
+        var count = 0
+        directory.walkTopDown().forEach { f ->
+            if (f.isFile) {
+                count++
+            }
+        }
+        return count
+    }
+    
+    private fun extractNumberFromOutput(output: String, pattern: String): Int {
+        return try {
+            val regex = pattern.toRegex()
+            val match = regex.find(output)
+            match?.groupValues?.get(1)?.toIntOrNull() ?: 0
+        } catch (e: Exception) {
+            0
         }
     }
     

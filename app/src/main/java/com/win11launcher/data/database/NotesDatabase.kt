@@ -21,11 +21,15 @@ import com.win11launcher.data.entities.AppAction
 import com.win11launcher.data.entities.FileOperation
 import com.win11launcher.data.entities.DatabaseQuery
 import com.win11launcher.data.entities.CommandUsage
+import com.win11launcher.data.entities.ShortTermMemory
+import com.win11launcher.data.entities.LongTermMemory
+import com.win11launcher.data.entities.Reflection
 import com.win11launcher.data.dao.AppSettingDao
 import com.win11launcher.data.dao.UserProfileDao
 import com.win11launcher.data.dao.CommandHistoryDao
 import com.win11launcher.data.dao.AIConversationDao
 import com.win11launcher.data.dao.SystemMonitoringDao
+import com.win11launcher.data.dao.AIMemoryDao
 import com.win11launcher.data.converters.Converters
 
 @Database(
@@ -44,9 +48,12 @@ import com.win11launcher.data.converters.Converters
         UserFile::class,
         UserProfile::class,
         UserScript::class,
-        PermissionState::class
+        PermissionState::class,
+        ShortTermMemory::class,
+        LongTermMemory::class,
+        Reflection::class
     ],
-    version = 15,
+    version = 16,
     exportSchema = true
 )
 @androidx.room.TypeConverters(Converters::class)
@@ -57,6 +64,7 @@ abstract class NotesDatabase : RoomDatabase() {
     abstract fun commandHistoryDao(): CommandHistoryDao
     abstract fun aiConversationDao(): AIConversationDao
     abstract fun systemMonitoringDao(): SystemMonitoringDao
+    abstract fun aiMemoryDao(): AIMemoryDao
     
     companion object {
         @Volatile
@@ -70,7 +78,7 @@ abstract class NotesDatabase : RoomDatabase() {
                     "notes_database"
                 )
                 .addCallback(DatabaseCallback())
-                .addMigrations(MIGRATION_13_14)
+                .addMigrations(MIGRATION_13_14, MIGRATION_15_16)
                 .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance
@@ -268,6 +276,76 @@ abstract class NotesDatabase : RoomDatabase() {
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_command_usage_category ON command_usage(category)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_command_usage_last_used ON command_usage(last_used)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_command_usage_usage_count ON command_usage(usage_count)")
+            }
+        }
+        
+        private val MIGRATION_15_16 = object : Migration(15, 16) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Create short_term_memory table
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS short_term_memory (
+                        messageId TEXT PRIMARY KEY NOT NULL,
+                        conversation_id TEXT NOT NULL,
+                        message_order INTEGER NOT NULL,
+                        sender TEXT NOT NULL,
+                        content_text TEXT NOT NULL,
+                        token_count INTEGER NOT NULL,
+                        timestamp INTEGER NOT NULL,
+                        message_type TEXT NOT NULL DEFAULT 'TEXT',
+                        importance_score REAL NOT NULL DEFAULT 0.5,
+                        context_data TEXT,
+                        FOREIGN KEY (conversation_id) REFERENCES ai_conversations(id) ON DELETE CASCADE
+                    )
+                """)
+                
+                // Create long_term_memory table
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS long_term_memory (
+                        memoryId TEXT PRIMARY KEY NOT NULL,
+                        user_id TEXT NOT NULL,
+                        memory_text TEXT NOT NULL,
+                        embedding TEXT,
+                        memory_type TEXT NOT NULL,
+                        importance_score REAL NOT NULL,
+                        last_accessed INTEGER NOT NULL,
+                        created_at INTEGER NOT NULL,
+                        access_count INTEGER NOT NULL DEFAULT 0,
+                        source_conversations TEXT,
+                        keywords TEXT,
+                        category TEXT,
+                        decay_factor REAL NOT NULL DEFAULT 0.99
+                    )
+                """)
+                
+                // Create reflections table
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS reflections (
+                        reflectionId TEXT PRIMARY KEY NOT NULL,
+                        user_id TEXT NOT NULL,
+                        reflection_text TEXT NOT NULL,
+                        reflection_type TEXT NOT NULL,
+                        triggering_message_ids TEXT NOT NULL,
+                        created_at INTEGER NOT NULL,
+                        confidence_score REAL NOT NULL DEFAULT 0.7,
+                        actionable INTEGER NOT NULL DEFAULT 0,
+                        implemented INTEGER NOT NULL DEFAULT 0,
+                        context_data TEXT,
+                        tags TEXT
+                    )
+                """)
+                
+                // Create indices for AI memory tables
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_short_term_memory_conversation_id ON short_term_memory(conversation_id)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_short_term_memory_timestamp ON short_term_memory(timestamp)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_short_term_memory_message_order ON short_term_memory(message_order)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_long_term_memory_user_id ON long_term_memory(user_id)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_long_term_memory_memory_type ON long_term_memory(memory_type)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_long_term_memory_importance_score ON long_term_memory(importance_score)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_long_term_memory_last_accessed ON long_term_memory(last_accessed)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_long_term_memory_created_at ON long_term_memory(created_at)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_reflections_user_id ON reflections(user_id)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_reflections_created_at ON reflections(created_at)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_reflections_reflection_type ON reflections(reflection_type)")
             }
         }
         

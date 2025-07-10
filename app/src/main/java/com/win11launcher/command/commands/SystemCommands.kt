@@ -82,7 +82,7 @@ object SystemCommands {
             )
         ),
         aliases = listOf("mem", "ram"),
-        executor = MemoryCommandExecutor()
+        executor = SystemMemoryCommandExecutor()
     )
     
     fun getStorageCommand() = CommandDefinition(
@@ -406,7 +406,7 @@ class SystemInfoCommandExecutor : CommandExecutor {
     }
 }
 
-class MemoryCommandExecutor : CommandExecutor {
+class SystemMemoryCommandExecutor : CommandExecutor {
     override suspend fun execute(
         context: Context,
         parameters: Map<String, String>,

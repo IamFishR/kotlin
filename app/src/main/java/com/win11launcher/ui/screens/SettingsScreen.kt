@@ -41,6 +41,10 @@ import com.win11launcher.utils.SystemStatusManager
 import com.win11launcher.viewmodels.SettingsViewModel
 import androidx.core.content.ContextCompat
 import com.win11launcher.ui.layout.LayoutConstants
+import com.win11launcher.services.AIService
+import com.win11launcher.services.AIMemoryManager
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.android.internal.Contexts
 
 enum class SettingsTab(
     val title: String,
@@ -52,6 +56,7 @@ enum class SettingsTab(
     DISPLAY("Display", Icons.Default.DisplaySettings),
     NETWORK("Network", Icons.Default.Wifi),
     APPS("Apps", Icons.Default.Apps),
+    AI("AI Assistant", Icons.Default.Psychology),
     ABOUT("About", Icons.Default.Info)
 }
 
@@ -203,6 +208,15 @@ fun SettingsScreen(
                 )
                 SettingsTab.NETWORK -> NetworkContent(systemStatusManager)
                 SettingsTab.APPS -> AppsContent()
+                SettingsTab.AI -> {
+                    // Get AI services through EntryPoint since they're not directly injectable here
+                    val context = LocalContext.current
+                    val appContext = context.applicationContext
+                    
+                    // For now, create a simplified AI settings content
+                    // In a production app, you'd properly inject these services
+                    AISettingsContentSimplified(viewModel = viewModel)
+                }
                 SettingsTab.ABOUT -> AboutContent()
             }
         }

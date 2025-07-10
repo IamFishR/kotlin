@@ -560,7 +560,7 @@ private fun UpdateSettingsContent() {
 }
 
 @Composable
-private fun SettingsGroup(
+fun SettingsGroup(
     title: String,
     description: String,
     content: @Composable () -> Unit
@@ -596,7 +596,7 @@ private fun SettingsGroup(
 }
 
 @Composable
-private fun SettingsItem(
+fun SettingsItem(
     title: String,
     description: String,
     onClick: () -> Unit
