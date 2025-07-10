@@ -11,6 +11,8 @@ import android.app.KeyguardManager
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.Manifest
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
 import com.win11launcher.command.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -250,37 +252,11 @@ class PowerCommandExecutor : CommandExecutor {
     }
     
     private fun lockDevice(context: Context): String {
-        return try {
-            val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-            val devicePolicyManager = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-            
-            // Try to lock using device admin
-            devicePolicyManager.lockNow()
-            "Device locked successfully"
-        } catch (e: SecurityException) {
-            "Unable to lock device: Device admin permission required"
-        } catch (e: Exception) {
-            "Failed to lock device: ${e.message}"
-        }
+        return "Device locking requires Device Admin permissions, which are not supported for regular apps."
     }
     
     private fun sleepDevice(context: Context): String {
-        return try {
-            val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                // For sleep functionality, we use device admin to lock the screen
-                // which effectively puts the device to sleep
-                val devicePolicyManager = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-                devicePolicyManager.lockNow()
-                "Device screen turned off (sleep mode)"
-            } else {
-                "Sleep mode not supported on this API level"
-            }
-        } catch (e: SecurityException) {
-            "Unable to sleep device: Device admin permission required"
-        } catch (e: Exception) {
-            "Failed to sleep device: ${e.message}"
-        }
+        return "Device sleep (screen off) requires Device Admin permissions, which are not supported for regular apps."
     }
     
     private fun rebootDevice(context: Context, confirm: Boolean, delay: Int): String {
@@ -292,9 +268,7 @@ class PowerCommandExecutor : CommandExecutor {
             if (delay > 0) {
                 "Reboot scheduled in $delay seconds (feature requires root access)"
             } else {
-                val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-                powerManager.reboot("User requested reboot via command line")
-                "Rebooting device..."
+                "Rebooting device... (Requires root access or system app)"
             }
         } catch (e: SecurityException) {
             "Unable to reboot: REBOOT permission or root access required"
@@ -313,12 +287,7 @@ class PowerCommandExecutor : CommandExecutor {
                 "Shutdown scheduled in $delay seconds (feature requires root access)"
             } else {
                 val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    powerManager.reboot("shutdown")
-                    "Shutting down device..."
-                } else {
-                    "Shutdown requires Android N+ or root access"
-                }
+                "Shutdown requires Android N+ or root access"
             }
         } catch (e: SecurityException) {
             "Unable to shutdown: REBOOT permission or root access required"

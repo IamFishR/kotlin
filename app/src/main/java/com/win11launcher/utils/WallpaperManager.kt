@@ -78,7 +78,7 @@ class SystemWallpaperManager(private val context: Context) {
             }
             
             // Method 3: Try with FLAG_SYSTEM for home screen wallpaper
-            if (drawable == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            if (drawable == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // API 34
                 try {
                     drawable = wallpaperManager.getDrawable(WallpaperManager.FLAG_SYSTEM)
                     Log.d("WallpaperManager", "System flag wallpaper drawable: $drawable")

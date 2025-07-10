@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.win11launcher.utils.SystemStatusManager
 import com.win11launcher.viewmodels.SettingsViewModel
+import com.win11launcher.ui.screens.CommandsReferenceScreen
 
 // Simplified settings tabs for Windows-like experience
 enum class SettingsTabNew(
@@ -36,7 +38,8 @@ enum class SettingsTabNew(
     APPS("Apps", Icons.Default.Apps, "Uninstall, defaults, features"),
     ACCOUNTS("Accounts", Icons.Default.Person, "Your accounts, family, work"),
     PRIVACY("Privacy", Icons.Default.Security, "Location, camera, microphone"),
-    UPDATE("Update", Icons.Default.Update, "Windows Update, delivery optimization")
+    UPDATE("Update", Icons.Default.Update, "Windows Update, delivery optimization"),
+    COMMANDS("Commands", Icons.Default.Terminal, "Command line reference")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -115,6 +118,7 @@ fun SettingsScreenNew(
                     SettingsTabNew.ACCOUNTS -> AccountsSettingsContent()
                     SettingsTabNew.PRIVACY -> PrivacySettingsContent()
                     SettingsTabNew.UPDATE -> UpdateSettingsContent()
+                    SettingsTabNew.COMMANDS -> CommandsReferenceScreen()
                 }
             }
         }

@@ -30,23 +30,23 @@ import com.win11launcher.data.converters.Converters
 
 @Database(
     entities = [
-        AppSetting::class, 
-        PermissionState::class, 
-        UserProfile::class, 
-        UserCustomization::class, 
-        UserFile::class,
+        AIConversation::class,
+        AppAction::class,
+        AppSetting::class,
         CommandHistory::class,
         CommandOutput::class,
-        AIConversation::class,
-        UserScript::class,
-        SystemSnapshot::class,
-        NetworkHistory::class,
-        AppAction::class,
-        FileOperation::class,
+        CommandUsage::class,
         DatabaseQuery::class,
-        CommandUsage::class
+        FileOperation::class,
+        NetworkHistory::class,
+        SystemSnapshot::class,
+        UserCustomization::class,
+        UserFile::class,
+        UserProfile::class,
+        UserScript::class,
+        PermissionState::class
     ],
-    version = 14,
+    version = 15,
     exportSchema = true
 )
 @androidx.room.TypeConverters(Converters::class)

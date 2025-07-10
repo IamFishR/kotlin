@@ -11,6 +11,9 @@ import android.content.BroadcastReceiver
 import android.content.Intent
 import android.content.IntentFilter
 import android.Manifest
+import android.os.Build
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
 import com.win11launcher.command.*
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -113,7 +116,8 @@ object NetworkCommands {
         requiresPermissions = listOf(
             Manifest.permission.BLUETOOTH,
             Manifest.permission.BLUETOOTH_ADMIN,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.BLUETOOTH_CONNECT
         ),
         executor = BluetoothCommandExecutor()
     )
@@ -456,6 +460,9 @@ class WifiCommandExecutor : CommandExecutor {
             if (!wifiManager.isWifiEnabled) {
                 "WiFi is disabled. Enable WiFi to scan for networks."
             } else {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return "Location permission (ACCESS_FINE_LOCATION) is required to scan for WiFi networks. Please grant it in app settings."
+                }
                 val scanResults = wifiManager.scanResults
                 
                 buildString {
@@ -538,8 +545,11 @@ class WifiCommandExecutor : CommandExecutor {
     
     private fun listWifiNetworks(context: Context): String {
         val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        
+
         return try {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return "Location permission (ACCESS_FINE_LOCATION) is required to list WiFi networks. Please grant it in app settings."
+            }
             val configuredNetworks = wifiManager.configuredNetworks
             
             buildString {
@@ -631,8 +641,14 @@ class BluetoothCommandExecutor : CommandExecutor {
                 appendLine("  Bluetooth not supported on this device")
             } else {
                 appendLine("  Bluetooth Enabled: ${bluetoothAdapter.isEnabled}")
-                appendLine("  Device Name: ${bluetoothAdapter.name}")
-                appendLine("  Device Address: ${bluetoothAdapter.address}")
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                    appendLine("  Device Name: ${bluetoothAdapter.name}")
+                    appendLine("  Device Name: ${bluetoothAdapter.name}")
+                    appendLine("  Device Address: Not directly accessible due to Android API restrictions.")
+                } else {
+                    appendLine("  Device Name: Permission denied")
+                    appendLine("  Device Address: Permission denied (BLUETOOTH_CONNECT not granted)")
+                }
                 appendLine("  Scan Mode: ${getScanMode(bluetoothAdapter.scanMode)}")
                 appendLine("  State: ${getBluetoothState(bluetoothAdapter.state)}")
                 
@@ -658,6 +674,9 @@ class BluetoothCommandExecutor : CommandExecutor {
         } else if (!bluetoothAdapter.isEnabled) {
             "Bluetooth is disabled. Enable Bluetooth to scan for devices."
         } else {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                return "Bluetooth scan permission (BLUETOOTH_SCAN) is required to scan for Bluetooth devices. Please grant it in app settings."
+            }
             try {
                 bluetoothAdapter.startDiscovery()
                 "Bluetooth discovery started. This feature requires full implementation with BroadcastReceiver."
@@ -673,6 +692,9 @@ class BluetoothCommandExecutor : CommandExecutor {
         
         return try {
             val device = bluetoothAdapter.getRemoteDevice(deviceAddress)
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                return "Bluetooth connect permission (BLUETOOTH_CONNECT) is required to pair devices. Please grant it in app settings."
+            }
             device.createBond()
             "Attempting to pair with device: ${device.name ?: deviceAddress}"
         } catch (e: Exception) {
@@ -686,8 +708,16 @@ class BluetoothCommandExecutor : CommandExecutor {
         
         return try {
             val device = bluetoothAdapter.getRemoteDevice(deviceAddress)
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                return "Bluetooth connect permission (BLUETOOTH_CONNECT) is required to unpair devices. Please grant it in app settings."
+            }
             device.javaClass.getMethod("removeBond").invoke(device)
-            "Unpaired device: ${device.name ?: deviceAddress}"
+            val deviceName = if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                device.name
+            } else {
+                "Permission denied"
+            }
+            "Unpaired device: ${deviceName ?: deviceAddress}"
         } catch (e: Exception) {
             "Error unpairing device: ${e.message}"
         }
@@ -701,6 +731,9 @@ class BluetoothCommandExecutor : CommandExecutor {
         } else if (!bluetoothAdapter.isEnabled) {
             "Bluetooth is disabled"
         } else {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                return "Bluetooth connect permission (BLUETOOTH_CONNECT) is required to list paired devices. Please grant it in app settings."
+            }
             val bondedDevices = bluetoothAdapter.bondedDevices
             
             buildString {
@@ -872,8 +905,11 @@ class WifiAdvancedCommandExecutor : CommandExecutor {
     
     private fun getSavedNetworks(context: Context): String {
         val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        
+
         return try {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return "Location permission (ACCESS_FINE_LOCATION) is required to get saved WiFi networks. Please grant it in app settings."
+            }
             val configuredNetworks = wifiManager.configuredNetworks
             
             buildString {
@@ -916,6 +952,9 @@ class WifiAdvancedCommandExecutor : CommandExecutor {
         val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         
         return try {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return "Location permission (ACCESS_FINE_LOCATION) is required to forget WiFi networks. Please grant it in app settings."
+            }
             val configuredNetworks = wifiManager.configuredNetworks
             val networkToRemove = configuredNetworks?.find { config ->
                 config.SSID == "\"$ssid\"" || config.SSID == ssid
@@ -945,6 +984,9 @@ class WifiAdvancedCommandExecutor : CommandExecutor {
                 "WiFi is disabled. Enable WiFi to analyze signal strength."
             } else {
                 val wifiInfo = wifiManager.connectionInfo
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return "Location permission (ACCESS_FINE_LOCATION) is required to analyze WiFi signals. Please grant it in app settings."
+                }
                 val scanResults = wifiManager.scanResults
                 
                 buildString {
@@ -994,6 +1036,9 @@ class WifiAdvancedCommandExecutor : CommandExecutor {
             if (!wifiManager.isWifiEnabled) {
                 "WiFi is disabled. Enable WiFi to analyze channels."
             } else {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return "Location permission (ACCESS_FINE_LOCATION) is required to analyze WiFi channels. Please grant it in app settings."
+                }
                 val scanResults = wifiManager.scanResults
                 
                 buildString {
@@ -1477,6 +1522,10 @@ class NetworkProfileCommandExecutor : CommandExecutor {
             
             try {
                 val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    appendLine("  Location permission (ACCESS_FINE_LOCATION) is required to list network profiles. Please grant it in app settings.")
+                    return@buildString
+                }
                 val configuredNetworks = wifiManager.configuredNetworks
                 
                 if (!configuredNetworks.isNullOrEmpty()) {
