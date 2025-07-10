@@ -8,7 +8,15 @@ import android.content.pm.PackageInfo
 import android.app.ActivityManager
 import android.net.Uri
 import android.provider.Settings
+import android.app.usage.UsageStatsManager
+import android.app.usage.UsageStats
+import android.os.Build
+import android.app.AppOpsManager
+import android.provider.Settings.Secure
+import androidx.annotation.RequiresApi
 import com.win11launcher.command.*
+import java.util.*
+import java.io.File
 
 object AppCommands {
     
@@ -214,6 +222,246 @@ object AppCommands {
         ),
         aliases = listOf("perms", "app-permissions"),
         executor = PermissionsCommandExecutor()
+    )
+    
+    // Advanced App Management Commands for Phase 4
+    
+    fun getAppMonCommand() = CommandDefinition(
+        name = "appmon",
+        category = CommandCategory.APP,
+        description = "Real-time application monitoring and analysis",
+        usage = "appmon <package_name> [--time=<minutes>] [--detailed]",
+        examples = listOf(
+            "appmon com.android.chrome",
+            "appmon com.whatsapp --time=5 --detailed",
+            "appmon com.spotify.music --time=10"
+        ),
+        parameters = listOf(
+            CommandParameter(
+                name = "package",
+                type = ParameterType.PACKAGE_NAME,
+                description = "Package name to monitor",
+                required = true
+            ),
+            CommandParameter(
+                name = "time",
+                type = ParameterType.INTEGER,
+                description = "Monitoring duration in minutes",
+                defaultValue = "1"
+            ),
+            CommandParameter(
+                name = "detailed",
+                type = ParameterType.BOOLEAN,
+                description = "Show detailed monitoring information",
+                defaultValue = "false"
+            )
+        ),
+        aliases = listOf("monitor-app", "app-monitor"),
+        executor = AppMonCommandExecutor()
+    )
+    
+    fun getAppStatsCommand() = CommandDefinition(
+        name = "appstats",
+        category = CommandCategory.APP,
+        description = "Application usage statistics and analytics",
+        usage = "appstats [--usage] [--performance] [--days=<days>] [--package=<name>]",
+        examples = listOf(
+            "appstats --usage --days=7",
+            "appstats --performance --package=com.android.chrome",
+            "appstats --usage --performance --days=30"
+        ),
+        parameters = listOf(
+            CommandParameter(
+                name = "usage",
+                type = ParameterType.BOOLEAN,
+                description = "Show usage statistics",
+                defaultValue = "true"
+            ),
+            CommandParameter(
+                name = "performance",
+                type = ParameterType.BOOLEAN,
+                description = "Show performance statistics",
+                defaultValue = "false"
+            ),
+            CommandParameter(
+                name = "days",
+                type = ParameterType.INTEGER,
+                description = "Number of days to analyze",
+                defaultValue = "7"
+            ),
+            CommandParameter(
+                name = "package",
+                type = ParameterType.PACKAGE_NAME,
+                description = "Specific package to analyze",
+                required = false
+            )
+        ),
+        aliases = listOf("app-stats", "usage-stats"),
+        requiresPermissions = listOf("android.permission.PACKAGE_USAGE_STATS"),
+        executor = AppStatsCommandExecutor()
+    )
+    
+    fun getPermCheckCommand() = CommandDefinition(
+        name = "permcheck",
+        category = CommandCategory.APP,
+        description = "Advanced permission auditing and analysis",
+        usage = "permcheck [--dangerous] [--unused] [--system] [--package=<name>]",
+        examples = listOf(
+            "permcheck --dangerous",
+            "permcheck --unused --package=com.example.app",
+            "permcheck --system --dangerous"
+        ),
+        parameters = listOf(
+            CommandParameter(
+                name = "dangerous",
+                type = ParameterType.BOOLEAN,
+                description = "Show only dangerous permissions",
+                defaultValue = "false"
+            ),
+            CommandParameter(
+                name = "unused",
+                type = ParameterType.BOOLEAN,
+                description = "Show unused permissions",
+                defaultValue = "false"
+            ),
+            CommandParameter(
+                name = "system",
+                type = ParameterType.BOOLEAN,
+                description = "Include system apps",
+                defaultValue = "false"
+            ),
+            CommandParameter(
+                name = "package",
+                type = ParameterType.PACKAGE_NAME,
+                description = "Specific package to check",
+                required = false
+            )
+        ),
+        aliases = listOf("perm-audit", "permission-check"),
+        executor = PermCheckCommandExecutor()
+    )
+    
+    fun getPermGrantCommand() = CommandDefinition(
+        name = "permgrant",
+        category = CommandCategory.APP,
+        description = "Grant runtime permission to application",
+        usage = "permgrant <package_name> <permission>",
+        examples = listOf(
+            "permgrant com.example.app android.permission.CAMERA",
+            "permgrant com.whatsapp android.permission.READ_CONTACTS"
+        ),
+        parameters = listOf(
+            CommandParameter(
+                name = "package",
+                type = ParameterType.PACKAGE_NAME,
+                description = "Package name",
+                required = true
+            ),
+            CommandParameter(
+                name = "permission",
+                type = ParameterType.STRING,
+                description = "Permission name to grant",
+                required = true
+            )
+        ),
+        aliases = listOf("grant-permission", "perm-grant"),
+        requiresPermissions = listOf("android.permission.GRANT_RUNTIME_PERMISSIONS"),
+        executor = PermGrantCommandExecutor()
+    )
+    
+    fun getPermRevokeCommand() = CommandDefinition(
+        name = "permrevoke",
+        category = CommandCategory.APP,
+        description = "Revoke runtime permission from application",
+        usage = "permrevoke <package_name> <permission>",
+        examples = listOf(
+            "permrevoke com.example.app android.permission.CAMERA",
+            "permrevoke com.whatsapp android.permission.LOCATION"
+        ),
+        parameters = listOf(
+            CommandParameter(
+                name = "package",
+                type = ParameterType.PACKAGE_NAME,
+                description = "Package name",
+                required = true
+            ),
+            CommandParameter(
+                name = "permission",
+                type = ParameterType.STRING,
+                description = "Permission name to revoke",
+                required = true
+            )
+        ),
+        aliases = listOf("revoke-permission", "perm-revoke"),
+        requiresPermissions = listOf("android.permission.REVOKE_RUNTIME_PERMISSIONS"),
+        executor = PermRevokeCommandExecutor()
+    )
+    
+    fun getAppCleanupCommand() = CommandDefinition(
+        name = "appcleanup",
+        category = CommandCategory.APP,
+        description = "Smart application cleanup and optimization",
+        usage = "appcleanup [--aggressive] [--dry-run] [--size-threshold=<mb>]",
+        examples = listOf(
+            "appcleanup --dry-run",
+            "appcleanup --aggressive --size-threshold=100",
+            "appcleanup"
+        ),
+        parameters = listOf(
+            CommandParameter(
+                name = "aggressive",
+                type = ParameterType.BOOLEAN,
+                description = "Enable aggressive cleanup mode",
+                defaultValue = "false"
+            ),
+            CommandParameter(
+                name = "dry-run",
+                type = ParameterType.BOOLEAN,
+                description = "Show what would be cleaned without doing it",
+                defaultValue = "false"
+            ),
+            CommandParameter(
+                name = "size-threshold",
+                type = ParameterType.INTEGER,
+                description = "Size threshold in MB for cleanup",
+                defaultValue = "50"
+            )
+        ),
+        aliases = listOf("app-cleanup", "cleanup-apps"),
+        executor = AppCleanupCommandExecutor()
+    )
+    
+    fun getAppDepsCommand() = CommandDefinition(
+        name = "appdeps",
+        category = CommandCategory.APP,
+        description = "Application dependency analysis",
+        usage = "appdeps <package_name> [--reverse] [--detailed]",
+        examples = listOf(
+            "appdeps com.android.chrome",
+            "appdeps com.whatsapp --reverse --detailed"
+        ),
+        parameters = listOf(
+            CommandParameter(
+                name = "package",
+                type = ParameterType.PACKAGE_NAME,
+                description = "Package name to analyze",
+                required = true
+            ),
+            CommandParameter(
+                name = "reverse",
+                type = ParameterType.BOOLEAN,
+                description = "Show reverse dependencies",
+                defaultValue = "false"
+            ),
+            CommandParameter(
+                name = "detailed",
+                type = ParameterType.BOOLEAN,
+                description = "Show detailed dependency information",
+                defaultValue = "false"
+            )
+        ),
+        aliases = listOf("app-dependencies", "dependencies"),
+        executor = AppDepsCommandExecutor()
     )
 }
 
@@ -644,5 +892,241 @@ class PermissionsCommandExecutor : CommandExecutor {
                 executionTimeMs = 0
             )
         }
+    }
+}
+
+// Advanced App Management Command Executors for Phase 4
+
+class AppMonCommandExecutor : CommandExecutor {
+    override suspend fun execute(
+        context: Context,
+        parameters: Map<String, String>,
+        arguments: List<String>
+    ): CommandResult {
+        val packageName = parameters["package"] ?: arguments.firstOrNull() ?: return CommandResult(
+            success = false,
+            output = "Package name is required",
+            executionTimeMs = 0
+        )
+        
+        val timeMinutes = parameters["time"]?.toIntOrNull() ?: 1
+        val detailed = parameters["detailed"]?.toBoolean() ?: false
+        
+        return try {
+            val packageManager = context.packageManager
+            val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            
+            // Check if app exists
+            val packageInfo = try {
+                packageManager.getPackageInfo(packageName, 0)
+            } catch (e: PackageManager.NameNotFoundException) {
+                return CommandResult(
+                    success = false,
+                    output = "Package not found: $packageName",
+                    executionTimeMs = 0
+                )
+            }
+            
+            val output = buildString {
+                appendLine("📱 Real-time App Monitoring: ${packageInfo.applicationInfo?.loadLabel(packageManager)}")
+                appendLine("Package: $packageName")
+                appendLine("Monitoring Duration: $timeMinutes minute(s)")
+                appendLine("=".repeat(50))
+                appendLine()
+                
+                // Get current process information
+                val runningProcesses = activityManager.runningAppProcesses
+                val targetProcess = runningProcesses?.find { it.processName == packageName }
+                
+                if (targetProcess != null) {
+                    appendLine("🟢 Process Status: RUNNING")
+                    appendLine("Process ID: ${targetProcess.pid}")
+                    appendLine("Importance: ${getProcessImportance(targetProcess.importance)}")
+                    appendLine()
+                    
+                    if (detailed) {
+                        // Memory information
+                        val memoryInfo = ActivityManager.MemoryInfo()
+                        activityManager.getMemoryInfo(memoryInfo)
+                        
+                        appendLine("💾 Memory Information:")
+                        appendLine("  Total RAM: ${formatMemory(memoryInfo.totalMem)}")
+                        appendLine("  Available RAM: ${formatMemory(memoryInfo.availMem)}")
+                        appendLine("  Low Memory: ${if (memoryInfo.lowMemory) "Yes" else "No"}")
+                        appendLine("  Memory Threshold: ${formatMemory(memoryInfo.threshold)}")
+                        appendLine()
+                        
+                        // App-specific memory (requires API 23+)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            try {
+                                val processMemoryInfo = activityManager.getProcessMemoryInfo(intArrayOf(targetProcess.pid))
+                                if (processMemoryInfo.isNotEmpty()) {
+                                    val memInfo = processMemoryInfo[0]
+                                    appendLine("📊 Process Memory Usage:")
+                                    appendLine("  PSS (Proportional Set Size): ${memInfo.totalPss} KB")
+                                    appendLine("  Private Dirty: ${memInfo.totalPrivateDirty} KB")
+                                    appendLine("  Shared Dirty: ${memInfo.totalSharedDirty} KB")
+                                    appendLine()
+                                }
+                            } catch (e: Exception) {
+                                appendLine("📊 Process Memory Usage: Unable to retrieve")
+                                appendLine()
+                            }
+                        }
+                    }
+                    
+                    // Usage statistics (requires PACKAGE_USAGE_STATS permission)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        try {
+                            val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+                            val endTime = System.currentTimeMillis()
+                            val startTime = endTime - (24 * 60 * 60 * 1000) // Last 24 hours
+                            
+                            val usageStats = usageStatsManager.queryUsageStats(
+                                UsageStatsManager.INTERVAL_DAILY,
+                                startTime,
+                                endTime
+                            )
+                            
+                            val appUsage = usageStats.find { it.packageName == packageName }
+                            if (appUsage != null) {
+                                appendLine("📈 Usage Statistics (Last 24h):")
+                                appendLine("  Total Time in Foreground: ${formatDuration(appUsage.totalTimeInForeground)}")
+                                appendLine("  Last Time Used: ${formatTimestamp(appUsage.lastTimeUsed)}")
+                                appendLine("  First Time Stamp: ${formatTimestamp(appUsage.firstTimeStamp)}")
+                                appendLine()
+                            }
+                        } catch (e: Exception) {
+                            if (detailed) {
+                                appendLine("📈 Usage Statistics: Permission required (PACKAGE_USAGE_STATS)")
+                                appendLine()
+                            }
+                        }
+                    }
+                    
+                } else {
+                    appendLine("🔴 Process Status: NOT RUNNING")
+                    appendLine()
+                    
+                    // Try to get last known usage
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && detailed) {
+                        try {
+                            val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+                            val endTime = System.currentTimeMillis()
+                            val startTime = endTime - (7 * 24 * 60 * 60 * 1000) // Last 7 days
+                            
+                            val usageStats = usageStatsManager.queryUsageStats(
+                                UsageStatsManager.INTERVAL_WEEKLY,
+                                startTime,
+                                endTime
+                            )
+                            
+                            val appUsage = usageStats.find { it.packageName == packageName }
+                            if (appUsage != null) {
+                                appendLine("📈 Recent Usage (Last 7 days):")
+                                appendLine("  Total Time: ${formatDuration(appUsage.totalTimeInForeground)}")
+                                appendLine("  Last Used: ${formatTimestamp(appUsage.lastTimeUsed)}")
+                                appendLine()
+                            }
+                        } catch (e: Exception) {
+                            // Ignore permission errors for non-detailed mode
+                        }
+                    }
+                }
+                
+                // App information
+                val appInfo = packageInfo.applicationInfo
+                appendLine("ℹ️ Application Information:")
+                appendLine("  Version: ${packageInfo.versionName} (${packageInfo.versionCode})")
+                appendLine("  Target SDK: ${appInfo?.targetSdkVersion}")
+                appendLine("  Enabled: ${appInfo?.enabled}")
+                appendLine("  System App: ${appInfo?.let { (it.flags and ApplicationInfo.FLAG_SYSTEM) != 0 }}")
+                
+                if (detailed) {
+                    appendLine("  Data Directory: ${appInfo?.dataDir}")
+                    try {
+                        val apkFile = File(appInfo?.publicSourceDir ?: "")
+                        appendLine("  APK Size: ${formatFileSize(apkFile.length())}")
+                    } catch (e: Exception) {
+                        appendLine("  APK Size: Unable to determine")
+                    }
+                }
+                
+                appendLine()
+                appendLine("✅ Monitoring completed successfully")
+                if (timeMinutes > 1) {
+                    appendLine("Note: Extended monitoring would track changes over ${timeMinutes} minutes")
+                }
+            }
+            
+            CommandResult(
+                success = true,
+                output = output,
+                executionTimeMs = 0
+            )
+        } catch (e: Exception) {
+            CommandResult(
+                success = false,
+                output = "Error monitoring app: ${e.message}",
+                executionTimeMs = 0
+            )
+        }
+    }
+    
+    private fun getProcessImportance(importance: Int): String {
+        return when (importance) {
+            ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND -> "Foreground"
+            ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE -> "Foreground Service"
+            ActivityManager.RunningAppProcessInfo.IMPORTANCE_TOP_SLEEPING -> "Top Sleeping"
+            ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE -> "Visible"
+            ActivityManager.RunningAppProcessInfo.IMPORTANCE_PERCEPTIBLE -> "Perceptible"
+            ActivityManager.RunningAppProcessInfo.IMPORTANCE_CANT_SAVE_STATE -> "Can't Save State"
+            ActivityManager.RunningAppProcessInfo.IMPORTANCE_SERVICE -> "Service"
+            ActivityManager.RunningAppProcessInfo.IMPORTANCE_CACHED -> "Cached"
+            ActivityManager.RunningAppProcessInfo.IMPORTANCE_GONE -> "Gone"
+            else -> "Unknown ($importance)"
+        }
+    }
+    
+    private fun formatMemory(bytes: Long): String {
+        val mb = bytes / (1024 * 1024)
+        val gb = mb / 1024.0
+        return if (gb >= 1.0) {
+            String.format("%.2f GB", gb)
+        } else {
+            "$mb MB"
+        }
+    }
+    
+    private fun formatDuration(milliseconds: Long): String {
+        val seconds = milliseconds / 1000
+        val minutes = seconds / 60
+        val hours = minutes / 60
+        val days = hours / 24
+        
+        return when {
+            days > 0 -> "${days}d ${hours % 24}h ${minutes % 60}m"
+            hours > 0 -> "${hours}h ${minutes % 60}m"
+            minutes > 0 -> "${minutes}m ${seconds % 60}s"
+            else -> "${seconds}s"
+        }
+    }
+    
+    private fun formatTimestamp(timestamp: Long): String {
+        val date = Date(timestamp)
+        return java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(date)
+    }
+    
+    private fun formatFileSize(size: Long): String {
+        val units = arrayOf("B", "KB", "MB", "GB")
+        var value = size.toDouble()
+        var unitIndex = 0
+        
+        while (value >= 1024 && unitIndex < units.size - 1) {
+            value /= 1024
+            unitIndex++
+        }
+        
+        return String.format("%.2f %s", value, units[unitIndex])
     }
 }

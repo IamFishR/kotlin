@@ -297,11 +297,11 @@ object CommandRegistry {
 - [x] Implement enhanced autocomplete using static commands + usage stats
 
 ### **Phase 3: System & Hardware Commands (Week 3)**
-- [ ] Implement Network Management commands (net scan, connect, disconnect)
-- [ ] Add Bluetooth commands (bt scan, pair, info)
-- [ ] Create Power Management commands (power lock, battery)
-- [ ] Add system monitoring and snapshot functionality
-- [ ] Implement permission checking and request handling
+- [x] Implement Network Management commands (net scan, connect, disconnect)
+- [x] Add Bluetooth commands (bt scan, pair, info)
+- [x] Create Power Management commands (power lock, battery)
+- [x] Add system monitoring and snapshot functionality
+- [x] Implement permission checking and request handling
 
 ### **Phase 4: Application Management (Week 4)**
 - [ ] Create App Control commands (app list, info, launch, kill)

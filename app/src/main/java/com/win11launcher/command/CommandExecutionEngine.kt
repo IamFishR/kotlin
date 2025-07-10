@@ -56,6 +56,15 @@ class CommandExecutionEngine @Inject constructor(
         commandRegistry.registerCommand(AppCommands.getClearCommand())
         commandRegistry.registerCommand(AppCommands.getPermissionsCommand())
         
+        // Register Advanced App Management Commands (Phase 4)
+        commandRegistry.registerCommand(AppCommands.getAppMonCommand())
+        commandRegistry.registerCommand(AppCommands.getAppStatsCommand())
+        commandRegistry.registerCommand(AppCommands.getPermCheckCommand())
+        commandRegistry.registerCommand(AppCommands.getPermGrantCommand())
+        commandRegistry.registerCommand(AppCommands.getPermRevokeCommand())
+        commandRegistry.registerCommand(AppCommands.getAppCleanupCommand())
+        commandRegistry.registerCommand(AppCommands.getAppDepsCommand())
+        
         // Register File Commands
         commandRegistry.registerCommand(FileCommands.getListCommand())
         commandRegistry.registerCommand(FileCommands.getCopyCommand())
