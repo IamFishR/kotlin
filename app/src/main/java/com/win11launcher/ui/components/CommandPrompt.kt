@@ -403,7 +403,7 @@ private fun CommandPromptWindow(
                                             )
                                         }
                                     } else {
-                                        // Handle regular commands using new command execution engine
+                                        // Handle regular commands using command execution engine
                                         val result = try {
                                             val commandResult = viewModel.executeNewCommand(context, command)
                                             
@@ -415,8 +415,7 @@ private fun CommandPromptWindow(
                                             
                                             commandResult
                                         } catch (e: Exception) {
-                                            // Fallback to old command system for backward compatibility
-                                            executeCommand(command, context, viewModel)
+                                            "Error: ${e.message}"
                                         }
                                         
                                         commandHistory = commandHistory + CommandEntry(
@@ -539,250 +538,13 @@ private data class CommandEntry(
     val isStreaming: Boolean = false
 )
 
-private suspend fun executeCommand(command: String, context: android.content.Context, viewModel: CommandPromptViewModel): String {
-    return when (command.lowercase().trim()) {
-        "help" -> {
-            """Available commands:
-help - Show this help message
-clear - Clear the screen
-date - Show current date
-time - Show current time
-echo <text> - Display text
-ver - Show version information
-exit - Close command prompt
-about - Show about information
-calc <expression> - Simple calculator (e.g., calc 2+2)
 
-Navigation:
-Up/Down Arrow Keys - Navigate through command history (keyboard)
-Up/Down Buttons - Navigate through command history (mobile-friendly)
 
-Device Information Commands:
-device - Show device information
-system - Show system information
-hardware - Show hardware information
-build - Show build information
-memory - Show memory information
-network - Show network information
 
-AI Commands:
-ai <prompt> - Ask AI a question (e.g., ai What is Android?)
-ask <prompt> - Same as ai command
 
-"""
-        }
-        "clear", "cls" -> {
-            "" // Clear command returns empty string, actual clearing handled by UI
-        }
-        "date" -> {
-            java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
-                .format(java.util.Date())
-        }
-        "time" -> {
-            java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault())
-                .format(java.util.Date())
-        }
-        "ver", "version" -> {
-            "Win11 Launcher Command Prompt [Version 1.0.0]"
-        }
-        "about" -> {
-            """Win11 Launcher Command Prompt
-Version 1.0.0
-A custom command prompt for Win11 Launcher
-Built with Jetpack Compose"""
-        }
-        "exit" -> {
-            "Closing command prompt..."
-        }
-        "device" -> {
-            getDeviceInfo()
-        }
-        "system" -> {
-            getSystemInfo()
-        }
-        "hardware" -> {
-            getHardwareInfo()
-        }
-        "build" -> {
-            getBuildInfo()
-        }
-        "memory" -> {
-            getMemoryInfo(context)
-        }
-        "network" -> {
-            getNetworkInfo(context)
-        }
-        else -> {
-            when {
-                command.startsWith("echo ") -> {
-                    command.substring(5) // Remove "echo " prefix
-                }
-                command.startsWith("calc ") -> {
-                    try {
-                        val expression = command.substring(5).trim()
-                        calculateExpression(expression)
-                    } catch (e: Exception) {
-                        "Error: Invalid expression"
-                    }
-                }
-                command.startsWith("ai ") -> {
-                    "AI commands are handled separately with streaming support"
-                }
-                command.startsWith("ask ") -> {
-                    "AI commands are handled separately with streaming support"
-                }
-                else -> {
-                    "'$command' is not recognized as an internal or external command.\nType 'help' for available commands."
-                }
-            }
-        }
-    }
-}
 
-private fun calculateExpression(expression: String): String {
-    return try {
-        // Simple calculator for basic arithmetic
-        val sanitized = expression.replace(" ", "")
-        when {
-            "+" in sanitized -> {
-                val parts = sanitized.split("+")
-                if (parts.size == 2) {
-                    val result = parts[0].toDouble() + parts[1].toDouble()
-                    if (result == result.toInt().toDouble()) {
-                        result.toInt().toString()
-                    } else {
-                        result.toString()
-                    }
-                } else "Error: Invalid expression"
-            }
-            "-" in sanitized && sanitized.indexOf("-") > 0 -> {
-                val parts = sanitized.split("-")
-                if (parts.size == 2) {
-                    val result = parts[0].toDouble() - parts[1].toDouble()
-                    if (result == result.toInt().toDouble()) {
-                        result.toInt().toString()
-                    } else {
-                        result.toString()
-                    }
-                } else "Error: Invalid expression"
-            }
-            "*" in sanitized -> {
-                val parts = sanitized.split("*")
-                if (parts.size == 2) {
-                    val result = parts[0].toDouble() * parts[1].toDouble()
-                    if (result == result.toInt().toDouble()) {
-                        result.toInt().toString()
-                    } else {
-                        result.toString()
-                    }
-                } else "Error: Invalid expression"
-            }
-            "/" in sanitized -> {
-                val parts = sanitized.split("/")
-                if (parts.size == 2 && parts[1].toDouble() != 0.0) {
-                    val result = parts[0].toDouble() / parts[1].toDouble()
-                    if (result == result.toInt().toDouble()) {
-                        result.toInt().toString()
-                    } else {
-                        result.toString()
-                    }
-                } else "Error: Division by zero or invalid expression"
-            }
-            else -> "Error: Only +, -, *, / operations are supported"
-        }
-    } catch (e: Exception) {
-        "Error: Invalid expression"
-    }
-}
 
-private fun getDeviceInfo(): String {
-    return """Device Information:
-Manufacturer: ${Build.MANUFACTURER}
-Brand: ${Build.BRAND}
-Model: ${Build.MODEL}
-Device: ${Build.DEVICE}
-Product: ${Build.PRODUCT}
-Board: ${Build.BOARD}
-Hardware: ${Build.HARDWARE}
-"""
-}
 
-private fun getSystemInfo(): String {
-    return """System Information:
-Android Version: ${Build.VERSION.RELEASE}
-API Level: ${Build.VERSION.SDK_INT}
-Security Patch: ${Build.VERSION.SECURITY_PATCH}
-Build ID: ${Build.ID}
-Display: ${Build.DISPLAY}
-Host: ${Build.HOST}
-User: ${Build.USER}
-"""
-}
-
-private fun getHardwareInfo(): String {
-    return """Hardware Information:
-Supported ABIs: ${Build.SUPPORTED_ABIS.joinToString(", ")}
-Supported 32-bit ABIs: ${Build.SUPPORTED_32_BIT_ABIS.joinToString(", ")}
-Supported 64-bit ABIs: ${Build.SUPPORTED_64_BIT_ABIS.joinToString(", ")}
-Hardware: ${Build.HARDWARE}
-Board: ${Build.BOARD}
-Bootloader: ${Build.BOOTLOADER}
-Radio Version: ${Build.getRadioVersion()}
-"""
-}
-
-private fun getBuildInfo(): String {
-    return """Build Information:
-Type: ${Build.TYPE}
-Tags: ${Build.TAGS}
-Fingerprint: ${Build.FINGERPRINT}
-Time: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date(Build.TIME))}
-Incremental: ${Build.VERSION.INCREMENTAL}
-Codename: ${Build.VERSION.CODENAME}
-"""
-}
-
-private fun getMemoryInfo(context: android.content.Context): String {
-    val activityManager = context.getSystemService(android.content.Context.ACTIVITY_SERVICE) as android.app.ActivityManager
-    val memInfo = android.app.ActivityManager.MemoryInfo()
-    activityManager.getMemoryInfo(memInfo)
-    
-    val totalMemory = memInfo.totalMem / (1024 * 1024) // Convert to MB
-    val availableMemory = memInfo.availMem / (1024 * 1024) // Convert to MB
-    val usedMemory = totalMemory - availableMemory
-    val threshold = memInfo.threshold / (1024 * 1024) // Convert to MB
-    
-    return """Memory Information:
-Total Memory: ${totalMemory} MB
-Available Memory: ${availableMemory} MB
-Used Memory: ${usedMemory} MB
-Low Memory Threshold: ${threshold} MB
-Is Low Memory: ${memInfo.lowMemory}
-"""
-}
-
-private fun getNetworkInfo(context: android.content.Context): String {
-    try {
-        val connectivityManager = context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
-        val networkInfo = connectivityManager.activeNetworkInfo
-        
-        return if (networkInfo != null) {
-            """Network Information:
-Connected: ${networkInfo.isConnected}
-Type: ${networkInfo.typeName}
-Subtype: ${networkInfo.subtypeName}
-State: ${networkInfo.state}
-Detailed State: ${networkInfo.detailedState}
-Extra Info: ${networkInfo.extraInfo ?: "N/A"}
-Is Roaming: ${networkInfo.isRoaming}
-"""
-        } else {
-            "Network Information:\nNo active network connection"
-        }
-    } catch (e: Exception) {
-        return "Network Information:\nError retrieving network info: ${e.message}"
-    }
-}
 
 @HiltViewModel
 class CommandPromptViewModel @Inject constructor(

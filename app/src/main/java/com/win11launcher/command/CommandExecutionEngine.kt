@@ -4,6 +4,8 @@ import android.content.Context
 import com.win11launcher.command.commands.SystemCommands
 import com.win11launcher.command.commands.NetworkCommands
 import com.win11launcher.command.commands.AppCommands
+import com.win11launcher.command.commands.FileCommands
+import com.win11launcher.command.commands.PowerCommands
 import com.win11launcher.data.repositories.CommandLineRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -31,6 +33,8 @@ class CommandExecutionEngine @Inject constructor(
         commandRegistry.registerCommand(SystemCommands.getVersionCommand())
         commandRegistry.registerCommand(SystemCommands.getUptimeCommand())
         commandRegistry.registerCommand(SystemCommands.getSettingsCommand())
+        commandRegistry.registerCommand(SystemCommands.getMonitorCommand())
+        commandRegistry.registerCommand(SystemCommands.getSnapshotCommand())
         
         // Register Network Commands
         commandRegistry.registerCommand(NetworkCommands.getNetworkCommand())
@@ -38,6 +42,9 @@ class CommandExecutionEngine @Inject constructor(
         commandRegistry.registerCommand(NetworkCommands.getBluetoothCommand())
         commandRegistry.registerCommand(NetworkCommands.getPingCommand())
         commandRegistry.registerCommand(NetworkCommands.getNetstatCommand())
+        commandRegistry.registerCommand(NetworkCommands.getWifiAdvancedCommand())
+        commandRegistry.registerCommand(NetworkCommands.getNetworkMonitorCommand())
+        commandRegistry.registerCommand(NetworkCommands.getNetworkProfileCommand())
         
         // Register App Commands
         commandRegistry.registerCommand(AppCommands.getLaunchCommand())
@@ -48,6 +55,20 @@ class CommandExecutionEngine @Inject constructor(
         commandRegistry.registerCommand(AppCommands.getInstallCommand())
         commandRegistry.registerCommand(AppCommands.getClearCommand())
         commandRegistry.registerCommand(AppCommands.getPermissionsCommand())
+        
+        // Register File Commands
+        commandRegistry.registerCommand(FileCommands.getListCommand())
+        commandRegistry.registerCommand(FileCommands.getCopyCommand())
+        commandRegistry.registerCommand(FileCommands.getMoveCommand())
+        commandRegistry.registerCommand(FileCommands.getRemoveCommand())
+        commandRegistry.registerCommand(FileCommands.getMkdirCommand())
+        commandRegistry.registerCommand(FileCommands.getCatCommand())
+        
+        // Register Power Commands
+        commandRegistry.registerCommand(PowerCommands.getPowerCommand())
+        commandRegistry.registerCommand(PowerCommands.getBatteryCommand())
+        commandRegistry.registerCommand(PowerCommands.getThermalCommand())
+        commandRegistry.registerCommand(PowerCommands.getScreenCommand())
         
         // Register Utility Commands
         registerUtilityCommands()
@@ -262,11 +283,8 @@ class CommandExecutionEngine @Inject constructor(
                 commandRegistry.getCommand(it.commandName)?.category?.name 
             } ?: "UNKNOWN"
             
-            val outputPreview = if (result.output.length > 200) {
-                result.output.substring(0, 200) + "..."
-            } else {
-                result.output
-            }
+            // Process output with compression and size management
+            val processedOutput = OutputManager.processCommandOutput(result.output)
             
             val commandId = commandLineRepository.insertCommandHistory(
                 command = command,
@@ -276,15 +294,16 @@ class CommandExecutionEngine @Inject constructor(
                 sessionId = sessionId,
                 executionTimeMs = executionTime,
                 success = result.success,
-                outputPreview = outputPreview
+                outputPreview = processedOutput.preview
             )
             
-            // If output is large, save it separately
-            if (result.output.length > 200) {
+            // Save full output if needed
+            if (processedOutput.fullOutput != null) {
                 commandLineRepository.insertCommandOutput(
                     commandId = commandId,
-                    fullOutput = result.output,
-                    outputType = "TEXT"
+                    fullOutput = processedOutput.fullOutput,
+                    outputType = if (processedOutput.compressed) "COMPRESSED" else "TEXT",
+                    compressed = processedOutput.compressed
                 )
             }
             

@@ -33,7 +33,7 @@ class DatabaseCleanupManager @Inject constructor(
                 } catch (e: Exception) {
                     // Log error but don't crash
                 }
-                delay(TimeUnit.HOURS.toMillis(CLEANUP_INTERVAL_HOURS))
+                delay(TimeUnit.HOURS.toMillis(CLEANUP_INTERVAL_HOURS.toLong()))
             }
         }
     }

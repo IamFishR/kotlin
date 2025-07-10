@@ -54,13 +54,14 @@ class CommandLineRepository @Inject constructor(
         return id
     }
     
-    suspend fun insertCommandOutput(commandId: String, fullOutput: String, outputType: String): String {
+    suspend fun insertCommandOutput(commandId: String, fullOutput: String, outputType: String, compressed: Boolean = false): String {
         val id = UUID.randomUUID().toString()
         val commandOutput = CommandOutput(
             id = id,
             commandId = commandId,
             fullOutput = fullOutput,
             outputType = outputType,
+            compressed = compressed,
             timestamp = System.currentTimeMillis()
         )
         commandHistoryDao.insertCommandOutput(commandOutput)

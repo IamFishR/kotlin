@@ -59,6 +59,7 @@ object AppCommands {
             )
         ),
         aliases = listOf("stop", "terminate"),
+        requiresPermissions = listOf("android.permission.KILL_BACKGROUND_PROCESSES"),
         executor = KillCommandExecutor()
     )
     

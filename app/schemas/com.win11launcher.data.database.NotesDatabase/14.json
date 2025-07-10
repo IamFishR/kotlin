@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 14,
-    "identityHash": "9fde970169559367f43bea8379362544",
+    "identityHash": "53cc4a7f3646b6db391ddef223f85ceb",
     "entities": [
       {
         "tableName": "app_settings",
@@ -544,6 +544,46 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_command_history_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "index_command_history_session_id_timestamp",
+            "unique": false,
+            "columnNames": [
+              "session_id",
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_command_history_session_id_timestamp` ON `${TABLE_NAME}` (`session_id`, `timestamp`)"
+          },
+          {
+            "name": "index_command_history_command_type_success",
+            "unique": false,
+            "columnNames": [
+              "command_type",
+              "success"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_command_history_command_type_success` ON `${TABLE_NAME}` (`command_type`, `success`)"
+          },
+          {
+            "name": "index_command_history_timestamp_success",
+            "unique": false,
+            "columnNames": [
+              "timestamp",
+              "success"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_command_history_timestamp_success` ON `${TABLE_NAME}` (`timestamp`, `success`)"
+          },
+          {
+            "name": "index_command_history_command_timestamp",
+            "unique": false,
+            "columnNames": [
+              "command",
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_command_history_command_timestamp` ON `${TABLE_NAME}` (`command`, `timestamp`)"
           }
         ],
         "foreignKeys": []
@@ -1470,7 +1510,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9fde970169559367f43bea8379362544')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '53cc4a7f3646b6db391ddef223f85ceb')"
     ]
   }
 }

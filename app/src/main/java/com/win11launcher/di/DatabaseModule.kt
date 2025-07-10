@@ -9,6 +9,7 @@ import com.win11launcher.data.dao.AIConversationDao
 import com.win11launcher.data.dao.SystemMonitoringDao
 import com.win11launcher.data.database.NotesDatabase
 import com.win11launcher.data.repositories.CommandLineRepository
+import com.win11launcher.data.database.DatabaseCleanupManager
 import com.win11launcher.command.CommandRegistry
 import com.win11launcher.command.CommandParser
 import com.win11launcher.command.CommandExecutionEngine
@@ -76,5 +77,13 @@ object DatabaseModule {
         systemMonitoringDao: SystemMonitoringDao
     ): CommandLineRepository {
         return CommandLineRepository(commandHistoryDao, aiConversationDao, systemMonitoringDao)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideDatabaseCleanupManager(
+        commandLineRepository: CommandLineRepository
+    ): DatabaseCleanupManager {
+        return DatabaseCleanupManager(commandLineRepository)
     }
 }

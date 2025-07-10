@@ -178,6 +178,111 @@ object NetworkCommands {
         aliases = listOf("netstat", "connections"),
         executor = NetstatCommandExecutor()
     )
+    
+    fun getWifiAdvancedCommand() = CommandDefinition(
+        name = "wificonfig",
+        category = CommandCategory.NET,
+        description = "Advanced WiFi configuration and management",
+        usage = "wificonfig [forget|saved|signal|channel|speed]",
+        examples = listOf(
+            "wificonfig saved",
+            "wificonfig forget --ssid=OldNetwork",
+            "wificonfig signal",
+            "wificonfig channel",
+            "wificonfig speed"
+        ),
+        parameters = listOf(
+            CommandParameter(
+                name = "action",
+                type = ParameterType.ENUM,
+                description = "WiFi configuration action",
+                options = listOf("forget", "saved", "signal", "channel", "speed"),
+                defaultValue = "saved"
+            ),
+            CommandParameter(
+                name = "ssid",
+                type = ParameterType.STRING,
+                description = "Network SSID for forget action"
+            )
+        ),
+        aliases = listOf("wconfig", "wifi-advanced"),
+        requiresPermissions = listOf(
+            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.CHANGE_WIFI_STATE,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ),
+        executor = WifiAdvancedCommandExecutor()
+    )
+    
+    fun getNetworkMonitorCommand() = CommandDefinition(
+        name = "netmon",
+        category = CommandCategory.NET,
+        description = "Network monitoring and diagnostics",
+        usage = "netmon [traffic|bandwidth|quality|history]",
+        examples = listOf(
+            "netmon traffic",
+            "netmon bandwidth",
+            "netmon quality", 
+            "netmon history --hours=24"
+        ),
+        parameters = listOf(
+            CommandParameter(
+                name = "info",
+                type = ParameterType.ENUM,
+                description = "Type of network monitoring",
+                options = listOf("traffic", "bandwidth", "quality", "history"),
+                defaultValue = "traffic"
+            ),
+            CommandParameter(
+                name = "hours",
+                type = ParameterType.INTEGER,
+                description = "Hours of history to show",
+                defaultValue = "1"
+            )
+        ),
+        aliases = listOf("nmon", "monitor"),
+        executor = NetworkMonitorCommandExecutor()
+    )
+    
+    fun getNetworkProfileCommand() = CommandDefinition(
+        name = "netprofile",
+        category = CommandCategory.NET,
+        description = "Network profile management",
+        usage = "netprofile [list|create|delete|switch|export]",
+        examples = listOf(
+            "netprofile list",
+            "netprofile create --name=Home --wifi=HomeWiFi",
+            "netprofile switch --name=Work",
+            "netprofile export --name=Home --file=/sdcard/home.json",
+            "netprofile delete --name=OldProfile"
+        ),
+        parameters = listOf(
+            CommandParameter(
+                name = "action",
+                type = ParameterType.ENUM,
+                description = "Profile action",
+                options = listOf("list", "create", "delete", "switch", "export"),
+                defaultValue = "list"
+            ),
+            CommandParameter(
+                name = "name",
+                type = ParameterType.STRING,
+                description = "Profile name"
+            ),
+            CommandParameter(
+                name = "wifi",
+                type = ParameterType.STRING,
+                description = "WiFi SSID for profile"
+            ),
+            CommandParameter(
+                name = "file",
+                type = ParameterType.PATH,
+                description = "File path for export/import"
+            )
+        ),
+        aliases = listOf("nprofile", "profiles"),
+        executor = NetworkProfileCommandExecutor()
+    )
 }
 
 class NetworkCommandExecutor : CommandExecutor {
@@ -738,5 +843,719 @@ class NetstatCommandExecutor : CommandExecutor {
             output = output,
             executionTimeMs = 0
         )
+    }
+}
+
+class WifiAdvancedCommandExecutor : CommandExecutor {
+    override suspend fun execute(
+        context: Context,
+        parameters: Map<String, String>,
+        arguments: List<String>
+    ): CommandResult {
+        val action = parameters["action"] ?: arguments.firstOrNull() ?: "saved"
+        
+        val output = when (action) {
+            "saved" -> getSavedNetworks(context)
+            "forget" -> forgetNetwork(context, parameters)
+            "signal" -> getSignalAnalysis(context)
+            "channel" -> getChannelAnalysis(context)
+            "speed" -> getSpeedAnalysis(context)
+            else -> "Unknown WiFi config action: $action"
+        }
+        
+        return CommandResult(
+            success = true,
+            output = output,
+            executionTimeMs = 0
+        )
+    }
+    
+    private fun getSavedNetworks(context: Context): String {
+        val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        
+        return try {
+            val configuredNetworks = wifiManager.configuredNetworks
+            
+            buildString {
+                appendLine("Saved WiFi Networks:")
+                if (configuredNetworks.isNullOrEmpty()) {
+                    appendLine("  No saved networks found")
+                } else {
+                    appendLine("Found ${configuredNetworks.size} saved networks:")
+                    appendLine()
+                    
+                    configuredNetworks.sortedBy { it.SSID }.forEach { config ->
+                        appendLine("  Network: ${config.SSID}")
+                        appendLine("    Network ID: ${config.networkId}")
+                        appendLine("    Status: ${getNetworkStatus(config.status)}")
+                        appendLine("    Priority: ${config.priority}")
+                        appendLine("    Hidden SSID: ${config.hiddenSSID}")
+                        
+                        // Security type
+                        val security = config.allowedKeyManagement.let { keyMgmt ->
+                            when {
+                                keyMgmt.get(android.net.wifi.WifiConfiguration.KeyMgmt.WPA2_PSK) -> "WPA2-PSK"
+                                keyMgmt.get(android.net.wifi.WifiConfiguration.KeyMgmt.WPA_PSK) -> "WPA-PSK"
+                                keyMgmt.get(android.net.wifi.WifiConfiguration.KeyMgmt.NONE) -> "Open"
+                                else -> "Unknown"
+                            }
+                        }
+                        appendLine("    Security: $security")
+                        
+                        appendLine()
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            "Error getting saved networks: ${e.message}"
+        }
+    }
+    
+    private fun forgetNetwork(context: Context, parameters: Map<String, String>): String {
+        val ssid = parameters["ssid"] ?: return "SSID is required to forget a network"
+        val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        
+        return try {
+            val configuredNetworks = wifiManager.configuredNetworks
+            val networkToRemove = configuredNetworks?.find { config ->
+                config.SSID == "\"$ssid\"" || config.SSID == ssid
+            }
+            
+            if (networkToRemove != null) {
+                val success = wifiManager.removeNetwork(networkToRemove.networkId)
+                if (success) {
+                    wifiManager.saveConfiguration()
+                    "Successfully forgot network: $ssid"
+                } else {
+                    "Failed to forget network: $ssid"
+                }
+            } else {
+                "Network not found in saved networks: $ssid"
+            }
+        } catch (e: Exception) {
+            "Error forgetting network: ${e.message}"
+        }
+    }
+    
+    private fun getSignalAnalysis(context: Context): String {
+        val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        
+        return try {
+            if (!wifiManager.isWifiEnabled) {
+                "WiFi is disabled. Enable WiFi to analyze signal strength."
+            } else {
+                val wifiInfo = wifiManager.connectionInfo
+                val scanResults = wifiManager.scanResults
+                
+                buildString {
+                    appendLine("WiFi Signal Analysis:")
+                    appendLine()
+                    
+                    // Current connection analysis
+                    if (wifiInfo != null && wifiInfo.ssid != "<unknown ssid>") {
+                        appendLine("Current Connection:")
+                        appendLine("  SSID: ${wifiInfo.ssid}")
+                        appendLine("  Signal Strength: ${getDetailedSignalStrength(wifiInfo.rssi)}")
+                        appendLine("  RSSI: ${wifiInfo.rssi} dBm")
+                        appendLine("  Link Speed: ${wifiInfo.linkSpeed} Mbps")
+                        appendLine("  Frequency: ${wifiInfo.frequency} MHz")
+                        appendLine("  Channel: ${getChannel(wifiInfo.frequency)}")
+                        appendLine()
+                    }
+                    
+                    // Signal strength distribution
+                    appendLine("Available Networks by Signal Strength:")
+                    val signalGroups = scanResults.groupBy { getSignalCategory(it.level) }
+                    
+                    listOf("Excellent", "Good", "Fair", "Weak", "Very Weak").forEach { category ->
+                        val networks = signalGroups[category] ?: emptyList()
+                        if (networks.isNotEmpty()) {
+                            appendLine("  $category (${networks.size} networks):")
+                            networks.take(3).forEach { result ->
+                                appendLine("    ${result.SSID} (${result.level} dBm)")
+                            }
+                            if (networks.size > 3) {
+                                appendLine("    ... and ${networks.size - 3} more")
+                            }
+                            appendLine()
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            "Error analyzing signal: ${e.message}"
+        }
+    }
+    
+    private fun getChannelAnalysis(context: Context): String {
+        val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        
+        return try {
+            if (!wifiManager.isWifiEnabled) {
+                "WiFi is disabled. Enable WiFi to analyze channels."
+            } else {
+                val scanResults = wifiManager.scanResults
+                
+                buildString {
+                    appendLine("WiFi Channel Analysis:")
+                    appendLine()
+                    
+                    // Channel utilization
+                    val channelUsage = scanResults.groupBy { getChannel(it.frequency) }
+                        .mapValues { it.value.size }
+                        .toSortedMap()
+                    
+                    appendLine("Channel Utilization (2.4GHz):")
+                    for (channel in 1..14) {
+                        val count = channelUsage[channel] ?: 0
+                        val congestion = when {
+                            count == 0 -> "Free"
+                            count <= 2 -> "Light"
+                            count <= 5 -> "Moderate"
+                            count <= 10 -> "Heavy"
+                            else -> "Congested"
+                        }
+                        appendLine("  Channel $channel: $count networks ($congestion)")
+                    }
+                    
+                    appendLine()
+                    appendLine("Channel Utilization (5GHz):")
+                    val fiveGhzChannels = channelUsage.keys.filter { it > 14 }.sorted()
+                    if (fiveGhzChannels.isNotEmpty()) {
+                        fiveGhzChannels.forEach { channel ->
+                            val count = channelUsage[channel] ?: 0
+                            appendLine("  Channel $channel: $count networks")
+                        }
+                    } else {
+                        appendLine("  No 5GHz networks detected")
+                    }
+                    
+                    appendLine()
+                    appendLine("Recommended Channels:")
+                    val leastUsed2_4 = channelUsage.filter { it.key <= 14 }.minByOrNull { it.value }
+                    val leastUsed5 = channelUsage.filter { it.key > 14 }.minByOrNull { it.value }
+                    
+                    leastUsed2_4?.let { 
+                        appendLine("  2.4GHz: Channel ${it.key} (${it.value} networks)")
+                    }
+                    leastUsed5?.let {
+                        appendLine("  5GHz: Channel ${it.key} (${it.value} networks)")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            "Error analyzing channels: ${e.message}"
+        }
+    }
+    
+    private fun getSpeedAnalysis(context: Context): String {
+        val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        
+        return try {
+            if (!wifiManager.isWifiEnabled) {
+                "WiFi is disabled. Enable WiFi for speed analysis."
+            } else {
+                val wifiInfo = wifiManager.connectionInfo
+                
+                buildString {
+                    appendLine("WiFi Speed Analysis:")
+                    appendLine()
+                    
+                    if (wifiInfo != null && wifiInfo.ssid != "<unknown ssid>") {
+                        appendLine("Current Connection Performance:")
+                        appendLine("  SSID: ${wifiInfo.ssid}")
+                        appendLine("  Link Speed: ${wifiInfo.linkSpeed} Mbps")
+                        appendLine("  Signal Strength: ${wifiInfo.rssi} dBm")
+                        appendLine("  Frequency: ${wifiInfo.frequency} MHz")
+                        
+                        // Estimate theoretical max speed based on signal and frequency
+                        val theoreticalSpeed = estimateMaxSpeed(wifiInfo.frequency, wifiInfo.rssi)
+                        appendLine("  Estimated Max Speed: $theoreticalSpeed Mbps")
+                        
+                        val efficiency = (wifiInfo.linkSpeed.toDouble() / theoreticalSpeed * 100).toInt()
+                        appendLine("  Connection Efficiency: $efficiency%")
+                        
+                        appendLine()
+                        appendLine("Performance Assessment:")
+                        when {
+                            efficiency >= 80 -> appendLine("  ✓ Excellent connection performance")
+                            efficiency >= 60 -> appendLine("  ⚠ Good connection with room for improvement")
+                            efficiency >= 40 -> appendLine("  ⚠ Moderate connection quality")
+                            else -> appendLine("  ⚠ Poor connection quality - consider moving closer to router")
+                        }
+                        
+                        appendLine()
+                        appendLine("Optimization Tips:")
+                        if (wifiInfo.frequency < 5000) {
+                            appendLine("  • Consider switching to 5GHz band for better speed")
+                        }
+                        if (wifiInfo.rssi < -70) {
+                            appendLine("  • Move closer to the router to improve signal strength")
+                        }
+                        if (efficiency < 60) {
+                            appendLine("  • Check for interference from other devices")
+                            appendLine("  • Consider updating router firmware")
+                        }
+                    } else {
+                        appendLine("  Not connected to any WiFi network")
+                        appendLine("  Connect to a network to analyze speed performance")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            "Error analyzing speed: ${e.message}"
+        }
+    }
+    
+    private fun getNetworkStatus(status: Int): String {
+        return when (status) {
+            android.net.wifi.WifiConfiguration.Status.CURRENT -> "Current"
+            android.net.wifi.WifiConfiguration.Status.DISABLED -> "Disabled"
+            android.net.wifi.WifiConfiguration.Status.ENABLED -> "Enabled"
+            else -> "Unknown"
+        }
+    }
+    
+    private fun getDetailedSignalStrength(rssi: Int): String {
+        return when {
+            rssi >= -30 -> "Excellent (${rssi} dBm)"
+            rssi >= -50 -> "Very Good (${rssi} dBm)"
+            rssi >= -60 -> "Good (${rssi} dBm)"
+            rssi >= -70 -> "Fair (${rssi} dBm)"
+            rssi >= -80 -> "Weak (${rssi} dBm)"
+            else -> "Very Weak (${rssi} dBm)"
+        }
+    }
+    
+    private fun getSignalCategory(rssi: Int): String {
+        return when {
+            rssi >= -50 -> "Excellent"
+            rssi >= -60 -> "Good" 
+            rssi >= -70 -> "Fair"
+            rssi >= -80 -> "Weak"
+            else -> "Very Weak"
+        }
+    }
+    
+    private fun getChannel(frequency: Int): Int {
+        return when {
+            frequency in 2412..2484 -> (frequency - 2412) / 5 + 1
+            frequency in 5170..5825 -> (frequency - 5000) / 5
+            else -> 0
+        }
+    }
+    
+    private fun estimateMaxSpeed(frequency: Int, rssi: Int): Int {
+        val baseSpeed = if (frequency > 5000) 866 else 150 // 5GHz vs 2.4GHz theoretical max
+        val signalFactor = when {
+            rssi >= -50 -> 1.0
+            rssi >= -60 -> 0.8
+            rssi >= -70 -> 0.6
+            rssi >= -80 -> 0.4
+            else -> 0.2
+        }
+        return (baseSpeed * signalFactor).toInt()
+    }
+}
+
+class NetworkMonitorCommandExecutor : CommandExecutor {
+    override suspend fun execute(
+        context: Context,
+        parameters: Map<String, String>,
+        arguments: List<String>
+    ): CommandResult {
+        val info = parameters["info"] ?: arguments.firstOrNull() ?: "traffic"
+        val hours = parameters["hours"]?.toIntOrNull() ?: 1
+        
+        val output = when (info) {
+            "traffic" -> getNetworkTraffic(context)
+            "bandwidth" -> getBandwidthInfo(context)
+            "quality" -> getNetworkQuality(context)
+            "history" -> getNetworkHistory(context, hours)
+            else -> "Unknown network monitoring type: $info"
+        }
+        
+        return CommandResult(
+            success = true,
+            output = output,
+            executionTimeMs = 0
+        )
+    }
+    
+    private fun getNetworkTraffic(context: Context): String {
+        return buildString {
+            appendLine("Network Traffic Monitoring:")
+            appendLine()
+            
+            try {
+                val totalRxBytes = android.net.TrafficStats.getTotalRxBytes()
+                val totalTxBytes = android.net.TrafficStats.getTotalTxBytes()
+                val mobileRxBytes = android.net.TrafficStats.getMobileRxBytes()
+                val mobileTxBytes = android.net.TrafficStats.getMobileTxBytes()
+                
+                appendLine("Total Data Usage:")
+                appendLine("  Downloaded: ${formatBytes(totalRxBytes)}")
+                appendLine("  Uploaded: ${formatBytes(totalTxBytes)}")
+                appendLine("  Total: ${formatBytes(totalRxBytes + totalTxBytes)}")
+                appendLine()
+                
+                appendLine("Mobile Data Usage:")
+                appendLine("  Downloaded: ${formatBytes(mobileRxBytes)}")
+                appendLine("  Uploaded: ${formatBytes(mobileTxBytes)}")
+                appendLine("  Total: ${formatBytes(mobileRxBytes + mobileTxBytes)}")
+                appendLine()
+                
+                val wifiRxBytes = totalRxBytes - mobileRxBytes
+                val wifiTxBytes = totalTxBytes - mobileTxBytes
+                appendLine("WiFi Data Usage:")
+                appendLine("  Downloaded: ${formatBytes(wifiRxBytes)}")
+                appendLine("  Uploaded: ${formatBytes(wifiTxBytes)}")
+                appendLine("  Total: ${formatBytes(wifiRxBytes + wifiTxBytes)}")
+                
+            } catch (e: Exception) {
+                appendLine("Error reading traffic statistics: ${e.message}")
+                appendLine("Note: This feature requires network usage access")
+            }
+        }
+    }
+    
+    private fun getBandwidthInfo(context: Context): String {
+        val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        
+        return buildString {
+            appendLine("Network Bandwidth Information:")
+            appendLine()
+            
+            val activeNetwork = connectivityManager.activeNetwork
+            val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+            
+            if (networkCapabilities != null) {
+                appendLine("Current Connection:")
+                
+                when {
+                    networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
+                        appendLine("  Type: WiFi")
+                        val wifiInfo = wifiManager.connectionInfo
+                        if (wifiInfo != null) {
+                            appendLine("  Link Speed: ${wifiInfo.linkSpeed} Mbps")
+                            appendLine("  Frequency: ${wifiInfo.frequency} MHz")
+                            appendLine("  Signal: ${wifiInfo.rssi} dBm")
+                            
+                            // Estimate available bandwidth based on signal quality
+                            val estimatedBandwidth = estimateBandwidth(wifiInfo.linkSpeed, wifiInfo.rssi)
+                            appendLine("  Estimated Available: ${estimatedBandwidth} Mbps")
+                        }
+                    }
+                    networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
+                        appendLine("  Type: Mobile Data")
+                        appendLine("  Estimated Speed: Variable (depends on signal and network)")
+                    }
+                    networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> {
+                        appendLine("  Type: Ethernet")
+                        appendLine("  Typical Speed: 100-1000 Mbps")
+                    }
+                }
+                
+                // Bandwidth utilization estimates
+                appendLine()
+                appendLine("Bandwidth Usage Guidelines:")
+                appendLine("  Video Streaming (4K): ~25 Mbps")
+                appendLine("  Video Streaming (HD): ~5 Mbps")
+                appendLine("  Video Calling: ~1-3 Mbps")
+                appendLine("  Web Browsing: ~1-5 Mbps")
+                appendLine("  File Downloads: Uses available bandwidth")
+                
+            } else {
+                appendLine("No active network connection")
+            }
+        }
+    }
+    
+    private fun getNetworkQuality(context: Context): String {
+        val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        
+        return buildString {
+            appendLine("Network Quality Assessment:")
+            appendLine()
+            
+            val activeNetwork = connectivityManager.activeNetwork
+            val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+            
+            if (activeNetwork != null && networkCapabilities != null) {
+                var qualityScore = 0
+                val qualityFactors = mutableListOf<String>()
+                
+                // Connection type assessment
+                when {
+                    networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
+                        appendLine("Connection Type: WiFi")
+                        val wifiInfo = wifiManager.connectionInfo
+                        
+                        if (wifiInfo != null) {
+                            // Signal strength assessment
+                            val signalScore = when {
+                                wifiInfo.rssi >= -50 -> { qualityFactors.add("Excellent signal strength"); 25 }
+                                wifiInfo.rssi >= -60 -> { qualityFactors.add("Good signal strength"); 20 }
+                                wifiInfo.rssi >= -70 -> { qualityFactors.add("Fair signal strength"); 15 }
+                                wifiInfo.rssi >= -80 -> { qualityFactors.add("Weak signal strength"); 10 }
+                                else -> { qualityFactors.add("Very weak signal strength"); 5 }
+                            }
+                            qualityScore += signalScore
+                            
+                            // Speed assessment
+                            val speedScore = when {
+                                wifiInfo.linkSpeed >= 100 -> { qualityFactors.add("High speed connection"); 25 }
+                                wifiInfo.linkSpeed >= 50 -> { qualityFactors.add("Good speed connection"); 20 }
+                                wifiInfo.linkSpeed >= 25 -> { qualityFactors.add("Moderate speed connection"); 15 }
+                                wifiInfo.linkSpeed >= 10 -> { qualityFactors.add("Basic speed connection"); 10 }
+                                else -> { qualityFactors.add("Low speed connection"); 5 }
+                            }
+                            qualityScore += speedScore
+                            
+                            // Frequency band assessment
+                            val freqScore = if (wifiInfo.frequency > 5000) {
+                                qualityFactors.add("5GHz band (less congested)")
+                                25
+                            } else {
+                                qualityFactors.add("2.4GHz band (more congested)")
+                                15
+                            }
+                            qualityScore += freqScore
+                        }
+                    }
+                    networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
+                        appendLine("Connection Type: Mobile Data")
+                        qualityFactors.add("Mobile data connection")
+                        qualityScore += 50 // Base score for mobile
+                    }
+                    networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> {
+                        appendLine("Connection Type: Ethernet")
+                        qualityFactors.add("Wired ethernet connection")
+                        qualityScore += 75 // High score for wired
+                    }
+                }
+                
+                // Capabilities assessment
+                if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
+                    qualityFactors.add("Internet connectivity validated")
+                    qualityScore += 25
+                }
+                
+                // Overall quality rating
+                val qualityRating = when {
+                    qualityScore >= 80 -> "Excellent"
+                    qualityScore >= 60 -> "Good"
+                    qualityScore >= 40 -> "Fair"
+                    qualityScore >= 20 -> "Poor"
+                    else -> "Very Poor"
+                }
+                
+                appendLine("Overall Quality: $qualityRating ($qualityScore/100)")
+                appendLine()
+                appendLine("Quality Factors:")
+                qualityFactors.forEach { factor ->
+                    appendLine("  • $factor")
+                }
+                
+                appendLine()
+                appendLine("Recommendations:")
+                when {
+                    qualityScore >= 80 -> appendLine("  ✓ Your connection quality is excellent")
+                    qualityScore >= 60 -> appendLine("  • Consider optimizing for even better performance")
+                    qualityScore >= 40 -> appendLine("  • Try moving closer to WiFi router or switching networks")
+                    else -> appendLine("  • Check network settings and consider alternative connections")
+                }
+                
+            } else {
+                appendLine("No active network connection")
+                appendLine("Quality: Not Available")
+            }
+        }
+    }
+    
+    private fun getNetworkHistory(context: Context, hours: Int): String {
+        return buildString {
+            appendLine("Network History (Last $hours hour${if (hours != 1) "s" else ""}):")
+            appendLine()
+            appendLine("Note: Detailed network history requires background monitoring.")
+            appendLine("This feature would track:")
+            appendLine("  • Connection changes and durations")
+            appendLine("  • Speed variations over time")
+            appendLine("  • Data usage patterns")
+            appendLine("  • Network quality metrics")
+            appendLine("  • Disconnection events")
+            appendLine()
+            appendLine("Current session summary:")
+            
+            try {
+                val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                val activeNetwork = connectivityManager.activeNetwork
+                
+                if (activeNetwork != null) {
+                    val networkInfo = connectivityManager.getNetworkInfo(activeNetwork)
+                    appendLine("  Active since: Session start")
+                    appendLine("  Connection type: ${networkInfo?.typeName}")
+                    appendLine("  Status: Connected")
+                } else {
+                    appendLine("  Status: Disconnected")
+                }
+            } catch (e: Exception) {
+                appendLine("  Unable to read network status: ${e.message}")
+            }
+        }
+    }
+    
+    private fun formatBytes(bytes: Long): String {
+        if (bytes < 0) return "Unknown"
+        
+        val units = arrayOf("B", "KB", "MB", "GB", "TB")
+        var value = bytes.toDouble()
+        var unitIndex = 0
+        
+        while (value >= 1024 && unitIndex < units.size - 1) {
+            value /= 1024
+            unitIndex++
+        }
+        
+        return String.format("%.2f %s", value, units[unitIndex])
+    }
+    
+    private fun estimateBandwidth(linkSpeed: Int, rssi: Int): Int {
+        val signalFactor = when {
+            rssi >= -50 -> 0.9
+            rssi >= -60 -> 0.7
+            rssi >= -70 -> 0.5
+            rssi >= -80 -> 0.3
+            else -> 0.1
+        }
+        return (linkSpeed * signalFactor).toInt()
+    }
+}
+
+class NetworkProfileCommandExecutor : CommandExecutor {
+    override suspend fun execute(
+        context: Context,
+        parameters: Map<String, String>,
+        arguments: List<String>
+    ): CommandResult {
+        val action = parameters["action"] ?: arguments.firstOrNull() ?: "list"
+        
+        val output = when (action) {
+            "list" -> listNetworkProfiles(context)
+            "create" -> createNetworkProfile(context, parameters)
+            "delete" -> deleteNetworkProfile(context, parameters)
+            "switch" -> switchNetworkProfile(context, parameters)
+            "export" -> exportNetworkProfile(context, parameters)
+            else -> "Unknown network profile action: $action"
+        }
+        
+        return CommandResult(
+            success = true,
+            output = output,
+            executionTimeMs = 0
+        )
+    }
+    
+    private fun listNetworkProfiles(context: Context): String {
+        return buildString {
+            appendLine("Network Profiles:")
+            appendLine()
+            appendLine("Note: Network profiles are a planned feature that would allow:")
+            appendLine("  • Saving complete network configurations")
+            appendLine("  • Quick switching between home/work/travel setups")
+            appendLine("  • Automatic network selection based on location")
+            appendLine("  • Backup and restore of network settings")
+            appendLine()
+            appendLine("Current Implementation Status:")
+            appendLine("  • Profile storage: Planned")
+            appendLine("  • Auto-switching: Planned") 
+            appendLine("  • Cloud sync: Planned")
+            appendLine()
+            appendLine("Available network configurations:")
+            
+            try {
+                val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+                val configuredNetworks = wifiManager.configuredNetworks
+                
+                if (!configuredNetworks.isNullOrEmpty()) {
+                    appendLine("  Saved WiFi networks: ${configuredNetworks.size}")
+                    configuredNetworks.take(3).forEach { config ->
+                        appendLine("    • ${config.SSID}")
+                    }
+                    if (configuredNetworks.size > 3) {
+                        appendLine("    • ... and ${configuredNetworks.size - 3} more")
+                    }
+                } else {
+                    appendLine("  No saved WiFi networks")
+                }
+            } catch (e: Exception) {
+                appendLine("  Unable to read network configurations")
+            }
+        }
+    }
+    
+    private fun createNetworkProfile(context: Context, parameters: Map<String, String>): String {
+        val name = parameters["name"] ?: return "Profile name is required"
+        val wifi = parameters["wifi"]
+        
+        return buildString {
+            appendLine("Creating Network Profile: $name")
+            appendLine()
+            appendLine("Configuration:")
+            appendLine("  Profile Name: $name")
+            if (wifi != null) {
+                appendLine("  WiFi Network: $wifi")
+            }
+            appendLine()
+            appendLine("Note: This feature requires implementation of:")
+            appendLine("  • Profile storage database")
+            appendLine("  • Configuration management")
+            appendLine("  • Network state persistence")
+            appendLine()
+            appendLine("Profile creation is simulated - use 'wificonfig saved' to see actual saved networks")
+        }
+    }
+    
+    private fun deleteNetworkProfile(context: Context, parameters: Map<String, String>): String {
+        val name = parameters["name"] ?: return "Profile name is required"
+        
+        return "Profile deletion simulated for: $name\nUse 'wificonfig forget --ssid=NetworkName' to remove actual saved networks"
+    }
+    
+    private fun switchNetworkProfile(context: Context, parameters: Map<String, String>): String {
+        val name = parameters["name"] ?: return "Profile name is required"
+        
+        return buildString {
+            appendLine("Switching to Network Profile: $name")
+            appendLine()
+            appendLine("This feature would:")
+            appendLine("  • Disconnect from current networks")
+            appendLine("  • Apply saved profile settings")
+            appendLine("  • Connect to profile's preferred networks")
+            appendLine("  • Configure network preferences")
+            appendLine()
+            appendLine("Current implementation: Use 'wifi connect --ssid=NetworkName' for manual connection")
+        }
+    }
+    
+    private fun exportNetworkProfile(context: Context, parameters: Map<String, String>): String {
+        val name = parameters["name"] ?: return "Profile name is required"
+        val file = parameters["file"] ?: "/sdcard/network_profile_$name.json"
+        
+        return buildString {
+            appendLine("Exporting Network Profile: $name")
+            appendLine("Export Location: $file")
+            appendLine()
+            appendLine("Export would include:")
+            appendLine("  • WiFi network configurations")
+            appendLine("  • Network preferences")
+            appendLine("  • Connection priorities")
+            appendLine("  • Security settings")
+            appendLine()
+            appendLine("Note: This is a simulated export.")
+            appendLine("Use 'wificonfig saved' to see current network configurations that would be exported.")
+        }
     }
 }
