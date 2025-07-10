@@ -8,6 +8,10 @@ import com.win11launcher.data.dao.CommandHistoryDao
 import com.win11launcher.data.dao.AIConversationDao
 import com.win11launcher.data.dao.SystemMonitoringDao
 import com.win11launcher.data.database.NotesDatabase
+import com.win11launcher.data.repositories.CommandLineRepository
+import com.win11launcher.command.CommandRegistry
+import com.win11launcher.command.CommandParser
+import com.win11launcher.command.CommandExecutionEngine
 import com.win11launcher.utils.ProfileImageManager
 import com.win11launcher.services.AIService
 import dagger.Module
@@ -62,5 +66,15 @@ object DatabaseModule {
     @Singleton
     fun provideAIService(@ApplicationContext context: Context): AIService {
         return AIService(context)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideCommandLineRepository(
+        commandHistoryDao: CommandHistoryDao,
+        aiConversationDao: AIConversationDao,
+        systemMonitoringDao: SystemMonitoringDao
+    ): CommandLineRepository {
+        return CommandLineRepository(commandHistoryDao, aiConversationDao, systemMonitoringDao)
     }
 }

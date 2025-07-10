@@ -283,18 +283,18 @@ object CommandRegistry {
 ## 📅 **Implementation Timeline**
 
 ### **Phase 1: Database Foundation (Week 1)**
-- [ ] Create database entities for command history, outputs, and AI conversations
-- [ ] Set up DAOs and repositories for core tables
-- [ ] Implement database migration from v13 to v14
-- [ ] Update existing CommandPrompt to persist history to database
-- [ ] Test database integration with current commands
+- [x] Create database entities for command history, outputs, and AI conversations
+- [x] Set up DAOs and repositories for core tables
+- [x] Implement database migration from v13 to v14
+- [x] Update existing CommandPrompt to persist history to database
+- [x] Test database integration with current commands
 
 ### **Phase 2: Command Infrastructure (Week 2)**
-- [ ] Create CommandRegistry and static command definitions
-- [ ] Implement command parsing and execution framework
-- [ ] Add command categories (NET, APP, FILE, AI, DEV, etc.)
-- [ ] Create base command interfaces and abstract classes
-- [ ] Implement enhanced autocomplete using static commands + usage stats
+- [x] Create CommandRegistry and static command definitions
+- [x] Implement command parsing and execution framework
+- [x] Add command categories (NET, APP, FILE, AI, DEV, etc.)
+- [x] Create base command interfaces and abstract classes
+- [x] Implement enhanced autocomplete using static commands + usage stats
 
 ### **Phase 3: System & Hardware Commands (Week 3)**
 - [ ] Implement Network Management commands (net scan, connect, disconnect)

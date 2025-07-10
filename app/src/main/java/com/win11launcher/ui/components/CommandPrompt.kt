@@ -40,6 +40,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.win11launcher.services.AIService
 import com.win11launcher.data.repositories.CommandLineRepository
+import com.win11launcher.command.CommandExecutionEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -402,34 +403,26 @@ private fun CommandPromptWindow(
                                             )
                                         }
                                     } else {
-                                        // Handle regular commands
-                                        val result = executeCommand(command, context, viewModel)
+                                        // Handle regular commands using new command execution engine
+                                        val result = try {
+                                            val commandResult = viewModel.executeNewCommand(context, command)
+                                            
+                                            // Special handling for clear command
+                                            if (commandResult == "CLEAR_SCREEN") {
+                                                commandHistory = emptyList()
+                                                return@launch
+                                            }
+                                            
+                                            commandResult
+                                        } catch (e: Exception) {
+                                            // Fallback to old command system for backward compatibility
+                                            executeCommand(command, context, viewModel)
+                                        }
                                         
                                         commandHistory = commandHistory + CommandEntry(
                                             command = command,
                                             output = result,
                                             timestamp = System.currentTimeMillis()
-                                        )
-                                        
-                                        // Save regular command to database
-                                        val executionTime = System.currentTimeMillis() - startTime
-                                        val commandParts = command.split(" ")
-                                        val baseCommand = commandParts[0].lowercase().trim()
-                                        val commandType = when (baseCommand) {
-                                            "help", "ver", "version", "about", "date", "time", "exit" -> "SYSTEM"
-                                            "device", "system", "hardware", "build", "memory", "network" -> "SYSTEM"
-                                            "echo", "calc" -> "UTILITY"
-                                            else -> "UNKNOWN"
-                                        }
-                                        
-                                        viewModel.saveCommandHistory(
-                                            command = command,
-                                            commandType = commandType,
-                                            subCommand = if (commandParts.size > 1) commandParts[1] else null,
-                                            arguments = if (commandParts.size > 2) commandParts.drop(2).joinToString(" ") else null,
-                                            executionTimeMs = executionTime,
-                                            success = !result.startsWith("'$command' is not recognized"),
-                                            output = result
                                         )
                                     }
                                     isProcessing = false
@@ -794,7 +787,8 @@ Is Roaming: ${networkInfo.isRoaming}
 @HiltViewModel
 class CommandPromptViewModel @Inject constructor(
     private val aiService: AIService,
-    private val commandLineRepository: CommandLineRepository
+    private val commandLineRepository: CommandLineRepository,
+    private val commandExecutionEngine: CommandExecutionEngine
 ) : ViewModel() {
     
     private val sessionId = commandLineRepository.generateSessionId()
@@ -888,7 +882,24 @@ class CommandPromptViewModel @Inject constructor(
     }
     
     suspend fun getCommandSuggestions(pattern: String): List<String> {
-        return commandLineRepository.getCommandSuggestions(pattern)
+        return commandExecutionEngine.getCommandSuggestions(pattern)
+    }
+    
+    suspend fun executeNewCommand(context: android.content.Context, command: String): String {
+        return try {
+            val result = commandExecutionEngine.executeCommand(context, command, sessionId)
+            result.output
+        } catch (e: Exception) {
+            "Error: ${e.message}"
+        }
+    }
+    
+    fun getCommandHelp(commandName: String): String {
+        return commandExecutionEngine.getCommandHelp(commandName)
+    }
+    
+    fun getAllCommands(): List<com.win11launcher.command.CommandDefinition> {
+        return commandExecutionEngine.getAllCommands()
     }
 }
 

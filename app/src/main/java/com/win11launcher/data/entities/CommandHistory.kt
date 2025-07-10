@@ -10,7 +10,11 @@ import androidx.room.Index
     indices = [
         Index(value = ["session_id"]),
         Index(value = ["command_type"]),
-        Index(value = ["timestamp"])
+        Index(value = ["timestamp"]),
+        Index(value = ["session_id", "timestamp"]),
+        Index(value = ["command_type", "success"]),
+        Index(value = ["timestamp", "success"]),
+        Index(value = ["command", "timestamp"])
     ]
 )
 data class CommandHistory(
