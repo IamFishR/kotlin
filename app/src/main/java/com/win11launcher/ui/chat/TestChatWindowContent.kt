@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import com.win11launcher.services.AIService
 import com.win11launcher.services.AIMemoryManager
 import com.win11launcher.data.database.NotesDatabase
+import kotlinx.coroutines.launch
 
 @Composable
 fun TestChatWindowContent() {
@@ -137,7 +138,7 @@ fun TestChatWindowContent() {
                 
                 Button(
                     onClick = {
-                        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                        coroutineScope.launch {
                             testViewModel.sendMessage()
                         }
                     },
