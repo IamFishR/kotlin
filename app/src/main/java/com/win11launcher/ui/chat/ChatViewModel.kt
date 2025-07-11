@@ -41,6 +41,9 @@ class ChatViewModel @Inject constructor(
     private val userId = "default_user" // In a real app, this would come from user session
     
     init {
+        println("🎯 ChatViewModel initialized")
+        println("🤖 AIService: $aiService")
+        println("🧠 AIMemoryManager: $aiMemoryManager")
         loadConversationHistory()
     }
     
@@ -51,6 +54,10 @@ class ChatViewModel @Inject constructor(
     fun sendMessage() {
         val currentMessage = _uiState.value.currentMessage.trim()
         if (currentMessage.isEmpty() || _uiState.value.isLoading) return
+        
+        println("🚀 Sending message: $currentMessage")
+        println("🤖 AIService: $aiService")
+        println("🧠 AIMemoryManager: $aiMemoryManager")
         
         viewModelScope.launch {
             try {
@@ -77,13 +84,15 @@ class ChatViewModel @Inject constructor(
                 )
                 
                 // Build context for AI
-                val context = aiMemoryManager.getConversationContext(
+                val conversationContext = aiMemoryManager.getConversationContext(
                     conversationId = _uiState.value.conversationId,
                     maxMessages = 20
                 )
                 
                 // Get AI response
-                val aiResponse = aiService.generateResponse(context)
+                println("📞 Calling AI service with context: $conversationContext")
+                val aiResponse = aiService.generateResponse(conversationContext)
+                println("📦 AI Response: success=${aiResponse.success}, error=${aiResponse.error}")
                 
                 _uiState.value = _uiState.value.copy(isTyping = false)
                 
@@ -122,6 +131,9 @@ class ChatViewModel @Inject constructor(
                 }
                 
             } catch (e: Exception) {
+                println("❌ ChatViewModel error: ${e.message}")
+                e.printStackTrace()
+                
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     isTyping = false,
@@ -130,7 +142,7 @@ class ChatViewModel @Inject constructor(
                 
                 // Add error message to chat
                 val errorMessage = ChatUiMessage(
-                    content = "Sorry, something went wrong. Please try again.",
+                    content = "Sorry, something went wrong: ${e.message}. Please try again.",
                     isUser = false
                 )
                 

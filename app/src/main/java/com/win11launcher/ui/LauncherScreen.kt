@@ -42,9 +42,9 @@ fun LauncherScreen() {
     val (windowRouter, windowManager) = remember {
         val windowManager = WindowManager()
         val router = WindowRouter(windowManager)
-        // Register chat content
+        // Register chat content - using test version for debugging
         router.registerContent("ai_chat") {
-            com.win11launcher.ui.chat.ChatWindowContent()
+            com.win11launcher.ui.chat.TestChatWindowContent()
         }
         Pair(router, windowManager)
     }
