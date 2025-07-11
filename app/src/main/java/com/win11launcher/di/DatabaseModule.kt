@@ -10,6 +10,7 @@ import com.win11launcher.data.dao.SystemMonitoringDao
 import com.win11launcher.data.dao.AIMemoryDao
 import com.win11launcher.data.database.NotesDatabase
 import com.win11launcher.data.repositories.CommandLineRepository
+import com.win11launcher.data.repositories.UserProfileRepository
 import com.win11launcher.data.database.DatabaseCleanupManager
 import com.win11launcher.command.CommandRegistry
 import com.win11launcher.command.CommandParser
@@ -140,9 +141,10 @@ object DatabaseModule {
     @Singleton
     fun provideAskCommandExecutor(
         aiService: AIService,
-        aiMemoryManager: AIMemoryManager
+        aiMemoryManager: AIMemoryManager,
+        userProfileRepository: UserProfileRepository
     ): AskCommandExecutor {
-        return AskCommandExecutor(aiService, aiMemoryManager)
+        return AskCommandExecutor(aiService, aiMemoryManager, userProfileRepository)
     }
     
     @Provides
@@ -164,9 +166,10 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideMemoryCommandExecutor(
-        aiMemoryManager: AIMemoryManager
+        aiMemoryManager: AIMemoryManager,
+        userProfileRepository: UserProfileRepository
     ): AIMemoryCommandExecutor {
-        return AIMemoryCommandExecutor(aiMemoryManager)
+        return AIMemoryCommandExecutor(aiMemoryManager, userProfileRepository)
     }
     
     @Provides

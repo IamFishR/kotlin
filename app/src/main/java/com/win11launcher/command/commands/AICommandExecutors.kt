@@ -5,6 +5,8 @@ import com.win11launcher.command.*
 import com.win11launcher.services.AIService
 import com.win11launcher.services.AIMemoryManager
 import com.win11launcher.services.AICommandInterpreter
+import com.win11launcher.data.repositories.UserProfileRepository
+import com.win11launcher.data.entities.UserProfile
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,8 +15,52 @@ import javax.inject.Singleton
 @Singleton
 class AskCommandExecutor @Inject constructor(
     private val aiService: AIService,
-    private val aiMemoryManager: AIMemoryManager
+    private val aiMemoryManager: AIMemoryManager,
+    private val userProfileRepository: UserProfileRepository
 ) : CommandExecutor {
+    
+    // Get current user profile for AI context
+    private suspend fun getCurrentUser(): UserProfile? {
+        return userProfileRepository.getUserProfileSync("default")
+    }
+    
+    private suspend fun getCurrentUserId(): String {
+        return getCurrentUser()?.id ?: "default"
+    }
+    
+    // Build AI prompt with user context for personalized responses
+    private fun buildUserAwarePrompt(question: String, userProfile: UserProfile?, conversationContext: String, memoryContext: String): String {
+        return buildString {
+            // Add user context for personalization
+            if (userProfile != null) {
+                appendLine("=== User Profile ===")
+                appendLine("Name: ${userProfile.username}")
+                if (userProfile.displayName.isNotEmpty()) {
+                    appendLine("Display Name: ${userProfile.displayName}")
+                }
+                if (userProfile.bio.isNotEmpty()) {
+                    appendLine("Bio: ${userProfile.bio}")
+                }
+                appendLine("Please address the user by their name (${userProfile.username}) and provide personalized responses.")
+                appendLine()
+            }
+            
+            if (conversationContext.isNotEmpty()) {
+                appendLine("=== Recent Conversation ===")
+                appendLine(conversationContext)
+                appendLine()
+            }
+            
+            if (memoryContext.isNotEmpty()) {
+                appendLine("=== Relevant Context ===")
+                appendLine(memoryContext)
+                appendLine()
+            }
+            
+            appendLine("=== Current Question ===")
+            append(question)
+        }
+    }
     
     override suspend fun execute(
         context: Context,
@@ -54,30 +100,19 @@ class AskCommandExecutor @Inject constructor(
                 messageType = "QUESTION"
             )
             
-            // Build context-aware prompt
+            // Get user profile for personalized context
+            val userProfile = getCurrentUser()
+            val userId = getCurrentUserId()
+            
+            // Build context-aware prompt with user information
             val prompt = if (useMemory) {
                 val contextHistory = aiMemoryManager.getConversationContext(conversationId, 10)
-                val relevantMemories = aiMemoryManager.retrieveRelevantMemories("USER_DEFAULT", question, 3)
+                val relevantMemories = aiMemoryManager.retrieveRelevantMemories(userId, question, 3)
                 val memoryContext = relevantMemories.joinToString("\n") { "- ${it.memoryText}" }
                 
-                buildString {
-                    if (contextHistory.isNotEmpty()) {
-                        appendLine("=== Recent Conversation ===")
-                        appendLine(contextHistory)
-                        appendLine()
-                    }
-                    
-                    if (memoryContext.isNotEmpty()) {
-                        appendLine("=== Relevant Context ===")
-                        appendLine(memoryContext)
-                        appendLine()
-                    }
-                    
-                    appendLine("=== Current Question ===")
-                    append(question)
-                }
+                buildUserAwarePrompt(question, userProfile, contextHistory, memoryContext)
             } else {
-                question
+                buildUserAwarePrompt(question, userProfile, "", "")
             }
             
             val aiResponse = aiService.generateResponse(prompt)
@@ -264,8 +299,14 @@ class AnalyzeCommandExecutor @Inject constructor(
 
 @Singleton
 class AIMemoryCommandExecutor @Inject constructor(
-    private val aiMemoryManager: AIMemoryManager
+    private val aiMemoryManager: AIMemoryManager,
+    private val userProfileRepository: UserProfileRepository
 ) : CommandExecutor {
+    
+    // Get current user ID for memory operations
+    private suspend fun getCurrentUserId(): String {
+        return userProfileRepository.getUserProfileSync("default")?.id ?: "default"
+    }
     
     override suspend fun execute(
         context: Context,
@@ -303,7 +344,8 @@ class AIMemoryCommandExecutor @Inject constructor(
     }
     
     private suspend fun showMemory(type: String?, query: String?): CommandResult {
-        val stats = aiMemoryManager.getMemoryStatistics("USER_DEFAULT")
+        val userId = getCurrentUserId()
+        val stats = aiMemoryManager.getMemoryStatistics(userId)
         
         val output = buildString {
             appendLine("=== AI Memory Status ===")
@@ -335,7 +377,8 @@ class AIMemoryCommandExecutor @Inject constructor(
             )
         }
         
-        val memories = aiMemoryManager.retrieveRelevantMemories("USER_DEFAULT", query, 10)
+        val userId = getCurrentUserId()
+        val memories = aiMemoryManager.retrieveRelevantMemories(userId, query, 10)
         
         val output = buildString {
             appendLine("=== Memory Search Results ===")
@@ -360,7 +403,8 @@ class AIMemoryCommandExecutor @Inject constructor(
     }
     
     private suspend fun showMemoryStats(): CommandResult {
-        val stats = aiMemoryManager.getMemoryStatistics("USER_DEFAULT")
+        val userId = getCurrentUserId()
+        val stats = aiMemoryManager.getMemoryStatistics(userId)
         
         val output = buildString {
             appendLine("=== Detailed Memory Statistics ===")
@@ -396,7 +440,8 @@ class AIMemoryCommandExecutor @Inject constructor(
     }
     
     private suspend fun performMemoryCleanup(): CommandResult {
-        aiMemoryManager.performMemoryMaintenance("USER_DEFAULT")
+        val userId = getCurrentUserId()
+        aiMemoryManager.performMemoryMaintenance(userId)
         
         return CommandResult(
             success = true,
@@ -406,7 +451,8 @@ class AIMemoryCommandExecutor @Inject constructor(
     }
     
     private suspend fun generateReflection(): CommandResult {
-        val reflectionId = aiMemoryManager.generateReflection("default_conversation", "USER_DEFAULT")
+        val userId = getCurrentUserId()
+        val reflectionId = aiMemoryManager.generateReflection("default_conversation", userId)
         
         return CommandResult(
             success = true,
