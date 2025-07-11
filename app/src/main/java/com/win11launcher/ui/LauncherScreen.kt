@@ -28,6 +28,7 @@ import com.win11launcher.utils.SystemStatusManager
 import com.win11launcher.utils.rememberWallpaperManager
 import com.win11launcher.navigation.WindowRouter
 import com.win11launcher.navigation.WindowDestination
+import com.win11launcher.navigation.WindowRouterHost
 import com.win11launcher.services.WindowManager
 
 @Composable
@@ -37,15 +38,15 @@ fun LauncherScreen() {
     val systemStatusManager = remember { SystemStatusManager(context) }
     val wallpaperManager = rememberWallpaperManager()
     
-    // Create WindowRouter manually for now
-    val windowRouter = remember {
+    // Create WindowRouter and WindowManager manually for now
+    val (windowRouter, windowManager) = remember {
         val windowManager = WindowManager()
         val router = WindowRouter(windowManager)
         // Register chat content
         router.registerContent("ai_chat") {
             com.win11launcher.ui.chat.ChatWindowContent()
         }
-        router
+        Pair(router, windowManager)
     }
     
     var showStartMenu by remember { mutableStateOf(false) }
@@ -186,10 +187,17 @@ fun LauncherScreen() {
                         showNotificationPanel = false
                     },
                     onAIClick = {
+                        println("🤖 AI Chat button clicked!")
                         showStartMenu = false
                         showNotificationPanel = false
                         showCommandPrompt = false
-                        windowRouter.navigateTo(WindowDestination.AIChat)
+                        try {
+                            windowRouter.navigateTo(WindowDestination.AIChat)
+                            println("🪟 Navigated to AI chat window")
+                        } catch (e: Exception) {
+                            println("❌ Error opening AI chat: ${e.message}")
+                            e.printStackTrace()
+                        }
                     }
                 )
             }
@@ -222,6 +230,13 @@ fun LauncherScreen() {
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = LayoutConstants.WORKING_AREA_PADDING_TOP)
+            )
+            
+            // Window Router Host - renders all open windows
+            WindowRouterHost(
+                windowRouter = windowRouter,
+                windowManager = windowManager,
+                modifier = Modifier.fillMaxSize()
             )
         }
     }
