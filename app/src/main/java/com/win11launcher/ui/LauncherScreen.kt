@@ -26,6 +26,9 @@ import com.win11launcher.ui.layout.*
 import com.win11launcher.ui.screens.SettingsScreen
 import com.win11launcher.utils.SystemStatusManager
 import com.win11launcher.utils.rememberWallpaperManager
+import com.win11launcher.navigation.WindowRouter
+import com.win11launcher.navigation.WindowDestination
+import com.win11launcher.services.WindowManager
 
 @Composable
 fun LauncherScreen() {
@@ -33,6 +36,17 @@ fun LauncherScreen() {
     val appRepository = remember { AppRepository(context) }
     val systemStatusManager = remember { SystemStatusManager(context) }
     val wallpaperManager = rememberWallpaperManager()
+    
+    // Create WindowRouter manually for now
+    val windowRouter = remember {
+        val windowManager = WindowManager()
+        val router = WindowRouter(windowManager)
+        // Register chat content
+        router.registerContent("ai_chat") {
+            com.win11launcher.ui.chat.ChatWindowContent()
+        }
+        router
+    }
     
     var showStartMenu by remember { mutableStateOf(false) }
     var showAllApps by remember { mutableStateOf(false) }
@@ -170,6 +184,12 @@ fun LauncherScreen() {
                     onTaskViewClick = {
                         showStartMenu = false
                         showNotificationPanel = false
+                    },
+                    onAIClick = {
+                        showStartMenu = false
+                        showNotificationPanel = false
+                        showCommandPrompt = false
+                        windowRouter.navigateTo(WindowDestination.AIChat)
                     }
                 )
             }

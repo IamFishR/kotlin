@@ -339,6 +339,7 @@ class WindowRouter @Inject constructor(
         registerDestination("file_manager", WindowDestination.FileManager)
         registerDestination("settings", WindowDestination.Settings)
         registerDestination("all_apps", WindowDestination.AllApps)
+        registerDestination("ai_chat", WindowDestination.AIChat)
     }
 }
 

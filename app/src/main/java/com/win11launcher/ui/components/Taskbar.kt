@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.res.painterResource
@@ -37,7 +38,8 @@ fun Taskbar(
     onStartClick: () -> Unit,
     onCommandClick: () -> Unit,
     onSystemTrayClick: () -> Unit,
-    onTaskViewClick: () -> Unit = {}
+    onTaskViewClick: () -> Unit = {},
+    onAIClick: () -> Unit = {}
 ) {
     Box(
         modifier = modifier
@@ -72,6 +74,10 @@ fun Taskbar(
                 
                 CommandButton(
                     onClick = onCommandClick
+                )
+                
+                AIButton(
+                    onClick = onAIClick
                 )
             }
             
@@ -213,6 +219,28 @@ private fun CommandButton(
             imageVector = Icons.Default.Terminal,
             contentDescription = "Command Prompt",
             tint = Color.White,
+            modifier = Modifier.size(18.dp)
+        )
+    }
+}
+
+@Composable
+private fun AIButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(LayoutConstants.SPACING_SMALL))
+            .background(Color.Transparent)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.Chat,
+            contentDescription = "AI Assistant",
+            tint = Color(0xFF00D4FF), // Distinctive AI blue color
             modifier = Modifier.size(18.dp)
         )
     }

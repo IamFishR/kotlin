@@ -1,6 +1,7 @@
 package com.win11launcher.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
@@ -106,6 +107,25 @@ sealed class WindowDestination {
         override val showInTaskbar: Boolean = true
         override val hasMenuBar: Boolean = false
         override val minimumSize: DpSize = DpSize(600.dp, 400.dp)
+        override val maximumSize: DpSize? = null
+    }
+    
+    /**
+     * AI Chat window
+     */
+    object AIChat : WindowDestination() {
+        override val windowId: String = "ai_chat"
+        override val title: String = "AI Assistant"
+        override val icon: ImageVector = Icons.AutoMirrored.Filled.Chat
+        override val defaultSize: DpSize = DpSize(800.dp, 700.dp)
+        override val isResizable: Boolean = true
+        override val isMinimizable: Boolean = true
+        override val isMaximizable: Boolean = true
+        override val isClosable: Boolean = true
+        override val alwaysOnTop: Boolean = false
+        override val showInTaskbar: Boolean = true
+        override val hasMenuBar: Boolean = false
+        override val minimumSize: DpSize = DpSize(500.dp, 400.dp)
         override val maximumSize: DpSize? = null
     }
     
